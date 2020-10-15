@@ -1,0 +1,63 @@
+--Auto Subset Sum [2, 3, 5, 7, 11]
+-------------------------------
+MODULE main
+VAR
+	row: 0..28;
+	column: 0..28;
+	junction: {pass, split};
+	dir: {dwn, diag};
+	flag: boolean;
+	sum: 0..29;
+	xsum: 0..29;
+
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+	init(sum) := 29;
+	init(xsum) := 29;
+
+
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 29;
+
+	--Flag turns on when row is 28
+	next(flag) := (next(row) = 28 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 2, 5, 10, 17
+	next(junction) :=
+					case
+						((next(row) = 0)|(next(row) = 2)|(next(row) = 5)|(next(row) = 10)|(next(row) = 17)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide direction for next move by to current junction
+	next(dir) :=
+					case
+						((row = 14) & (column = 4)): {dwn, diag};
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) :=
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 29;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+	--Pick random sum and xsum after initial state
+	next(sum) := (sum = 29 ? {0, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 25, 26, 28} : sum);
+	next(xsum) := (xsum = 29 ? {1, 4, 6, 22, 24, 27} : xsum);
+--Valid Network:	Spec returns true, the network always exits on a valid sum
+--Invalid Network:	Spec returns false, there exists a non-reachable valid sum. Counter-example shows one non-reachable valid sum
+CTLSPEC	NAME	csum := !(EX (AG ((flag = FALSE) | (!(column = sum)))));
+--Valid Network:	Spec returns true, there exists no path to an invalid sum
+--Invalid Network:	Spec returns false, there exists a path to an invalid sum. Counter-example shows one reachable invalid sum
+CTLSPEC	NAME	nsum := !(EF ((flag = TRUE) & (column = xsum)));

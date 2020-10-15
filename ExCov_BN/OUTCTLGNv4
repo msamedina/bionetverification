@@ -1,0 +1,12 @@
+-- specification EF ((useforceDwn = yes & flag = TRUE) & column = k)  is false
+-- as demonstrated by the following execution sequence
+Trace Description: CTL Counterexample 
+Trace Type: Counterexample 
+  -> State: 2.1 <-
+    row = 0
+    column = 0
+    junction = split
+    dir = dwn
+    flag = FALSE
+    useforceDwn = nil
+    k = 255

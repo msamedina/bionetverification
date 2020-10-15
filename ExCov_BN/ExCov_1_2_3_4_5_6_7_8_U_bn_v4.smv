@@ -1,0 +1,67 @@
+--Exact Cover
+--Universe:	[1, 2, 3, 4, 5, 6, 7, 8]	Bit Form:	11111111
+--Set of Subsets:	[[1, 4, 7], [1, 4], [4, 5, 7], [3, 5, 6], [2, 3, 6, 7], [2, 7], [4, 8], [3, 4, 5]]	Bit Form:	['01001001', '00001001', '01011000', '00110100', '01100110', '01000010', '10001000', '00011100']
+--This will be treated as k = 255 and ss = [73, 9, 88, 52, 102, 66, 136, 28]
+-------------------------------
+MODULE main
+DEFINE
+	k := 255;
+
+VAR
+	row: 0..554;
+	column: 0..554;
+	junction: {pass, split, forceDwn};
+	dir: {dwn, diag};
+	flag: boolean;
+	useforceDwn: {nil, yes, no};
+
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+	init(useforceDwn) := nil;
+
+
+	--Randomly choose to treat forceDwn junctions as split junctions
+	next(useforceDwn) := (useforceDwn = nil ? {yes, no} : useforceDwn);
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 555;
+
+	--Flag turns on when row is 554
+	next(flag) := (next(row) = 554 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 73, 82, 170, 222, 324, 390, 526 and forceDwn junctions at (r,c): (73,73) (82,73) (82,82) (222,73) (222,82) (222,161) (222,170) (222,125) (222,222) (324,73) (324,82) (324,161) (324,170) (324,125) (324,222) (324,175) (324,324) (390,73) (390,82) (390,161) (390,170) (390,125) (390,222) (390,175) (390,324) (390,139) (390,390) (526,73) (526,82) (526,161) (526,170) (526,125) (526,222) (526,175) (526,324) (526,139) (526,390) (526,209) (526,526) (82,9) (390,9) (390,97) (390,61) (390,149) (390,111) (390,251) (390,75) (390,317) (526,9) (526,97) (526,61) (526,149) (526,111) (526,251) (526,75) (526,317) (526,145) (526,453) (170,88) (222,88) (222,140) (324,88) (324,140) (324,190) (324,242) (390,88) (390,140) (390,190) (390,242) (390,154) (390,308) (526,88) (526,140) (526,190) (526,242) (526,154) (526,308) (526,224) (526,444) (222,52) (526,52) (526,154) (526,118) (526,220) (526,188) (526,356) (324,102) (526,102) (526,168) (526,238) (526,304) (526,136) 
+
+	next(junction) := 
+					case
+						((useforceDwn = yes)&(((next(row) = 73)&(next(column) = 73))|((next(row) = 82)&(next(column) = 73))|((next(row) = 82)&(next(column) = 82))|((next(row) = 222)&(next(column) = 73))|((next(row) = 222)&(next(column) = 82))|((next(row) = 222)&(next(column) = 161))|((next(row) = 222)&(next(column) = 170))|((next(row) = 222)&(next(column) = 125))|((next(row) = 222)&(next(column) = 222))|((next(row) = 324)&(next(column) = 73))|((next(row) = 324)&(next(column) = 82))|((next(row) = 324)&(next(column) = 161))|((next(row) = 324)&(next(column) = 170))|((next(row) = 324)&(next(column) = 125))|((next(row) = 324)&(next(column) = 222))|((next(row) = 324)&(next(column) = 175))|((next(row) = 324)&(next(column) = 324))|((next(row) = 390)&(next(column) = 73))|((next(row) = 390)&(next(column) = 82))|((next(row) = 390)&(next(column) = 161))|((next(row) = 390)&(next(column) = 170))|((next(row) = 390)&(next(column) = 125))|((next(row) = 390)&(next(column) = 222))|((next(row) = 390)&(next(column) = 175))|((next(row) = 390)&(next(column) = 324))|((next(row) = 390)&(next(column) = 139))|((next(row) = 390)&(next(column) = 390))|((next(row) = 526)&(next(column) = 73))|((next(row) = 526)&(next(column) = 82))|((next(row) = 526)&(next(column) = 161))|((next(row) = 526)&(next(column) = 170))|((next(row) = 526)&(next(column) = 125))|((next(row) = 526)&(next(column) = 222))|((next(row) = 526)&(next(column) = 175))|((next(row) = 526)&(next(column) = 324))|((next(row) = 526)&(next(column) = 139))|((next(row) = 526)&(next(column) = 390))|((next(row) = 526)&(next(column) = 209))|((next(row) = 526)&(next(column) = 526))|((next(row) = 82)&(next(column) = 9))|((next(row) = 390)&(next(column) = 9))|((next(row) = 390)&(next(column) = 97))|((next(row) = 390)&(next(column) = 61))|((next(row) = 390)&(next(column) = 149))|((next(row) = 390)&(next(column) = 111))|((next(row) = 390)&(next(column) = 251))|((next(row) = 390)&(next(column) = 75))|((next(row) = 390)&(next(column) = 317))|((next(row) = 526)&(next(column) = 9))|((next(row) = 526)&(next(column) = 97))|((next(row) = 526)&(next(column) = 61))|((next(row) = 526)&(next(column) = 149))|((next(row) = 526)&(next(column) = 111))|((next(row) = 526)&(next(column) = 251))|((next(row) = 526)&(next(column) = 75))|((next(row) = 526)&(next(column) = 317))|((next(row) = 526)&(next(column) = 145))|((next(row) = 526)&(next(column) = 453))|((next(row) = 170)&(next(column) = 88))|((next(row) = 222)&(next(column) = 88))|((next(row) = 222)&(next(column) = 140))|((next(row) = 324)&(next(column) = 88))|((next(row) = 324)&(next(column) = 140))|((next(row) = 324)&(next(column) = 190))|((next(row) = 324)&(next(column) = 242))|((next(row) = 390)&(next(column) = 88))|((next(row) = 390)&(next(column) = 140))|((next(row) = 390)&(next(column) = 190))|((next(row) = 390)&(next(column) = 242))|((next(row) = 390)&(next(column) = 154))|((next(row) = 390)&(next(column) = 308))|((next(row) = 526)&(next(column) = 88))|((next(row) = 526)&(next(column) = 140))|((next(row) = 526)&(next(column) = 190))|((next(row) = 526)&(next(column) = 242))|((next(row) = 526)&(next(column) = 154))|((next(row) = 526)&(next(column) = 308))|((next(row) = 526)&(next(column) = 224))|((next(row) = 526)&(next(column) = 444))|((next(row) = 222)&(next(column) = 52))|((next(row) = 526)&(next(column) = 52))|((next(row) = 526)&(next(column) = 154))|((next(row) = 526)&(next(column) = 118))|((next(row) = 526)&(next(column) = 220))|((next(row) = 526)&(next(column) = 188))|((next(row) = 526)&(next(column) = 356))|((next(row) = 324)&(next(column) = 102))|((next(row) = 526)&(next(column) = 102))|((next(row) = 526)&(next(column) = 168))|((next(row) = 526)&(next(column) = 238))|((next(row) = 526)&(next(column) = 304))|((next(row) = 526)&(next(column) = 136)))): forceDwn;
+						((next(row) = 0)|(next(row) = 73)|(next(row) = 82)|(next(row) = 170)|(next(row) = 222)|(next(row) = 324)|(next(row) = 390)|(next(row) = 526)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide next direction for move by to current junction
+	next(dir) := 
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						(junction = forceDwn): dwn;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) := 
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 554;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+
+LTLSPEC	NAME	ltl_k := G! ((useforceDwn = yes) & (flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k := EF ((useforceDwn = yes) & (flag = TRUE) & (column = k));
+LTLSPEC	NAME	ltl_k_bn := G! ((useforceDwn = no) & (flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k_bn := EF ((useforceDwn = no) & (flag = TRUE) & (column = k));

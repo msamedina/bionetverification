@@ -1,0 +1,581 @@
+--Exact Cover
+--Universe:	[1, 2, 3, 4]	Bit Form:	1111
+--Set of Subsets:	[[1, 2], [1, 3], [1, 3, 4], [1, 2, 3]]	Bit Form:	['1100', '1010', '1011', '1110']
+--This will be treated as k = 15 and ss = [12, 10, 11, 14]
+-------------------------------
+MODULE main
+DEFINE
+	k := 15;
+
+VAR
+	row: 0..47;
+	column: 0..47;
+	junction: {pass, split, forceDwn};
+	dir: {dwn, diag};
+	flag: boolean;
+	useforceDwn: {nil, yes, no};
+
+	tag: array 0..70 of boolean;
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+	init(useforceDwn) := nil;
+
+	init(tag[0]) := FALSE;		init(tag[1]) := FALSE;		init(tag[2]) := FALSE;		init(tag[3]) := FALSE;		init(tag[4]) := FALSE;
+	init(tag[5]) := FALSE;		init(tag[6]) := FALSE;		init(tag[7]) := FALSE;		init(tag[8]) := FALSE;		init(tag[9]) := FALSE;
+	init(tag[10]) := FALSE;		init(tag[11]) := FALSE;		init(tag[12]) := FALSE;		init(tag[13]) := FALSE;		init(tag[14]) := FALSE;
+	init(tag[15]) := FALSE;		init(tag[16]) := FALSE;		init(tag[17]) := FALSE;		init(tag[18]) := FALSE;		init(tag[19]) := FALSE;
+	init(tag[20]) := FALSE;		init(tag[21]) := FALSE;		init(tag[22]) := FALSE;		init(tag[23]) := FALSE;		init(tag[24]) := FALSE;
+	init(tag[25]) := FALSE;		init(tag[26]) := FALSE;		init(tag[27]) := FALSE;		init(tag[28]) := FALSE;		init(tag[29]) := FALSE;
+	init(tag[30]) := FALSE;		init(tag[31]) := FALSE;		init(tag[32]) := FALSE;		init(tag[33]) := FALSE;		init(tag[34]) := FALSE;
+	init(tag[35]) := FALSE;		init(tag[36]) := FALSE;		init(tag[37]) := FALSE;		init(tag[38]) := FALSE;		init(tag[39]) := FALSE;
+	init(tag[40]) := FALSE;		init(tag[41]) := FALSE;		init(tag[42]) := FALSE;		init(tag[43]) := FALSE;		init(tag[44]) := FALSE;
+	init(tag[45]) := FALSE;		init(tag[46]) := FALSE;		init(tag[47]) := FALSE;		init(tag[48]) := FALSE;		init(tag[49]) := FALSE;
+	init(tag[50]) := FALSE;		init(tag[51]) := FALSE;		init(tag[52]) := FALSE;		init(tag[53]) := FALSE;		init(tag[54]) := FALSE;
+	init(tag[55]) := FALSE;		init(tag[56]) := FALSE;		init(tag[57]) := FALSE;		init(tag[58]) := FALSE;		init(tag[59]) := FALSE;
+	init(tag[60]) := FALSE;		init(tag[61]) := FALSE;		init(tag[62]) := FALSE;		init(tag[63]) := FALSE;		init(tag[64]) := FALSE;
+	init(tag[65]) := FALSE;		init(tag[66]) := FALSE;		init(tag[67]) := FALSE;		init(tag[68]) := FALSE;		init(tag[69]) := FALSE;
+	init(tag[70]) := FALSE;
+
+
+	--Randomly choose to treat forceDwn junctions as split junctions
+	next(useforceDwn) := (useforceDwn = nil ? {yes, no} : useforceDwn);
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 48;
+
+	--Flag turns on when row is 47
+	next(flag) := (next(row) = 47 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 12, 22, 33 and forceDwn junctions at (r,c): (12,12) (22,12) (22,22) (33,12) (33,22) (33,23) (33,33) (22,10) (33,10) (33,21) (33,11) 
+
+	next(junction) := 
+					case
+						((useforceDwn = yes)&(((next(row) = 12)&(next(column) = 12))|((next(row) = 22)&(next(column) = 12))|((next(row) = 22)&(next(column) = 22))|((next(row) = 33)&(next(column) = 12))|((next(row) = 33)&(next(column) = 22))|((next(row) = 33)&(next(column) = 23))|((next(row) = 33)&(next(column) = 33))|((next(row) = 22)&(next(column) = 10))|((next(row) = 33)&(next(column) = 10))|((next(row) = 33)&(next(column) = 21))|((next(row) = 33)&(next(column) = 11)))): forceDwn;
+						((next(row) = 0)|(next(row) = 12)|(next(row) = 22)|(next(row) = 33)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide next direction for move by to current junction
+	next(dir) := 
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						(junction = forceDwn): dwn;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) := 
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 47;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+	--Set tag TRUE if curr row = split, dir is diag
+	next(tag[0]) := 
+					case
+						(row = 0) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[0];
+					esac;
+
+	next(tag[1]) := 
+					case
+						(row = 12) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[1];
+					esac;
+
+	next(tag[2]) := 
+					case
+						(row = 12) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[2];
+					esac;
+
+	next(tag[3]) := 
+					case
+						(row = 12) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[3];
+					esac;
+
+	next(tag[4]) := 
+					case
+						(row = 12) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[4];
+					esac;
+
+	next(tag[5]) := 
+					case
+						(row = 12) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[5];
+					esac;
+
+	next(tag[6]) := 
+					case
+						(row = 12) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[6];
+					esac;
+
+	next(tag[7]) := 
+					case
+						(row = 12) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[7];
+					esac;
+
+	next(tag[8]) := 
+					case
+						(row = 12) & (column = 7) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[8];
+					esac;
+
+	next(tag[9]) := 
+					case
+						(row = 12) & (column = 8) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[9];
+					esac;
+
+	next(tag[10]) := 
+					case
+						(row = 12) & (column = 9) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[10];
+					esac;
+
+	next(tag[11]) := 
+					case
+						(row = 12) & (column = 10) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[11];
+					esac;
+
+	next(tag[12]) := 
+					case
+						(row = 12) & (column = 11) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[12];
+					esac;
+
+	next(tag[13]) := 
+					case
+						(row = 12) & (column = 12) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[13];
+					esac;
+
+	next(tag[14]) := 
+					case
+						(row = 22) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[14];
+					esac;
+
+	next(tag[15]) := 
+					case
+						(row = 22) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[15];
+					esac;
+
+	next(tag[16]) := 
+					case
+						(row = 22) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[16];
+					esac;
+
+	next(tag[17]) := 
+					case
+						(row = 22) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[17];
+					esac;
+
+	next(tag[18]) := 
+					case
+						(row = 22) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[18];
+					esac;
+
+	next(tag[19]) := 
+					case
+						(row = 22) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[19];
+					esac;
+
+	next(tag[20]) := 
+					case
+						(row = 22) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[20];
+					esac;
+
+	next(tag[21]) := 
+					case
+						(row = 22) & (column = 7) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[21];
+					esac;
+
+	next(tag[22]) := 
+					case
+						(row = 22) & (column = 8) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[22];
+					esac;
+
+	next(tag[23]) := 
+					case
+						(row = 22) & (column = 9) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[23];
+					esac;
+
+	next(tag[24]) := 
+					case
+						(row = 22) & (column = 10) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[24];
+					esac;
+
+	next(tag[25]) := 
+					case
+						(row = 22) & (column = 11) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[25];
+					esac;
+
+	next(tag[26]) := 
+					case
+						(row = 22) & (column = 12) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[26];
+					esac;
+
+	next(tag[27]) := 
+					case
+						(row = 22) & (column = 13) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[27];
+					esac;
+
+	next(tag[28]) := 
+					case
+						(row = 22) & (column = 14) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[28];
+					esac;
+
+	next(tag[29]) := 
+					case
+						(row = 22) & (column = 15) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[29];
+					esac;
+
+	next(tag[30]) := 
+					case
+						(row = 22) & (column = 16) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[30];
+					esac;
+
+	next(tag[31]) := 
+					case
+						(row = 22) & (column = 17) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[31];
+					esac;
+
+	next(tag[32]) := 
+					case
+						(row = 22) & (column = 18) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[32];
+					esac;
+
+	next(tag[33]) := 
+					case
+						(row = 22) & (column = 19) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[33];
+					esac;
+
+	next(tag[34]) := 
+					case
+						(row = 22) & (column = 20) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[34];
+					esac;
+
+	next(tag[35]) := 
+					case
+						(row = 22) & (column = 21) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[35];
+					esac;
+
+	next(tag[36]) := 
+					case
+						(row = 22) & (column = 22) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[36];
+					esac;
+
+	next(tag[37]) := 
+					case
+						(row = 33) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[37];
+					esac;
+
+	next(tag[38]) := 
+					case
+						(row = 33) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[38];
+					esac;
+
+	next(tag[39]) := 
+					case
+						(row = 33) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[39];
+					esac;
+
+	next(tag[40]) := 
+					case
+						(row = 33) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[40];
+					esac;
+
+	next(tag[41]) := 
+					case
+						(row = 33) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[41];
+					esac;
+
+	next(tag[42]) := 
+					case
+						(row = 33) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[42];
+					esac;
+
+	next(tag[43]) := 
+					case
+						(row = 33) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[43];
+					esac;
+
+	next(tag[44]) := 
+					case
+						(row = 33) & (column = 7) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[44];
+					esac;
+
+	next(tag[45]) := 
+					case
+						(row = 33) & (column = 8) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[45];
+					esac;
+
+	next(tag[46]) := 
+					case
+						(row = 33) & (column = 9) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[46];
+					esac;
+
+	next(tag[47]) := 
+					case
+						(row = 33) & (column = 10) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[47];
+					esac;
+
+	next(tag[48]) := 
+					case
+						(row = 33) & (column = 11) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[48];
+					esac;
+
+	next(tag[49]) := 
+					case
+						(row = 33) & (column = 12) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[49];
+					esac;
+
+	next(tag[50]) := 
+					case
+						(row = 33) & (column = 13) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[50];
+					esac;
+
+	next(tag[51]) := 
+					case
+						(row = 33) & (column = 14) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[51];
+					esac;
+
+	next(tag[52]) := 
+					case
+						(row = 33) & (column = 15) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[52];
+					esac;
+
+	next(tag[53]) := 
+					case
+						(row = 33) & (column = 16) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[53];
+					esac;
+
+	next(tag[54]) := 
+					case
+						(row = 33) & (column = 17) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[54];
+					esac;
+
+	next(tag[55]) := 
+					case
+						(row = 33) & (column = 18) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[55];
+					esac;
+
+	next(tag[56]) := 
+					case
+						(row = 33) & (column = 19) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[56];
+					esac;
+
+	next(tag[57]) := 
+					case
+						(row = 33) & (column = 20) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[57];
+					esac;
+
+	next(tag[58]) := 
+					case
+						(row = 33) & (column = 21) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[58];
+					esac;
+
+	next(tag[59]) := 
+					case
+						(row = 33) & (column = 22) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[59];
+					esac;
+
+	next(tag[60]) := 
+					case
+						(row = 33) & (column = 23) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[60];
+					esac;
+
+	next(tag[61]) := 
+					case
+						(row = 33) & (column = 24) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[61];
+					esac;
+
+	next(tag[62]) := 
+					case
+						(row = 33) & (column = 25) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[62];
+					esac;
+
+	next(tag[63]) := 
+					case
+						(row = 33) & (column = 26) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[63];
+					esac;
+
+	next(tag[64]) := 
+					case
+						(row = 33) & (column = 27) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[64];
+					esac;
+
+	next(tag[65]) := 
+					case
+						(row = 33) & (column = 28) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[65];
+					esac;
+
+	next(tag[66]) := 
+					case
+						(row = 33) & (column = 29) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[66];
+					esac;
+
+	next(tag[67]) := 
+					case
+						(row = 33) & (column = 30) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[67];
+					esac;
+
+	next(tag[68]) := 
+					case
+						(row = 33) & (column = 31) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[68];
+					esac;
+
+	next(tag[69]) := 
+					case
+						(row = 33) & (column = 32) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[69];
+					esac;
+
+	next(tag[70]) := 
+					case
+						(row = 33) & (column = 33) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[70];
+					esac;
+
+LTLSPEC	NAME	ltl_k := G! ((useforceDwn = yes) & (flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k := EF ((useforceDwn = yes) & (flag = TRUE) & (column = k));
+LTLSPEC	NAME	ltl_k_bn := G! ((useforceDwn = no) & (flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k_bn := EF ((useforceDwn = no) & (flag = TRUE) & (column = k));
