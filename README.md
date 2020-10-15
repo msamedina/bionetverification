@@ -1,12 +1,9 @@
-# bio-comp-networks
-
-Parallel bio-computation device formal verification scripts
-
-Bionetverification is a tool used to model an verify the design of network-based biocomputation circuits for the SSP, ExCov and 3-SAT problems as part of the Bio4Comp project. All formal verification is run using the NuSMV model checker. Results of verification and their runtimes are saved in Excel files based on the provided template files.
+# bionetverification
+Bionetverification is a tool used to model and verify the design of network-based biocomputation circuits for the SSP, ExCov and 3-SAT problems as part of the Bio4Comp project. The tool generates network description files in SMV and then runs them in the NuSMV model checker. Results of verification and their runtimes are saved in Excel files based on the provided template files.
 
 Each run generates a new local directory that holds all generated smv files, output results, and excel data files.
 
-## 0. CONTENTS
+## 0. Contents
 1. Built With 
 2. Setup
 3. System Requirements
@@ -22,6 +19,7 @@ For scripts to run properly the following must be installed:
 ## 2. Setup
 ### Prerequisites
 Before running the scripts, run the following to make sure all prerequisites are installed. In order to install python packages, it is recommended to use pip.
+
 NOTE: sudo access may be necessary.
 
 * MiniSat SAT Solver
@@ -37,8 +35,8 @@ or
 pip3 install CNFgen openpyxl==3.0.1 pexpect scipy networkx
 ```
 * NuSMV
-It is recommended to download the [NuSMV Binaries]
-(http://nusmv.fbk.eu/NuSMV/download/getting_bin-v2.html).
+
+It is recommended to download the [NuSMV Binaries](http://nusmv.fbk.eu/NuSMV/download/getting_bin-v2.html).
 Extract binaries into directory of your choice. Add the directory to your command search PATH environment variable (X.Y.Z is the release number):
 ```sh
 export PATH=${PATH}:/your_directory/nusmv-X.Y.Z/bin
@@ -56,11 +54,10 @@ python3 bionetverification.py
 ```
 
 ## 3. System Requirements
-Bionetverification has been tested on systems running Linux distributions: Ubuntu 18.04.5 LTS, Ubuntu 20.04.1 LTS
-(There is also the computer on campus, but I can't get the specs at this point.)
-RAM: 4 GB
-Number of Cores: 2
-CPU freq: 1.30GHz
+Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS, Ubuntu 20.04.1 LTS)
+* RAM: 4 GB
+* Number of Cores: 2
+* CPU freq: 1.30GHz
 
 Scripts should be run using Python 3.
 
@@ -86,4 +83,4 @@ The tool generates random 3-SAT problems. The number of problems to be generated
 20 literals maximum
 
 ## 5. Additional Files
-Templates for Excel files are saved under `Templates`.
+Templates for Excel files are saved under `Template`.
