@@ -79,8 +79,8 @@ An input file with the problems to be looked at is necessary. Format of the inpu
 
 ### 3-SAT
 The tool generates random 3-SAT problems. The number of problems to be generated and the maximum number of literals are entered by the user when prompted. Example runs for SAT were run using the following input values:
-100 samples (number or problems)
-20 literals maximum
+* 10 samples (number or problems)
+* 20 literals maximum
 
 ## 5. Additional Files
 Templates for Excel files are saved under `Template`.
