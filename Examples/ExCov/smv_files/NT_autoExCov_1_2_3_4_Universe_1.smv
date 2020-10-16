@@ -1,0 +1,60 @@
+--Exact Cover
+--Universe:	[1, 2, 3, 4]	Bit Form:	1111
+--Set of Subsets:	[[1, 2], [1, 3], [1, 3, 4], [1, 2, 3]]	Bit Form:	['0011', '0101', '1101', '0111']
+--This will be treated as k = 15 and ss = [3, 5, 13, 7]
+-------------------------------
+MODULE main
+DEFINE
+	k := 15;
+
+VAR
+	row: 0..28;
+	column: 0..28;
+	junction: {pass, split, forceDwn};
+	dir: {dwn, diag};
+	flag: boolean;
+
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+
+
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 29;
+
+	--Flag turns on when row is 28
+	next(flag) := (next(row) = 28 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 3, 8, 21 and forceDwn junctions at (r,c): (3,3) (8,3) (8,8) (21,3) (21,8) (21,16) (21,21) (8,5) (21,5) (21,18) (21,13) 
+
+	next(junction) := 
+					case
+						(((next(row) = 3)&(next(column) = 3))|((next(row) = 8)&(next(column) = 3))|((next(row) = 8)&(next(column) = 8))|((next(row) = 21)&(next(column) = 3))|((next(row) = 21)&(next(column) = 8))|((next(row) = 21)&(next(column) = 16))|((next(row) = 21)&(next(column) = 21))|((next(row) = 8)&(next(column) = 5))|((next(row) = 21)&(next(column) = 5))|((next(row) = 21)&(next(column) = 18))|((next(row) = 21)&(next(column) = 13))): forceDwn;
+						((next(row) = 0)|(next(row) = 3)|(next(row) = 8)|(next(row) = 21)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide next direction for move by to current junction
+	next(dir) := 
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						(junction = forceDwn): dwn;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) := 
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 28;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+LTLSPEC	NAME	ltl_k := G! ((flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k := EF ((flag = TRUE) & (column = k));

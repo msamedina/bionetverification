@@ -1,0 +1,257 @@
+--Exact Cover
+--Universe:	[1, 2, 3, 4]	Bit Form:	1111
+--Set of Subsets:	[[2], [3], [1, 4], [2, 3]]	Bit Form:	['0010', '0100', '1001', '0110']
+--This will be treated as k = 15 and ss = [2, 4, 9, 6]
+-------------------------------
+MODULE main
+DEFINE
+	k := 15;
+
+VAR
+	row: 0..21;
+	column: 0..21;
+	junction: {pass, split, forceDwn};
+	dir: {dwn, diag};
+	flag: boolean;
+
+	tag: array 0..26 of boolean;
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+
+	init(tag[0]) := FALSE;		init(tag[1]) := FALSE;		init(tag[2]) := FALSE;		init(tag[3]) := FALSE;		init(tag[4]) := FALSE;
+	init(tag[5]) := FALSE;		init(tag[6]) := FALSE;		init(tag[7]) := FALSE;		init(tag[8]) := FALSE;		init(tag[9]) := FALSE;
+	init(tag[10]) := FALSE;		init(tag[11]) := FALSE;		init(tag[12]) := FALSE;		init(tag[13]) := FALSE;		init(tag[14]) := FALSE;
+	init(tag[15]) := FALSE;		init(tag[16]) := FALSE;		init(tag[17]) := FALSE;		init(tag[18]) := FALSE;		init(tag[19]) := FALSE;
+	init(tag[20]) := FALSE;		init(tag[21]) := FALSE;		init(tag[22]) := FALSE;		init(tag[23]) := FALSE;		init(tag[24]) := FALSE;
+	init(tag[25]) := FALSE;		init(tag[26]) := FALSE;
+
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 22;
+
+	--Flag turns on when row is 21
+	next(flag) := (next(row) = 21 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 2, 6, 15 and forceDwn junctions at (r,c): (15,2) (15,6) (15,11) (15,15) (15,4) (15,13) 
+
+	next(junction) := 
+					case
+						(((next(row) = 15)&(next(column) = 2))|((next(row) = 15)&(next(column) = 6))|((next(row) = 15)&(next(column) = 11))|((next(row) = 15)&(next(column) = 15))|((next(row) = 15)&(next(column) = 4))|((next(row) = 15)&(next(column) = 13))): forceDwn;
+						((next(row) = 0)|(next(row) = 2)|(next(row) = 6)|(next(row) = 15)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide next direction for move by to current junction
+	next(dir) := 
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						(junction = forceDwn): dwn;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) := 
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 21;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+	--Set tag TRUE if curr row = split, dir is diag
+	next(tag[0]) := 
+					case
+						(row = 0) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[0];
+					esac;
+
+	next(tag[1]) := 
+					case
+						(row = 2) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[1];
+					esac;
+
+	next(tag[2]) := 
+					case
+						(row = 2) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[2];
+					esac;
+
+	next(tag[3]) := 
+					case
+						(row = 2) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[3];
+					esac;
+
+	next(tag[4]) := 
+					case
+						(row = 6) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[4];
+					esac;
+
+	next(tag[5]) := 
+					case
+						(row = 6) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[5];
+					esac;
+
+	next(tag[6]) := 
+					case
+						(row = 6) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[6];
+					esac;
+
+	next(tag[7]) := 
+					case
+						(row = 6) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[7];
+					esac;
+
+	next(tag[8]) := 
+					case
+						(row = 6) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[8];
+					esac;
+
+	next(tag[9]) := 
+					case
+						(row = 6) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[9];
+					esac;
+
+	next(tag[10]) := 
+					case
+						(row = 6) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[10];
+					esac;
+
+	next(tag[11]) := 
+					case
+						(row = 15) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[11];
+					esac;
+
+	next(tag[12]) := 
+					case
+						(row = 15) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[12];
+					esac;
+
+	next(tag[13]) := 
+					case
+						(row = 15) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[13];
+					esac;
+
+	next(tag[14]) := 
+					case
+						(row = 15) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[14];
+					esac;
+
+	next(tag[15]) := 
+					case
+						(row = 15) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[15];
+					esac;
+
+	next(tag[16]) := 
+					case
+						(row = 15) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[16];
+					esac;
+
+	next(tag[17]) := 
+					case
+						(row = 15) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[17];
+					esac;
+
+	next(tag[18]) := 
+					case
+						(row = 15) & (column = 7) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[18];
+					esac;
+
+	next(tag[19]) := 
+					case
+						(row = 15) & (column = 8) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[19];
+					esac;
+
+	next(tag[20]) := 
+					case
+						(row = 15) & (column = 9) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[20];
+					esac;
+
+	next(tag[21]) := 
+					case
+						(row = 15) & (column = 10) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[21];
+					esac;
+
+	next(tag[22]) := 
+					case
+						(row = 15) & (column = 11) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[22];
+					esac;
+
+	next(tag[23]) := 
+					case
+						(row = 15) & (column = 12) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[23];
+					esac;
+
+	next(tag[24]) := 
+					case
+						(row = 15) & (column = 13) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[24];
+					esac;
+
+	next(tag[25]) := 
+					case
+						(row = 15) & (column = 14) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[25];
+					esac;
+
+	next(tag[26]) := 
+					case
+						(row = 15) & (column = 15) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[26];
+					esac;
+
+LTLSPEC	NAME	ltl_k := G! ((flag = TRUE) & (column = k));
+CTLSPEC	NAME	ctl_k := EF ((flag = TRUE) & (column = k));
