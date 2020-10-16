@@ -1,0 +1,232 @@
+--Michelle Aluf Medina,	16-10-2020
+--SAT Problem
+--19 Clauses and 6 Variables: [[1, 2, 6], [2, -5, 6], [3, 4, 6], [-2, 3, 5], [3, -5, -6], [-1, 4, 6], [2, 3, 4], [-1, -4, 6], [-1, 4, 5], [4, -5, -6], [2, -3, -4], [-1, -2, -6], [-2, 3, -4], [-1, 4, -5], [-3, 4, 5], [-3, -4, -5], [2, 3, 6], [2, -3, 5], [-3, 4, -6]]
+-------------------------------
+MODULE main
+VAR
+	junction: {varble, clause};
+	dir: {left, right, dwn};
+	vari: 0..6;
+	clau: 0..19;
+	varval: boolean;
+
+	tag: array 1..19 of 0..3;
+	flag: boolean;
+
+ASSIGN
+	init(junction) := varble;
+	init(dir) := dwn;
+	init(vari) := 1;
+	init(clau) := 0;
+	init(varval) := FALSE;
+	init(flag) := FALSE;
+	init(tag[1]) := 0;		init(tag[2]) := 0;		init(tag[3]) := 0;		init(tag[4]) := 0;		init(tag[5]) := 0;		init(tag[6]) := 0;		init(tag[7]) := 0;		init(tag[8]) := 0;		init(tag[9]) := 0;		init(tag[10]) := 0;		init(tag[11]) := 0;		init(tag[12]) := 0;		init(tag[13]) := 0;		init(tag[14]) := 0;		init(tag[15]) := 0;		init(tag[16]) := 0;		init(tag[17]) := 0;		init(tag[18]) := 0;		init(tag[19]) := 0;
+
+
+
+	--Change junction type according to next clau value
+	next(junction) := (next(clau) = 0 ? varble : clause);
+
+	--Decide next direction by current junction type
+	next(dir) := 
+					case
+						(junction = varble): {left, right};
+						(junction = clause): dwn;
+						TRUE: {left, right, dwn};
+					esac;
+
+	--Change vari when reaching 'varble' junction
+	next(vari) := (next(junction) = varble) ? ((vari + 1) mod 7) : vari;
+
+	--Change varval after direction taken from varble junction
+	next(varval) := 
+					case
+						(next(dir) = left): TRUE;
+						(next(dir) = right): FALSE;
+						TRUE: varval;
+					esac;
+
+	--Change clau by the CNF (vari and varval)
+	next(clau) := 
+					case
+						(vari = 1 & next(varval) = TRUE & clau < 1) | (vari = 2 & next(varval) = TRUE & clau < 1) | (vari = 6 & next(varval) = TRUE & clau < 1): 1;
+						(vari = 2 & next(varval) = TRUE & clau < 2) | (vari = 5 & next(varval) = FALSE & clau < 2) | (vari = 6 & next(varval) = TRUE & clau < 2): 2;
+						(vari = 3 & next(varval) = TRUE & clau < 3) | (vari = 4 & next(varval) = TRUE & clau < 3) | (vari = 6 & next(varval) = TRUE & clau < 3): 3;
+						(vari = 2 & next(varval) = FALSE & clau < 4) | (vari = 3 & next(varval) = TRUE & clau < 4) | (vari = 5 & next(varval) = TRUE & clau < 4): 4;
+						(vari = 3 & next(varval) = TRUE & clau < 5) | (vari = 5 & next(varval) = FALSE & clau < 5) | (vari = 6 & next(varval) = FALSE & clau < 5): 5;
+						(vari = 1 & next(varval) = FALSE & clau < 6) | (vari = 4 & next(varval) = TRUE & clau < 6) | (vari = 6 & next(varval) = TRUE & clau < 6): 6;
+						(vari = 2 & next(varval) = TRUE & clau < 7) | (vari = 3 & next(varval) = TRUE & clau < 7) | (vari = 4 & next(varval) = TRUE & clau < 7): 7;
+						(vari = 1 & next(varval) = FALSE & clau < 8) | (vari = 4 & next(varval) = FALSE & clau < 8) | (vari = 6 & next(varval) = TRUE & clau < 8): 8;
+						(vari = 1 & next(varval) = FALSE & clau < 9) | (vari = 4 & next(varval) = TRUE & clau < 9) | (vari = 5 & next(varval) = TRUE & clau < 9): 9;
+						(vari = 4 & next(varval) = TRUE & clau < 10) | (vari = 5 & next(varval) = FALSE & clau < 10) | (vari = 6 & next(varval) = FALSE & clau < 10): 10;
+						(vari = 2 & next(varval) = TRUE & clau < 11) | (vari = 3 & next(varval) = FALSE & clau < 11) | (vari = 4 & next(varval) = FALSE & clau < 11): 11;
+						(vari = 1 & next(varval) = FALSE & clau < 12) | (vari = 2 & next(varval) = FALSE & clau < 12) | (vari = 6 & next(varval) = FALSE & clau < 12): 12;
+						(vari = 2 & next(varval) = FALSE & clau < 13) | (vari = 3 & next(varval) = TRUE & clau < 13) | (vari = 4 & next(varval) = FALSE & clau < 13): 13;
+						(vari = 1 & next(varval) = FALSE & clau < 14) | (vari = 4 & next(varval) = TRUE & clau < 14) | (vari = 5 & next(varval) = FALSE & clau < 14): 14;
+						(vari = 3 & next(varval) = FALSE & clau < 15) | (vari = 4 & next(varval) = TRUE & clau < 15) | (vari = 5 & next(varval) = TRUE & clau < 15): 15;
+						(vari = 3 & next(varval) = FALSE & clau < 16) | (vari = 4 & next(varval) = FALSE & clau < 16) | (vari = 5 & next(varval) = FALSE & clau < 16): 16;
+						(vari = 2 & next(varval) = TRUE & clau < 17) | (vari = 3 & next(varval) = TRUE & clau < 17) | (vari = 6 & next(varval) = TRUE & clau < 17): 17;
+						(vari = 2 & next(varval) = TRUE & clau < 18) | (vari = 3 & next(varval) = FALSE & clau < 18) | (vari = 5 & next(varval) = TRUE & clau < 18): 18;
+						(vari = 3 & next(varval) = FALSE & clau < 19) | (vari = 4 & next(varval) = TRUE & clau < 19) | (vari = 6 & next(varval) = FALSE & clau < 19): 19;
+						TRUE: 0;
+					esac;
+
+	--Flag is TRUE when reaching the end of the network
+	next(flag) := (next(vari) = 0 ? TRUE : FALSE);
+
+	--Increase tag counter if clause was satistifed
+	--C1
+	next(tag[1]) :=
+					case
+						(clau = 1): (tag[1] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[1];
+					esac;
+
+	--C2
+	next(tag[2]) :=
+					case
+						(clau = 2): (tag[2] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[2];
+					esac;
+
+	--C3
+	next(tag[3]) :=
+					case
+						(clau = 3): (tag[3] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[3];
+					esac;
+
+	--C4
+	next(tag[4]) :=
+					case
+						(clau = 4): (tag[4] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[4];
+					esac;
+
+	--C5
+	next(tag[5]) :=
+					case
+						(clau = 5): (tag[5] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[5];
+					esac;
+
+	--C6
+	next(tag[6]) :=
+					case
+						(clau = 6): (tag[6] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[6];
+					esac;
+
+	--C7
+	next(tag[7]) :=
+					case
+						(clau = 7): (tag[7] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[7];
+					esac;
+
+	--C8
+	next(tag[8]) :=
+					case
+						(clau = 8): (tag[8] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[8];
+					esac;
+
+	--C9
+	next(tag[9]) :=
+					case
+						(clau = 9): (tag[9] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[9];
+					esac;
+
+	--C10
+	next(tag[10]) :=
+					case
+						(clau = 10): (tag[10] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[10];
+					esac;
+
+	--C11
+	next(tag[11]) :=
+					case
+						(clau = 11): (tag[11] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[11];
+					esac;
+
+	--C12
+	next(tag[12]) :=
+					case
+						(clau = 12): (tag[12] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[12];
+					esac;
+
+	--C13
+	next(tag[13]) :=
+					case
+						(clau = 13): (tag[13] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[13];
+					esac;
+
+	--C14
+	next(tag[14]) :=
+					case
+						(clau = 14): (tag[14] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[14];
+					esac;
+
+	--C15
+	next(tag[15]) :=
+					case
+						(clau = 15): (tag[15] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[15];
+					esac;
+
+	--C16
+	next(tag[16]) :=
+					case
+						(clau = 16): (tag[16] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[16];
+					esac;
+
+	--C17
+	next(tag[17]) :=
+					case
+						(clau = 17): (tag[17] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[17];
+					esac;
+
+	--C18
+	next(tag[18]) :=
+					case
+						(clau = 18): (tag[18] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[18];
+					esac;
+
+	--C19
+	next(tag[19]) :=
+					case
+						(clau = 19): (tag[19] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[19];
+					esac;
+
+-----SPECS-----
+LTLSPEC	NAME	ltl_all_c := G! ((flag = TRUE) & (tag[1] > 0) & (tag[2] > 0) & (tag[3] > 0) & (tag[4] > 0) & (tag[5] > 0) & (tag[6] > 0) & (tag[7] > 0) & (tag[8] > 0) & (tag[9] > 0) & (tag[10] > 0) & (tag[11] > 0) & (tag[12] > 0) & (tag[13] > 0) & (tag[14] > 0) & (tag[15] > 0) & (tag[16] > 0) & (tag[17] > 0) & (tag[18] > 0) & (tag[19] > 0));
+CTLSPEC	NAME	ctl_all_c := EF ((flag = TRUE) & (tag[1] > 0) & (tag[2] > 0) & (tag[3] > 0) & (tag[4] > 0) & (tag[5] > 0) & (tag[6] > 0) & (tag[7] > 0) & (tag[8] > 0) & (tag[9] > 0) & (tag[10] > 0) & (tag[11] > 0) & (tag[12] > 0) & (tag[13] > 0) & (tag[14] > 0) & (tag[15] > 0) & (tag[16] > 0) & (tag[17] > 0) & (tag[18] > 0) & (tag[19] > 0));

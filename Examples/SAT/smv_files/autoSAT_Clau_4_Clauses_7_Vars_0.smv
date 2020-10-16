@@ -1,0 +1,97 @@
+--Michelle Aluf Medina,	16-10-2020
+--SAT Problem
+--4 Clauses and 7 Variables: [[5, -6, -8], [4, 2, 1], [3, -5, 4], [-3, -5, 4]]
+-------------------------------
+MODULE main
+VAR
+	junction: {varble, clause};
+	dir: {left, right, dwn};
+	vari: 0..7;
+	clau: 0..4;
+	varval: boolean;
+
+	tag: array 1..4 of 0..3;
+	flag: boolean;
+
+ASSIGN
+	init(junction) := varble;
+	init(dir) := dwn;
+	init(vari) := 1;
+	init(clau) := 0;
+	init(varval) := FALSE;
+	init(flag) := FALSE;
+	init(tag[1]) := 0;		init(tag[2]) := 0;		init(tag[3]) := 0;		init(tag[4]) := 0;
+
+
+
+	--Change junction type according to next clau value
+	next(junction) := (next(clau) = 0 ? varble : clause);
+
+	--Decide next direction by current junction type
+	next(dir) := 
+					case
+						(junction = varble): {left, right};
+						(junction = clause): dwn;
+						TRUE: {left, right, dwn};
+					esac;
+
+	--Change vari when reaching 'varble' junction
+	next(vari) := (next(junction) = varble) ? ((vari + 1) mod 8) : vari;
+
+	--Change varval after direction taken from varble junction
+	next(varval) := 
+					case
+						(next(dir) = left): TRUE;
+						(next(dir) = right): FALSE;
+						TRUE: varval;
+					esac;
+
+	--Change clau by the CNF (vari and varval)
+	next(clau) := 
+					case
+						(vari = 5 & next(varval) = TRUE & clau < 1) | (vari = 6 & next(varval) = FALSE & clau < 1) | (vari = 8 & next(varval) = FALSE & clau < 1): 1;
+						(vari = 4 & next(varval) = TRUE & clau < 2) | (vari = 2 & next(varval) = TRUE & clau < 2) | (vari = 1 & next(varval) = TRUE & clau < 2): 2;
+						(vari = 3 & next(varval) = TRUE & clau < 3) | (vari = 5 & next(varval) = FALSE & clau < 3) | (vari = 4 & next(varval) = TRUE & clau < 3): 3;
+						(vari = 3 & next(varval) = FALSE & clau < 4) | (vari = 5 & next(varval) = FALSE & clau < 4) | (vari = 4 & next(varval) = TRUE & clau < 4): 4;
+						TRUE: 0;
+					esac;
+
+	--Flag is TRUE when reaching the end of the network
+	next(flag) := (next(vari) = 0 ? TRUE : FALSE);
+
+	--Increase tag counter if clause was satistifed
+	--C1
+	next(tag[1]) :=
+					case
+						(clau = 1): (tag[1] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[1];
+					esac;
+
+	--C2
+	next(tag[2]) :=
+					case
+						(clau = 2): (tag[2] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[2];
+					esac;
+
+	--C3
+	next(tag[3]) :=
+					case
+						(clau = 3): (tag[3] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[3];
+					esac;
+
+	--C4
+	next(tag[4]) :=
+					case
+						(clau = 4): (tag[4] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[4];
+					esac;
+
+-----SPECS-----
+LTLSPEC	NAME	ltl_all_c := G! ((flag = TRUE) & (tag[1] > 0) & (tag[2] > 0) & (tag[3] > 0) & (tag[4] > 0));
+CTLSPEC	NAME	ctl_all_c := EF ((flag = TRUE) & (tag[1] > 0) & (tag[2] > 0) & (tag[3] > 0) & (tag[4] > 0));

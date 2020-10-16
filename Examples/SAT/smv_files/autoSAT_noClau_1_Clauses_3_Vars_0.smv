@@ -1,0 +1,61 @@
+--Michelle Aluf Medina,	16-10-2020
+--SAT Problem
+--1 Clauses and 3 Variables: [[3, 2, -1]]
+-------------------------------
+MODULE main
+VAR
+	junction: {varble, clause};
+	dir: {left, right, dwn};
+	vari: 0..3;
+	varval: boolean;
+
+	tag: array 1..1 of 0..3;
+	flag: boolean;
+
+ASSIGN
+	init(junction) := varble;
+	init(dir) := dwn;
+	init(vari) := 1;
+	init(varval) := FALSE;
+	init(flag) := FALSE;
+	init(tag[1]) := 0;
+
+
+
+	--Change junction type according to next clau value
+	next(junction) := (junction = varble ? clause : varble);
+
+	--Decide next direction by current junction type
+	next(dir) := 
+					case
+						(junction = varble): {left, right};
+						(junction = clause): dwn;
+						TRUE: {left, right, dwn};
+					esac;
+
+	--Change vari when reaching 'varble' junction
+	next(vari) := (next(junction) = varble) ? ((vari + 1) mod 4) : vari;
+
+	--Change varval after direction taken from varble junction
+	next(varval) := 
+					case
+						(next(dir) = left): TRUE;
+						(next(dir) = right): FALSE;
+						TRUE: varval;
+					esac;
+
+	--Flag is TRUE when reaching the end of the network
+	next(flag) := (next(vari) = 0 ? TRUE : FALSE);
+
+	--Increase tag counter if clause was satistifed
+	--C1
+	next(tag[1]) :=
+					case
+						(junction = clause) & ((vari = 3 & next(varval) = TRUE) | (vari = 2 & next(varval) = TRUE) | (vari = 1 & next(varval) = FALSE)): (tag[1] + 1) mod  4;
+						(flag = TRUE): 0;
+						TRUE: tag[1];
+					esac;
+
+-----SPECS-----
+LTLSPEC	NAME	ltl_all_c := G! ((flag = TRUE) & (tag[1] > 0));
+CTLSPEC	NAME	ctl_all_c := EF ((flag = TRUE) & (tag[1] > 0));
