@@ -1,0 +1,106 @@
+--Auto Subset Sum [2, 3, 5, 7, 11]
+-------------------------------
+MODULE main
+VAR
+	row: 0..28;
+	column: 0..28;
+	junction: {pass, split};
+	dir: {dwn, diag};
+	flag: boolean;
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+
+
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 29;
+
+	--Flag turns on when row is 28
+	next(flag) := (next(row) = 28 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 2, 5, 10, 17
+	next(junction) :=
+					case
+						((next(row) = 0)|(next(row) = 2)|(next(row) = 5)|(next(row) = 10)|(next(row) = 17)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide direction for next move by to current junction
+	next(dir) :=
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) :=
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 29;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+LTLSPEC	NAME	ltl_0 := G! ((flag = TRUE) & (column = 0));
+CTLSPEC	NAME	ctl_0 := EF ((flag = TRUE) & (column = 0));
+LTLSPEC	NAME	ltl_1 := G! ((flag = TRUE) & (column = 1));
+CTLSPEC	NAME	ctl_1 := EF ((flag = TRUE) & (column = 1));
+LTLSPEC	NAME	ltl_2 := G! ((flag = TRUE) & (column = 2));
+CTLSPEC	NAME	ctl_2 := EF ((flag = TRUE) & (column = 2));
+LTLSPEC	NAME	ltl_3 := G! ((flag = TRUE) & (column = 3));
+CTLSPEC	NAME	ctl_3 := EF ((flag = TRUE) & (column = 3));
+LTLSPEC	NAME	ltl_4 := G! ((flag = TRUE) & (column = 4));
+CTLSPEC	NAME	ctl_4 := EF ((flag = TRUE) & (column = 4));
+LTLSPEC	NAME	ltl_5 := G! ((flag = TRUE) & (column = 5));
+CTLSPEC	NAME	ctl_5 := EF ((flag = TRUE) & (column = 5));
+LTLSPEC	NAME	ltl_6 := G! ((flag = TRUE) & (column = 6));
+CTLSPEC	NAME	ctl_6 := EF ((flag = TRUE) & (column = 6));
+LTLSPEC	NAME	ltl_7 := G! ((flag = TRUE) & (column = 7));
+CTLSPEC	NAME	ctl_7 := EF ((flag = TRUE) & (column = 7));
+LTLSPEC	NAME	ltl_8 := G! ((flag = TRUE) & (column = 8));
+CTLSPEC	NAME	ctl_8 := EF ((flag = TRUE) & (column = 8));
+LTLSPEC	NAME	ltl_9 := G! ((flag = TRUE) & (column = 9));
+CTLSPEC	NAME	ctl_9 := EF ((flag = TRUE) & (column = 9));
+LTLSPEC	NAME	ltl_10 := G! ((flag = TRUE) & (column = 10));
+CTLSPEC	NAME	ctl_10 := EF ((flag = TRUE) & (column = 10));
+LTLSPEC	NAME	ltl_11 := G! ((flag = TRUE) & (column = 11));
+CTLSPEC	NAME	ctl_11 := EF ((flag = TRUE) & (column = 11));
+LTLSPEC	NAME	ltl_12 := G! ((flag = TRUE) & (column = 12));
+CTLSPEC	NAME	ctl_12 := EF ((flag = TRUE) & (column = 12));
+LTLSPEC	NAME	ltl_13 := G! ((flag = TRUE) & (column = 13));
+CTLSPEC	NAME	ctl_13 := EF ((flag = TRUE) & (column = 13));
+LTLSPEC	NAME	ltl_14 := G! ((flag = TRUE) & (column = 14));
+CTLSPEC	NAME	ctl_14 := EF ((flag = TRUE) & (column = 14));
+LTLSPEC	NAME	ltl_15 := G! ((flag = TRUE) & (column = 15));
+CTLSPEC	NAME	ctl_15 := EF ((flag = TRUE) & (column = 15));
+LTLSPEC	NAME	ltl_16 := G! ((flag = TRUE) & (column = 16));
+CTLSPEC	NAME	ctl_16 := EF ((flag = TRUE) & (column = 16));
+LTLSPEC	NAME	ltl_17 := G! ((flag = TRUE) & (column = 17));
+CTLSPEC	NAME	ctl_17 := EF ((flag = TRUE) & (column = 17));
+LTLSPEC	NAME	ltl_18 := G! ((flag = TRUE) & (column = 18));
+CTLSPEC	NAME	ctl_18 := EF ((flag = TRUE) & (column = 18));
+LTLSPEC	NAME	ltl_19 := G! ((flag = TRUE) & (column = 19));
+CTLSPEC	NAME	ctl_19 := EF ((flag = TRUE) & (column = 19));
+LTLSPEC	NAME	ltl_20 := G! ((flag = TRUE) & (column = 20));
+CTLSPEC	NAME	ctl_20 := EF ((flag = TRUE) & (column = 20));
+LTLSPEC	NAME	ltl_21 := G! ((flag = TRUE) & (column = 21));
+CTLSPEC	NAME	ctl_21 := EF ((flag = TRUE) & (column = 21));
+LTLSPEC	NAME	ltl_22 := G! ((flag = TRUE) & (column = 22));
+CTLSPEC	NAME	ctl_22 := EF ((flag = TRUE) & (column = 22));
+LTLSPEC	NAME	ltl_23 := G! ((flag = TRUE) & (column = 23));
+CTLSPEC	NAME	ctl_23 := EF ((flag = TRUE) & (column = 23));
+LTLSPEC	NAME	ltl_24 := G! ((flag = TRUE) & (column = 24));
+CTLSPEC	NAME	ctl_24 := EF ((flag = TRUE) & (column = 24));
+LTLSPEC	NAME	ltl_25 := G! ((flag = TRUE) & (column = 25));
+CTLSPEC	NAME	ctl_25 := EF ((flag = TRUE) & (column = 25));
+LTLSPEC	NAME	ltl_26 := G! ((flag = TRUE) & (column = 26));
+CTLSPEC	NAME	ctl_26 := EF ((flag = TRUE) & (column = 26));
+LTLSPEC	NAME	ltl_27 := G! ((flag = TRUE) & (column = 27));
+CTLSPEC	NAME	ctl_27 := EF ((flag = TRUE) & (column = 27));
+LTLSPEC	NAME	ltl_28 := G! ((flag = TRUE) & (column = 28));
+CTLSPEC	NAME	ctl_28 := EF ((flag = TRUE) & (column = 28));

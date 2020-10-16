@@ -1,0 +1,239 @@
+--Auto Subset Sum [2, 3, 5, 7]
+-------------------------------
+MODULE main
+VAR
+	row: 0..17;
+	column: 0..17;
+	junction: {pass, split};
+	dir: {dwn, diag};
+	flag: boolean;
+	tag: array 0..20 of boolean;
+
+ASSIGN
+	init(row) := 0;
+	init(column) := 0;
+	init(junction) := split;
+	init(dir) := dwn;
+	init(flag) := FALSE;
+
+	init(tag[0]) := FALSE;		init(tag[1]) := FALSE;		init(tag[2]) := FALSE;		init(tag[3]) := FALSE;		init(tag[4]) := FALSE;
+	init(tag[5]) := FALSE;		init(tag[6]) := FALSE;		init(tag[7]) := FALSE;		init(tag[8]) := FALSE;		init(tag[9]) := FALSE;
+	init(tag[10]) := FALSE;		init(tag[11]) := FALSE;		init(tag[12]) := FALSE;		init(tag[13]) := FALSE;		init(tag[14]) := FALSE;
+	init(tag[15]) := FALSE;		init(tag[16]) := FALSE;		init(tag[17]) := FALSE;		init(tag[18]) := FALSE;		init(tag[19]) := FALSE;
+	init(tag[20]) := FALSE;
+
+
+	--Always advance to next row
+	next(row) := (row + 1) mod 18;
+
+	--Flag turns on when row is 17
+	next(flag) := (next(row) = 17 ? TRUE : FALSE);
+
+	--Split junctions at rows 0, 2, 5, 10
+	next(junction) :=
+					case
+						((next(row) = 0)|(next(row) = 2)|(next(row) = 5)|(next(row) = 10)): split;
+						TRUE: pass;
+					esac;
+
+	--Decide direction for next move by to current junction
+	next(dir) :=
+					case
+						(junction = split): {dwn, diag};
+						(junction = pass): dir;
+						TRUE: {dwn, diag};
+					esac;
+
+	--If diag, increase column, otherwise dwn, same column
+	next(column) :=
+					case
+						(next(row) = 0): 0;
+						(next(dir) = diag): (column + 1) mod 18;
+						(next(dir) = dwn): column;
+						TRUE: column;
+					esac;
+
+	--Set tag TRUE if curr row = split, dir = diag
+	next(tag[0]) :=
+					case
+						(row = 0) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[0];
+					esac;
+
+	next(tag[1]) :=
+					case
+						(row = 2) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[1];
+					esac;
+
+	next(tag[2]) :=
+					case
+						(row = 2) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[2];
+					esac;
+
+	next(tag[3]) :=
+					case
+						(row = 2) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[3];
+					esac;
+
+	next(tag[4]) :=
+					case
+						(row = 5) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[4];
+					esac;
+
+	next(tag[5]) :=
+					case
+						(row = 5) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[5];
+					esac;
+
+	next(tag[6]) :=
+					case
+						(row = 5) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[6];
+					esac;
+
+	next(tag[7]) :=
+					case
+						(row = 5) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[7];
+					esac;
+
+	next(tag[8]) :=
+					case
+						(row = 5) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[8];
+					esac;
+
+	next(tag[9]) :=
+					case
+						(row = 5) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[9];
+					esac;
+
+	next(tag[10]) :=
+					case
+						(row = 10) & (column = 0) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[10];
+					esac;
+
+	next(tag[11]) :=
+					case
+						(row = 10) & (column = 1) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[11];
+					esac;
+
+	next(tag[12]) :=
+					case
+						(row = 10) & (column = 2) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[12];
+					esac;
+
+	next(tag[13]) :=
+					case
+						(row = 10) & (column = 3) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[13];
+					esac;
+
+	next(tag[14]) :=
+					case
+						(row = 10) & (column = 4) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[14];
+					esac;
+
+	next(tag[15]) :=
+					case
+						(row = 10) & (column = 5) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[15];
+					esac;
+
+	next(tag[16]) :=
+					case
+						(row = 10) & (column = 6) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[16];
+					esac;
+
+	next(tag[17]) :=
+					case
+						(row = 10) & (column = 7) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[17];
+					esac;
+
+	next(tag[18]) :=
+					case
+						(row = 10) & (column = 8) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[18];
+					esac;
+
+	next(tag[19]) :=
+					case
+						(row = 10) & (column = 9) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[19];
+					esac;
+
+	next(tag[20]) :=
+					case
+						(row = 10) & (column = 10) & next(dir) = diag: TRUE;
+						(next(row) = 0): FALSE;
+						TRUE: tag[20];
+					esac;
+
+LTLSPEC	NAME	ltl_0 := G! ((flag = TRUE) & (column = 0));
+CTLSPEC	NAME	ctl_0 := EF ((flag = TRUE) & (column = 0));
+LTLSPEC	NAME	ltl_1 := G! ((flag = TRUE) & (column = 1));
+CTLSPEC	NAME	ctl_1 := EF ((flag = TRUE) & (column = 1));
+LTLSPEC	NAME	ltl_2 := G! ((flag = TRUE) & (column = 2));
+CTLSPEC	NAME	ctl_2 := EF ((flag = TRUE) & (column = 2));
+LTLSPEC	NAME	ltl_3 := G! ((flag = TRUE) & (column = 3));
+CTLSPEC	NAME	ctl_3 := EF ((flag = TRUE) & (column = 3));
+LTLSPEC	NAME	ltl_4 := G! ((flag = TRUE) & (column = 4));
+CTLSPEC	NAME	ctl_4 := EF ((flag = TRUE) & (column = 4));
+LTLSPEC	NAME	ltl_5 := G! ((flag = TRUE) & (column = 5));
+CTLSPEC	NAME	ctl_5 := EF ((flag = TRUE) & (column = 5));
+LTLSPEC	NAME	ltl_6 := G! ((flag = TRUE) & (column = 6));
+CTLSPEC	NAME	ctl_6 := EF ((flag = TRUE) & (column = 6));
+LTLSPEC	NAME	ltl_7 := G! ((flag = TRUE) & (column = 7));
+CTLSPEC	NAME	ctl_7 := EF ((flag = TRUE) & (column = 7));
+LTLSPEC	NAME	ltl_8 := G! ((flag = TRUE) & (column = 8));
+CTLSPEC	NAME	ctl_8 := EF ((flag = TRUE) & (column = 8));
+LTLSPEC	NAME	ltl_9 := G! ((flag = TRUE) & (column = 9));
+CTLSPEC	NAME	ctl_9 := EF ((flag = TRUE) & (column = 9));
+LTLSPEC	NAME	ltl_10 := G! ((flag = TRUE) & (column = 10));
+CTLSPEC	NAME	ctl_10 := EF ((flag = TRUE) & (column = 10));
+LTLSPEC	NAME	ltl_11 := G! ((flag = TRUE) & (column = 11));
+CTLSPEC	NAME	ctl_11 := EF ((flag = TRUE) & (column = 11));
+LTLSPEC	NAME	ltl_12 := G! ((flag = TRUE) & (column = 12));
+CTLSPEC	NAME	ctl_12 := EF ((flag = TRUE) & (column = 12));
+LTLSPEC	NAME	ltl_13 := G! ((flag = TRUE) & (column = 13));
+CTLSPEC	NAME	ctl_13 := EF ((flag = TRUE) & (column = 13));
+LTLSPEC	NAME	ltl_14 := G! ((flag = TRUE) & (column = 14));
+CTLSPEC	NAME	ctl_14 := EF ((flag = TRUE) & (column = 14));
+LTLSPEC	NAME	ltl_15 := G! ((flag = TRUE) & (column = 15));
+CTLSPEC	NAME	ctl_15 := EF ((flag = TRUE) & (column = 15));
+LTLSPEC	NAME	ltl_16 := G! ((flag = TRUE) & (column = 16));
+CTLSPEC	NAME	ctl_16 := EF ((flag = TRUE) & (column = 16));
+LTLSPEC	NAME	ltl_17 := G! ((flag = TRUE) & (column = 17));
+CTLSPEC	NAME	ctl_17 := EF ((flag = TRUE) & (column = 17));
