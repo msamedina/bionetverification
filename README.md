@@ -22,6 +22,13 @@ Before running the scripts, run the following to make sure all prerequisites are
 
 NOTE: sudo access may be necessary.
 
+#### Automated installations
+All prerequisit installations and setups are located in the `install_additionals.sh` bash script. This should be run as root:
+```sh
+sudo bash install_additionals.sh
+```
+
+#### Manual installations
 * MiniSat SAT Solver
 ```sh
 apt-get install minisat
@@ -62,7 +69,9 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 Scripts should be run using Python 3.
 
 ## 4. Usage
-See `Examples` for examples of runs for each of the problem types described below. Sample input files and verification results are available as well.
+See `Examples` for examples of runs for each of the problem types described below. Each problem includes the generated Excel file, the generated smv files and the input file used.
+
+All input files to be used when running should be saved in the `Inputs` directory. Sample input files for SSP and ExCov are included.
 
 ### SSP
 An input file with the problems to be looked at is necessary. Format of the input file is expected to be a derivative of the DIMACS format. Each row is a new set, mark end of line with 0. So the SSP for S = {2, 5, 9} would be denoted as:
@@ -70,12 +79,23 @@ An input file with the problems to be looked at is necessary. Format of the inpu
 2 5 9 0
 ```
 There is the option to run NuSMV on the generated network descriptions using 3 methods:
-1. Bulk run output specifications
-2. Run individual output specifications
-3. Run general valid-invalid output specifications
+1. Bulk run output specifications (Table 5)
+2. Run individual output specifications (Table 6)
+3. Run general valid-invalid output specifications (Table 7)
+
+When a method is selected, it runs on the full list of input problems.
+
+The Excel output file contains one sheet per method above:
+1. Bulk_OutSpec
+2. Single_OutSpec
+3. SSP_GenSpec
+
+Each sheet contains information on the problem being looked at such as relevant file names, verification runtime, verification result and/or result output file. This is done for the specifications described in Tables 1 and 2. Methods 1 and 2 run on specifications from Table 1 and method 3 runs on specifications from Table 2.
 
 ### ExCov
-An input file with the problems to be looked at is necessary. Format of the input file is another derivative of the DIMACS format. Please see the `ExCov_Input` file under `Examples` for more information.
+An input file with the problems to be looked at is necessary. Format of the input file is another derivative of the DIMACS format. Please see the `ExCov_Input` file under `Inputs` for more information.
+
+The Excel output file contains information on the problems run such as relevant file names, existence of an exact cover, verification runtimes, verification result and output file. This is run on the specification as described in Table 1 for the single exact cover output 'k'.
 
 ### 3-SAT
 The tool generates random 3-SAT problems. The number of problems to be generated and the maximum number of literals are entered by the user when prompted. Example runs for SAT were run using the following input values:

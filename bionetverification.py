@@ -151,7 +151,7 @@ while problem_type != 4:    # While not quit
                 # Add another worksheet based on the template
                 s_source = ssp_wb['NewSpec_Template']
                 ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-                ssp_s_ws.title = ('SSP_GenSpecs')
+                ssp_s_ws.title = ('SSP_GenSpec')
                 ssp_wb.save(ssp_xl_fn)
                 
                 # Run NuSMV and get outputs for each individual specification
