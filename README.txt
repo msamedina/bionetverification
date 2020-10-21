@@ -33,7 +33,7 @@ NOTE: sudo access may be necessary.
 
 Automated installations
 --================--
-All prerequisit installations and setups are located in the `install_additionals.sh` bash script. This should be run as root:
+All prerequisite installations and setups are located in the `install_additionals.sh` bash script. This should be run as root:
 	sudo bash install_additionals.sh
 
 Manual installations
