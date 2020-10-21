@@ -40,6 +40,7 @@ dir_name = misc.file_name_cformat('bionetverification_out_{0}')
 os.mkdir(dir_name)
 cwd = os.getcwd()
 template_dir = cwd + '/Template/'
+input_dir = cwd + '/Inputs/'
 new_cwd = os.path.join(cwd, dir_name)
 os.chdir(new_cwd)
 cwd = os.getcwd()
@@ -71,7 +72,9 @@ while problem_type != 4:    # While not quit
         Get and Parse SSP sets from input file
         --------------------------------------
         """
-        ssp_fn = input('Please enter SSP problems filename (full path): ')
+        # While filename is not in Inputs
+        ssp_pstr = 'Please enter SSP problems filename: '
+        ssp_fn = misc.input_exists(input_dir, ssp_pstr)
         ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
         
         # Setup worksheet for data recording
@@ -177,8 +180,10 @@ while problem_type != 4:    # While not quit
         Get and Parse ExCov universes and sets from input file
         --------------------------------------
         """
-        ec_fn = input('Please enter ExCov problems filename (full path):')
-        universes, subsets_arrays, num_probs = ec.read_ec(ec_fn)
+        # While filename is not in Inputs
+        excov_pstr = 'Please enter ExCov problems filename: '
+        excov_fn = misc.input_exists(input_dir, excov_pstr)
+        universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
  
         """
         Generate smv files

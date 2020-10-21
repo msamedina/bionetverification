@@ -109,3 +109,24 @@ def subset_sums(arr, n):
             isum.append(j)
     
     return vsum, isum
+
+
+def input_exists(in_path, p_str):
+    """
+    Receive input file name and check existence of inout file in input directory.
+        Input:
+            in_path: input directory
+            p_str: the prompt string
+        Output:
+            is_int: list of all distinct subset sums
+    """
+    # While filename is not in Inputs
+    f_name = ''
+    check_input = -1
+    while check_input == -1:
+        f_name = input(p_str)
+        if os.path.isfile(in_path + f_name):
+            check_input = 1
+        else:
+            print('File does not exist in Inputs directory. Please re-enter filename.')
+    return in_path + f_name
