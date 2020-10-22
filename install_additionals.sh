@@ -1,6 +1,16 @@
 #!/bin/bash
 # Setup scripts for bionetverification scripts
 
+preventSubshell(){
+  if [[ $_ != $0 ]]
+  then
+    echo "Script is being sourced"
+  else
+    echo "Script is a subshell - please run the script by invoking . script.sh command";
+    exit 1;
+  fi
+}
+
 # Update package index
 sudo apt-get update
 

@@ -32,7 +32,7 @@ Before running the scripts, run the following to make sure all prerequisites are
 Automated installations
 --================--
 All prerequisite installations and setups are located in the `install_additionals.sh` bash script. This should be run as root:
-	sudo bash install_additionals.sh
+	. install_additionals.sh
 
 The script will prompt for password for sudo access within the script.
 
