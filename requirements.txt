@@ -1,0 +1,8 @@
+###### Requirements without Version Specifiers ######`
+pexpect
+scipy
+networkx
+
+###### Requirements with Version Specifiers ######`
+CNFgen >= 0.9.0
+openpyxl==3.0.1
