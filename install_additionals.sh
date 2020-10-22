@@ -2,7 +2,7 @@
 # Setup scripts for bionetverification scripts
 
 # Update package index
-apt-get update
+sudo apt-get update
 
 # Install MiniSat
 echo "###Installing MiniSat.."
