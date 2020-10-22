@@ -11,6 +11,8 @@ preventSubshell(){
   fi
 }
 
+preventSubshell
+
 # Update package index
 sudo apt-get update
 
@@ -30,6 +32,8 @@ sudo pip3 install -r requirements.txt
 echo "###Adding NuSMV to PATH.."
 fullpath=$( realpath "$0" )
 dirpath=$( dirname $fullpath )
+nusmvpath="$dirpath/NuSMV-2.6.0-Linux/bin/NuSMV"
 echo "# Allow running NuSMV from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/NuSMV-2.6.0-Linux/bin" >>~/.profile
 source ~/.profile
+chmod u+x $nusmvpath
