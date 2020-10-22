@@ -4,7 +4,7 @@
 preventSubshell(){
   if [[ $_ != $0 ]]
   then
-    echo "Script is being sourced"
+    :
   else
     echo "Script is a subshell - please run the script by invoking . script.sh command";
     exit 1;
@@ -36,4 +36,5 @@ nusmvpath="$dirpath/NuSMV-2.6.0-Linux/bin/NuSMV"
 echo "# Allow running NuSMV from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/NuSMV-2.6.0-Linux/bin" >>~/.profile
 source ~/.profile
+# Add permission for NuSMV execution
 chmod u+x $nusmvpath
