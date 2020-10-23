@@ -1,7 +1,7 @@
 # bionetverification
 Bionetverification is a tool used to model and verify the design of network-based biocomputation circuits for the SSP, ExCov and 3-SAT problems as part of the Bio4Comp project. The tool generates network description files in SMV and then runs them in the NuSMV model checker. Results of verification and their runtimes are saved in Excel files based on the provided template files.
 
-Each run generates a new local directory that holds all generated smv files, output results, and excel data files. The directory name is of the format:
+Each run generates a new local directory that holds all generated smv files, output results, and Excel data files. The directory name is of the format:
 ```sh
 bionetverification_out_{0}
 ```
@@ -13,6 +13,7 @@ Where {0} is the index of the run of the script.
 3. System Requirements
 4. Usage
 5. Additional Files
+6. Comprehensive Reproduction of Table Results
 
 ## 1. Built With
 For scripts to run properly the following must be installed:
@@ -22,7 +23,7 @@ For scripts to run properly the following must be installed:
 
 ## 2. Setup
 ### Prerequisites
-Before running the scripts, run the following to make sure all prerequisites are installed. In order to install python packages, it is recommended to use pip.
+Before running the scripts, run the following to make sure all prerequisites are installed.
 
 #### Automated installation
 All prerequisite installations and setups are located in the `install_additionals.sh` bash script. This should be run as:
@@ -30,10 +31,10 @@ All prerequisite installations and setups are located in the `install_additional
 . install_additionals.sh
 ```
 
-The script prompts for confirmation (y) and for sudo access.
+This prompts for sudo access and confirmation (y).
 
 ### Running the scripts
-The scripts are run using python 
+The scripts are run using Python 3
 ```sh
 python bionetverification.py
 ```
@@ -45,50 +46,163 @@ python3 bionetverification.py
 ## 3. System Requirements
 Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS, Ubuntu 20.04.1 LTS)
 * RAM: 4 GB
-* Number of Cores: 2
+* Number of Cores: 1-2
 * CPU freq: 1.30GHz
 
-Scripts should be run using Python 3.
-
 ## 4. Usage
-See `Examples` for examples of runs for each of the problem types described below. Each problem includes the generated Excel file, the generated smv files and the input file used.
+The user is first supplied with a menu for selecting the problem type to be looked at:
+1. SSP
+2. ExCov
+3. SAT
+4. Quit
 
-All input files to be used when running should be saved in the `Inputs` directory. Sample input files for SSP and ExCov are included.
+Enter a number to select the problem type.
+
+For SSP and ExCov, the user is prompted to supply an input file containing the problems to be looked at. All input files should be saved in the `Inputs` directory. Sample input files for SSP and ExCov are included.
 
 ### SSP
-An input file containing the problems to be looked at is necessary. Format of the input file is expected to be a derivative of the DIMACS format. Each row is a new set, mark end of line with 0. So the SSP for S = {2, 5, 9} would be denoted as:
+The script requests an input file name. This file should be saved in the `Inputs` directory.
+
+The input file format is a derivative of DIMACS format. Each row is a new set, mark end of line with 0. The input for S = {2, 5, 9} would be denoted as:
 ```sh
 2 5 9 0
 ```
-There is the option to run NuSMV on the generated network descriptions using 3 methods:
-1. Bulk run output specifications (Table 5)
-2. Run individual output specifications (Table 6)
-3. Run general valid-invalid output specifications (Table 7)
 
-When a method is selected, it runs on the full list of input problems.
+The user is then prompted with a menu for which method to use when running NuSMV:
+1. Bulk run output specifications
+2. Run individual output specifications
+3. Run general valid-invalid output specifications
+4. Main Menu
 
-The Excel output file contains one sheet per method above:
+Enter a number to select the relevant method.
+
+Methods 1 and 2 run on specifications from Table 1.
+Method 3 runs on specifications from Table 2.
+
+Each method runs on the full list of input problems and their relevant specifications. Verification results, runtimes and/or relevant output file names are saved in Excel, separate  worksheet per method, as follows:
 1. Bulk_OutSpec
 2. Single_OutSpec
 3. SSP_GenSpec
 
-Each sheet contains information on the problem being looked at such as relevant file names, verification runtime, verification result and/or result output file. This is done for the specifications described in Tables 1 and 2. Methods 1 and 2 run on specifications from Table 1 and method 3 runs on specifications from Table 2.
+The NuSMV outputs and Excel files are all saved in the current run's output directory (`bionetverification_out_{0}`).
+
+#### Minimal running example
+For a minimal running example, use the supplied input file:
+```sh
+SSP_Input
+```
+When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3. This corresponds with Table 7.
+
+Approximate runtime: **~1 minute**
+
+Methods 1 and 2, which correspond with Tables 5 and 6 respectively, can be run as part of section 6 (Comprehensive Reproduction of Table Results).
+
+The output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `SSP_0.xlsx`, can be found in the `Examples/SSP` directory.
 
 ### ExCov
-An input file with the problems to be looked at is necessary. Format of the input file is another derivative of the DIMACS format. Please see the `ExCov_Input` file under `Inputs` for more information.
+The script requests an input file name. This file should be saved in the `Inputs` directory.
 
-The Excel output file contains information on the problems run such as relevant file names, exact cover existence, verification runtimes, verification result and output file. This is run on the specification as described in Table 1 for the exact cover output 'k'. The Excel file reflects a subset of Table 10.
+The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.
 
-### 3-SAT
-The tool generates random 3-SAT problems. The number of problems to be generated and the maximum number of literals are entered by the user when prompted. Example runs for SAT were run using the following input values:
-* 10 samples (number of problems)
-* 20 literals maximum
+After entering the input file, the script runs NuSMV on all input problems and their specifications, as described in Table 1 for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
+```sh
+ExCov_{0}.xlsx
+```
+Where {0} is the sequential ExCov input index (when using multiple input files).
 
-The Excel output file contains the MiniSat satisfiability result of each randomly generated problem along with the verification results (parsed as satisfiable or unsatisfiable) and runtimes for specifications defined in Table 4. The Excel file reflects Table 12.
+#### Minimal running example
+For a minimal running example, use the supplied input file:
+```sh
+ExCov_Input
+```
+Approximate runtime: **~1 minute**
+
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `ExCov_0.xlsx`, can be found in the `Examples/ExCov` directory. This file contains a subset of Table 10.
+
+### SAT
+For SAT, an input file is not needed as the tool generates random 3-SAT problems.
+
+The user is prompted with a menu:
+1. Enter sample size for SAT 
+2. Main Menu
+
+Option 1 prompts the user to enter the number of problems to be generated, and then the maximum number of literals to use during 3-SAT generation. Enter a number for each of these options.
+
+After entering these values, the script runs MiniSat to check satisfiability, and NuSMV on the network descriptions using the specifications defined in Table 4. Verification results are then parsed as "SATISFIABLE" or "UNSATISFIABLE".
+
+MiniSat results, parsed verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
+```sh
+SAT_{0}.xlsx
+```
+Each entered sample size (multiple uses of option 1) is saved in a separate Excel worksheet. The sheet name uses the format:
+```sh
+Run_{0}_MaxVars_{1}
+```
+
+Where {0} is the index of the current SAT run and {1} is the number of max allowed literals.
+
+#### Minimal running example
+For a minimal running example, use the input sample size:
+```sh
+10
+```
+and maximum number of literals:
+```sh
+20
+```
+
+Approximate runtime: **30 minutes**
+
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `SAT_0.xlsx`, can be found in the `Examples/SAT` directory. This reflects the results shown in Table 12.
+
+**As each run randomly generates 3-SAT problems, this is not an exact reproduction.**
 
 ## 5. Additional Files
-Templates for Excel files are saved under `Template`.
 
-Examples SMV and Excel outputs of runs on the SSP, ExCov and SAT problems are included in `Examples`.
+### Inputs
+The `Inputs` directory is used for containing the input files for use with the SSP and ExCov problems. Input files for the minimal running examples are preloaded in this folder.
 
-Examples of SMV network descriptions with induced errors are included for SSP and ExCov. These are located in `SSP_BN` and `ExCov_BN`. These examples are used to show the correctness of the network descriptions by comparing their verification results with those of the valid networks generated by the scripts. They were manually constructed and individually run in NuSMV. Verification results were included in Tables 9 and 11.
+### Template
+The `Template` directory contains the templates for the Excel output files. Do not edit these.
+
+### Examples
+The `Examples` directory contains example input files, generated SMV files and Excel outputs for each of the minimal running examples for the defined problems.
+
+Columns of the Excel worksheets that correspond with those of the tables in the paper are marked in yellow. The 'csum' and 'nsum' rows from worksheet SSP_GenSpecs in `SSP_0.xlsx` have been have been transposed in Tables 7 and 8, and unified into a single row.
+
+### SSP and ExCov Bad Networks
+The `SSP_BN` and `ExCov_BN` directories contain SMV network descriptions, for SSP and ExCov respectively, that contain **induced errors**. These network descriptions were manually constructed (inclusion of errors) and individually run in NuSMV.
+
+SSP networks include the error type in their file name `B_errortype_...`.
+
+These examples are used to show correctness of the network descriptions by comparing verification results with those of the valid networks generated by the scripts. This comparision is included in Tables 9 and 11. See paper sections 7.1 and 7.2.
+
+## 6. Comprehensive Reproduction of Table Results
+Additional input files for reproduction of the results in the paper are provided under `Inputs`. A full reproduction can take over 24 hours.
+
+### SSP
+In order to reproduce Tables 5-7 from the paper, methods 1-3 should be run on input file:
+```sh
+SSP_table5_7
+```
+For Table 8, run method 3 on:
+```sh
+SSP_table8
+```
+
+### ExCov
+In order to reproduce Table 10, run on input file:
+```sh
+ExCov_table10
+```
+
+### SAT
+As each run randomly generates 3-SAT problems, it is not possible to exactly replicate results from Table 12. The input values used to aquire Table 12 were:
+* Number of samples:
+```sh
+100
+```
+* Maximum number of literals:
+```sh
+50
+```

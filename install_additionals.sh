@@ -4,12 +4,14 @@
 preventSubshell(){
   if [[ $_ != $0 ]]
   then
-    echo "Script is being sourced"
+    :
   else
     echo "Script is a subshell - please run the script by invoking . script.sh command";
     exit 1;
   fi
 }
+
+preventSubshell
 
 # Update package index
 sudo apt-get update
@@ -30,6 +32,9 @@ sudo pip3 install -r requirements.txt
 echo "###Adding NuSMV to PATH.."
 fullpath=$( realpath "$0" )
 dirpath=$( dirname $fullpath )
+nusmvpath="$dirpath/NuSMV-2.6.0-Linux/bin/NuSMV"
 echo "# Allow running NuSMV from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/NuSMV-2.6.0-Linux/bin" >>~/.profile
 source ~/.profile
+# Add permission for NuSMV execution
+chmod u+x $nusmvpath
