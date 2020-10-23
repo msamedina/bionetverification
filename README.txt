@@ -92,7 +92,7 @@ Each method runs on the full list of input problems and their relevant specifica
 2. Single_OutSpec
 3. SSP_GenSpec
 
-The NuSMV outputs and Excel files are all saved in the current run's output directory.
+The NuSMV outputs and Excel files are all saved in the current run's output directory (`bionetverification_out_{0}`).
 
 Minimal running example
 --================--
@@ -102,7 +102,7 @@ For a minimal running example, use the supplied input file:
 When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3. This corresponds with Table 7.
 
 Approximate runtime:
-	>1 minute
+	~1 minute
 
 Methods 1 and 2, which correspond with Tables 5 and 6 respectively, can be run as part of section 6 (Comprehensive Reproduction of Table Results).
 
@@ -125,9 +125,9 @@ For a minimal running example, use the supplied input file:
 	ExCov_Input
 
 Approximate runtime:
-	>1 minute
+	~1 minute
 
-Output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `ExCov_0.xlsx`, can be found in the `Examples/ExCov` directory. This file contains a subset of Table 10.
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `ExCov_0.xlsx`, can be found in the `Examples/ExCov` directory. This file contains a subset of Table 10.
 
 3-SAT
 =============
@@ -160,7 +160,7 @@ and maximum number of literals:
 Approximate runtime:
 	30 minutes
 
-Output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `SAT_0.xlsx`, can be found in the `Examples/SAT` directory. This reflects the results shown in Table 12.
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `SAT_0.xlsx`, can be found in the `Examples/SAT` directory. This reflects the results shown in Table 12.
 
 AS EACH RUN RANDOMLY GENERATES 3-SAT PROBLEMS, THIS IS NOT AN EXACT REPRODUCTION.
 
@@ -179,6 +179,8 @@ Examples
 =============
 The `Examples` directory contains example input files, generated SMV files and Excel outputs for each of the minimal running examples for the defined problems.
 
+Columns of the Excel worksheets that correspond with those of the tables in the paper are marked in yellow. The 'csum' and 'nsum' rows from worksheet SSP_GenSpecs in `SSP_0.xlsx` have been have been transposed in Tables 7 and 8, and unified into a single row.
+
 SSP and ExCov Bad Networks
 =============
 The `SSP_BN` and `ExCov_BN` directories contain SMV network descriptions, for SSP and ExCov respectively, that contain *induced errors*. These network descriptions were manually constructed (inclusion of errors) and individually run in NuSMV.
@@ -190,7 +192,7 @@ These examples are used to show correctness of the network descriptions by compa
 ---------------
 6. Comprehensive Reproduction of Table Results
 ---------------
-Additional input files for reproduction of the results in the paper are provided under `Inputs`. These may take considerable runtime and so are not used as part of the minimal examples.
+Additional input files for reproduction of the results in the paper are provided under `Inputs`. A full reproduction can take over 24 hours.
 
 SSP
 =============
