@@ -13,22 +13,23 @@ preventSubshell(){
 
 preventSubshell
 
-# Unnecessary if all dpendencies are self-contained
+
+# Unnecessary if all dependencies are self contained
 # Update package index
 # sudo apt-get update
 
-# Get path containing folder
+# Get path to containing folder
 fullpath=$( realpath "$0" )
 dirpath=$( dirname $fullpath )
 
-#################
+##################
 # Install MiniSat
 echo "###Installing MiniSat.."
 # sudo apt-get install minisat
-sudo dpkg -i .dependencies/minisat_2.2.1.deb
-# minisatpath="$dirpath/.dependencies"
+sudo dpkg -i minisat_2.2.1.deb
+#minisatpath="$dirpath/.dependencies"
 
-# Unnecessary if all Python dependencies are self-contained
+# Unnecessary if all Python dependencies are self contained
 # Install pip3
 # echo "###Installing pip.."
 # sudo apt-get install python3-pip
