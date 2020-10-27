@@ -1,6 +1,6 @@
 ###### Install these from current directory ######
 CNFgen-0.9.0-py3-none-any.whl
 pexpect-4.8.0-py2.py3-none-any.whl
-scipy-1.5.3-cp36-cp36m-manylinux1_x86_64.whl
+scipy-1.5.3-cp38-cp38-manylinux1_x86_64.whl
 networkx-2.5-py3-none-any.whl
 openpyxl-3.0.1.tar.gz
