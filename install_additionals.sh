@@ -42,6 +42,7 @@ pydeppath="$dirpath/.dependencies/pydep"
 # Install pip
 sudo python3 $pydeppath/pip-20.2.4-py2.py3-none-any.whl/pip install --no-index $pydeppath/pip-20.2.4-py2.py3-none-any.whl
 # Install all other python dependencies
+sudo pip install --no-index --find-links=$pydeppath setuptools
 sudo pip install --no-index --find-links=$pydeppath -r $pydeppath/requirements.txt
 
 # sudo pip3 install -r requirements.txt
