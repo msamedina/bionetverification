@@ -1,5 +1,4 @@
 ###### Requirements without Version Specifiers ######
-setuptools
 pexpect
 scipy
 networkx
