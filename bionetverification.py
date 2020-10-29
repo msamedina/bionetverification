@@ -54,6 +54,7 @@ Get the problem type being looked at
     [1] SSP
     [2] ExCov
     [3] SAT
+    [4] Quit
 """
 problem_type = ''
 while problem_type != 4:    # While not quit
@@ -91,6 +92,9 @@ while problem_type != 4:    # While not quit
         # Use new specifications (csum and nsum for whole network)
         ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr)
 
+        # Pick a model checker (NuSMV or nuXmv)
+        str_modc = misc.modcheck_select()
+
         ssp_opt = ''
         while ssp_opt != 4:
             logging.info('Printing SSP menu')
@@ -123,7 +127,7 @@ while problem_type != 4:    # While not quit
                 ssp_wb.save(ssp_xl_fn)
                 
                 # Run NuSMV and get output filename for specification
-                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn)
+                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc)
             
             # If selected individual out run
             elif ssp_opt == 2:
@@ -139,7 +143,7 @@ while problem_type != 4:    # While not quit
                 ssp_wb.save(ssp_xl_fn)
                 
                 # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn)
+                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
             
             # If selected general specifications
             elif ssp_opt == 3:
@@ -155,7 +159,7 @@ while problem_type != 4:    # While not quit
                 ssp_wb.save(ssp_xl_fn)
                 
                 # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn)
+                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
 
             # If selected return to main
             elif ssp_opt == 4:
@@ -190,6 +194,9 @@ while problem_type != 4:    # While not quit
         """
         ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, num_probs)
         
+        # Pick a model checker (NuSMV or nuXmv)
+        str_modc = misc.modcheck_select()
+
         """
         Run NuSMV
         Single spec for exact cover output
@@ -207,7 +214,7 @@ while problem_type != 4:    # While not quit
         ec_wb.save(ec_xl_fn)
         
         # Run NuSMV and get outputs for each individual specification
-        ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn)
+        ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
         ec_wb.remove(ec_wb['EC_Template'])
         ec_wb.save(ec_xl_fn)
         
@@ -230,9 +237,8 @@ while problem_type != 4:    # While not quit
         xl_ws = xl_wb.active
         xl_ws.title = 'Template'
         
-        # source = xl_wb['Template']
-        # xl_ws = xl_wb.copy_worksheet(source)
-        # xl_ws.title = "Run_0"
+        # Pick a model checker (NuSMV or nuXmv)
+        str_modc = misc.modcheck_select()
 
         # Start output
         print('3-CNF SAT Network Verification')
@@ -306,7 +312,7 @@ while problem_type != 4:    # While not quit
                 # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
                 logging.info('Run NuSMV on both network descriptions')
                 sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
-                                       xl_ws, xl_wb, xl_fn)
+                                       xl_ws, xl_wb, xl_fn, str_modc)
                 logging.info('NuSMV runs complete')
                 xl_wb.save(xl_fn)
 

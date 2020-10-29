@@ -4,7 +4,8 @@ Modified by: Michelle Aluf Medina
 """
 import miscfunctions as misc
 import logging
-import nusmv
+# import nusmv
+import modcheck
 
 
 def receive_subsets(num_subsets):
@@ -508,7 +509,7 @@ def bin_rep(subset, universe):
     return bin_rep
 
 
-def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -520,6 +521,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
     """
     for index, (uni, sets) in enumerate(zip(universe, subsets)):
         # Save index, universe, num subsets, subsets, and filenames in excel
@@ -533,12 +535,12 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         wbook.save(xl_fn)
         
         # Run NuSMV on with tags
-        out_fn, out_rt = nusmv.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index])
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
 
         # Parse output files:
-        ltl_res = nusmv.get_spec_res(out_fn[0])
+        ltl_res = modcheck.get_spec_res(out_fn[0])
         logging.info('LTL Result: ' + ltl_res)
-        ctl_res = nusmv.get_spec_res(out_fn[1])
+        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
         
         if ltl_res == 'false' and ctl_res == 'true':
@@ -558,12 +560,12 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_fn, out_rt = nusmv.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index])
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
         
         # Parse output files:
-        ltl_res = nusmv.get_spec_res(out_fn[0])
+        ltl_res = modcheck.get_spec_res(out_fn[0])
         logging.info('LTL Result: ' + ltl_res)
-        ctl_res = nusmv.get_spec_res(out_fn[1])
+        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
         
         logging.info('Saving Tags data in Excel')
@@ -576,7 +578,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         wbook.save(xl_fn)
 
 
-def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -589,6 +591,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
     """
     for index, (uni, sets) in enumerate(zip(universe, subsets)):
         # Save index, universe, num subsets, subsets, and filenames in excel
@@ -603,7 +606,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         wbook.save(xl_fn)
         
         # Run NuSMV on with tags
-        out_res, out_rt = nusmv.call_nusmv_pexpect_bmc(smv_t_arr[index], 2, out_interest[index], max_sums[index])
+        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 2, out_interest[index], max_sums[index], str_modcheker)
                 
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=8, row=(index + 4), value=out_res)
@@ -611,7 +614,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_res, out_rt = nusmv.call_nusmv_pexpect_bmc(smv_nt_arr[index], 2, out_interest[index], max_sums[index])
+        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 2, out_interest[index], max_sums[index], str_modcheker)
         
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=10, row=(index + 4), value=out_res)

@@ -4,7 +4,8 @@ Michelle Aluf Medina
 """
 import logging
 import miscfunctions as misc
-import nusmv
+# import nusmv
+import modcheck
 
 
 def print_ssp_menu():
@@ -462,7 +463,7 @@ def smv_gen(ssp_arr):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -472,6 +473,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -487,7 +489,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
         wbook.save(xl_fn)
         
         # Run NuSMV on with tags
-        out_fn, out_rt = nusmv.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn)
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn, str_modcheker)
         __ = wsheet.cell(column=6, row=(index + 4), value=out_fn[0])
         __ = wsheet.cell(column=7, row=(index + 4), value=out_rt[0])
         __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[1])
@@ -495,7 +497,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
         wbook.save(xl_fn)
         
         # Run NuSMV on no tags
-        out_fn, out_rt = nusmv.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn)
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn, str_modcheker)
         __ = wsheet.cell(column=10, row=(index + 4), value=out_fn[0])
         __ = wsheet.cell(column=11, row=(index + 4), value=out_rt[0])
         __ = wsheet.cell(column=12, row=(index + 4), value=out_fn[1])
@@ -503,7 +505,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
         wbook.save(xl_fn)
 
 
-def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -513,6 +515,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -532,12 +535,12 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook.save(xl_fn)
             
             # Run NuSMV on with tags
-            out_fn, out_rt = nusmv.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker)
             
             # Parse output files:
-            ltl_res = nusmv.get_spec_res(out_fn[0])
+            ltl_res = modcheck.get_spec_res(out_fn[0])
             logging.info('LTL Result: ' + ltl_res)
-            ctl_res = nusmv.get_spec_res(out_fn[1])
+            ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
             
             if ltl_res == 'false' and ctl_res == 'true':
@@ -557,12 +560,12 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook.save(xl_fn)
         
             # Run NuSMV on no tags
-            out_fn, out_rt = nusmv.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker)
             
             # Parse output files:
-            ltl_res = nusmv.get_spec_res(out_fn[0])
+            ltl_res = modcheck.get_spec_res(out_fn[0])
             logging.info('LTL Result: ' + ltl_res)
-            ctl_res = nusmv.get_spec_res(out_fn[1])
+            ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
             logging.info('Saving Tags data in Excel')
             __ = wsheet.cell(column=14, row=(row_id + 4), value=out_fn[0])
@@ -577,7 +580,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             row_id = row_id + 1
             
             
-def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -587,6 +590,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -607,7 +611,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook.save(xl_fn)
             
             # Run NuSMV on with tags
-            out_res, out_rt = nusmv.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modcheker)
             
             logging.info('Saving Tags data in Excel')            
             __ = wsheet.cell(column=8, row=(row_id + 4), value=out_res)
@@ -615,7 +619,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook.save(xl_fn)
         
             # Run NuSMV on no tags
-            out_res, out_rt = nusmv.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modcheker)
             
             logging.info('Saving No Tags data in Excel')            
             __ = wsheet.cell(column=10, row=(row_id + 4), value=out_res)
@@ -658,7 +662,7 @@ def smv_gen_newspec(ssp_arr):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -669,6 +673,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
     """
     row_id = 0
     for index, ssp in enumerate(ssp_arr):
@@ -689,12 +694,12 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
         wbook.save(xl_fn)
             
         # Run NuSMV new spec on with tags
-        out_fn, out_rt = nusmv.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index])
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker)
         
         # Parse output files:
-        csum = nusmv.get_spec_res(out_fn[0])
+        csum = modcheck.get_spec_res(out_fn[0])
         logging.info('csum Result: ' + csum)
-        nsum = nusmv.get_spec_res(out_fn[1])
+        nsum = modcheck.get_spec_res(out_fn[1])
         logging.info('nsum Result: ' + nsum)
         
         if csum == 'false':
@@ -715,12 +720,12 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn):
         wbook.save(xl_fn)
     
         # Run NuSMV on no tags
-        out_fn_nt, out_rt_nt = nusmv.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index])
+        out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker)
         
         # Parse output files:
-        csum = nusmv.get_spec_res(out_fn_nt[0])
+        csum = modcheck.get_spec_res(out_fn_nt[0])
         logging.info('csum Result: ' + csum)
-        nsum = nusmv.get_spec_res(out_fn_nt[1])
+        nsum = modcheck.get_spec_res(out_fn_nt[1])
         logging.info('nsum Result: ' + nsum)
         
         if csum == 'false':

@@ -12,9 +12,10 @@ import sys
 from cnfgen.families import randomformulas as randform
 import scipy.special
 import miscfunctions as misc
-import nusmv
+# import nusmv
 import math
 import ast
+import modcheck
 
 
 def print_sat_menu():
@@ -475,7 +476,7 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     return smv_nc_fns, smv_c_fns
 
 
-def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn):
+def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
     """
     Function that runs both Clau and NoClau through NuSMV for:
         LTL specification both with and without variable re-ordering
@@ -486,6 +487,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn):
             smv_c_fns: List of the Clau smv file names
             sample_size: The number of 3-SAT problems created
             xl_ws: Excel worksheet where to save data
+            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
     """
     for i in range(sample_size):
         """
@@ -503,18 +505,18 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn):
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
-        output_fn = nusmv.call_nusmv_pexpect_sat(smv_nc_fns[i],
+        output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
                                                      var_ord_fn, [8, 14], i,
-                                                     xl_ws, xl_wb, xl_fn)
+                                                     xl_ws, xl_wb, xl_fn, str_modcheker)
         # Input collected data to Excel Sheet
         nc_spec_res_col = [9, 12, 15, 18]
         result = ''
         for j in range(0, 4):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
-            if (((j % 2 == 0) and nusmv.get_spec_res(output_fn[j]) == 'true')
+            if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
                 or ((j % 2 != 0) and
-                    nusmv.get_spec_res(output_fn[j]) == 'false')):
+                    modcheck.get_spec_res(output_fn[j]) == 'false')):
                 result = 'UNSATISFIABLE'
             # Otherwise SATISFIABLE
             else:
@@ -533,19 +535,19 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn):
         # Run Clau
         print('Running Clau of sample ' + str(i) + '...')
         logging.info('Running Clau of sample ' + str(i) + '...')
-        output_fn = nusmv.call_nusmv_pexpect_sat(smv_c_fns[i],
+        output_fn = modcheck.call_nusmv_pexpect_sat(smv_c_fns[i],
                                                            var_ord_fn, [21,27],
                                                            i, xl_ws, xl_wb,
-                                                           xl_fn)
+                                                           xl_fn, str_modcheker)
 
         # Input collected data to Excel Sheet
         c_spec_res_col = [22, 25, 28, 31]
         for j in range(0, 4):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
-            if (((j % 2 == 0) and nusmv.get_spec_res(output_fn[j]) == 'true')
+            if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
                 or ((j % 2 != 0) and
-                    nusmv.get_spec_res(output_fn[j]) == 'false')):
+                    modcheck.get_spec_res(output_fn[j]) == 'false')):
                 result = 'UNSATISFIABLE'
             # Otherwise SATISFIABLE
             else:
