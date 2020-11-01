@@ -130,3 +130,23 @@ def input_exists(in_path, p_str):
         else:
             print('File does not exist in Inputs directory. Please re-enter filename.')
     return in_path + f_name
+
+
+def modcheck_select():
+    """
+    Select a model checker
+    Output:
+        str_modc: string for model checker name
+    """
+    mod_c_opt = ['NuSMV', 'nuXmv']
+    menu = 'Please select a model checker:\n\t[1] NuSMV\n\t[2] nuXmv\n'
+    val = -1
+    while val == -1:
+        mod_c = int_input(out_str = menu)
+        if mod_c in range(1,3):
+            val = 1
+            str_modc = mod_c_opt[mod_c - 1]
+            print('Selected ' + str_modc)
+            return str_modc
+        else:
+            print('Invalid option selected.')
