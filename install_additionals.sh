@@ -54,6 +54,16 @@ echo "###Adding NuSMV to PATH.."
 nusmvpath="$dirpath/NuSMV-2.6.0-Linux/bin/NuSMV"
 echo "# Allow running NuSMV from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/NuSMV-2.6.0-Linux/bin" >>~/.profile
-source ~/.profile
 # Add permission for NuSMV execution
 chmod u+x $nusmvpath
+
+# Add nuXmv to PATH variable by adding to .profile
+echo "###Adding nuXmv to PATH.."
+nuxmvpath="$dirpath/nuXmv-2.0.0-Linux/bin/nuXmv"
+echo "# Allow running nuXmv from terminal" >>~/.profile
+echo "export PATH=\$PATH:$dirpath/nuXmv-2.0.0-Linux/bin" >>~/.profile
+# Add permission for nuXmv execution
+chmod u+x $nuxmvpath
+
+# Re-source profile
+source ~/.profile
