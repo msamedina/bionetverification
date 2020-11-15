@@ -219,6 +219,8 @@ Maximum number of literals:
 People
 -----------------------------------------------------------------------------
 [Michelle Aluf-Medina](https://github.com/msamedina/)
+
 [Hillel Kugler](http://www.eng.biu.ac.il/hillelk/)
+
 [Avraham Raviv](https://github.com/AvrahamRaviv/)
 
