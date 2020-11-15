@@ -206,3 +206,8 @@ As each run randomly generates 3-SAT problems, it is not possible to exactly rep
 ```sh
 50
 ```
+
+## 7.People
+[Michelle Aluf-Medina](https://github.com/msamedina/)
+[Hillel Kugler](http://www.eng.biu.ac.il/hillelk/)
+[Avraham Raviv](https://github.com/AvrahamRaviv/)
