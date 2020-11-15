@@ -215,3 +215,10 @@ Number of samples:
 
 Maximum number of literals:
 	50
+	
+People
+-----------------------------------------------------------------------------
+[Michelle Aluf-Medina](https://github.com/msamedina/)
+[Hillel Kugler](http://www.eng.biu.ac.il/hillelk/)
+[Avraham Raviv](https://github.com/AvrahamRaviv/)
+
