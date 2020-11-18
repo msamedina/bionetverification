@@ -385,7 +385,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
             logging.info(str_modcheker + ' command: ' + inputval[i])
             child.send(inputval[i])
         elif err_flag == 1:
-             while len(out_rt_arr) < 2:
+            while len(out_rt_arr) < 2:
                 out_rt_arr.append('Killed')
             break
 
