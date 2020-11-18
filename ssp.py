@@ -696,21 +696,30 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         # Run NuSMV new spec on with tags
         out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker)
         
-        # Parse output files:
-        csum = modcheck.get_spec_res(out_fn[0])
+        # Parse output files if runtime not = "Killed":
+        if out_rt[0] != 'Killed':
+            csum = modcheck.get_spec_res(out_fn[0])
+        else:
+            csum = 'Killed'
+        if out_rt[1] != 'Killed':
+            nsum = modcheck.get_spec_res(out_fn[1])
+        else:
+            nsum = 'Killed'
         logging.info('csum Result: ' + csum)
-        nsum = modcheck.get_spec_res(out_fn[1])
         logging.info('nsum Result: ' + nsum)
-        
+
         if csum == 'false':
             __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
         elif csum == 'true':
             __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-
+        elif csum == 'Killed':
+            __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
         if nsum == 'false':
             __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
         elif nsum == 'true':
             __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
+        elif nsum == 'Killed':
+            __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
         
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
@@ -722,21 +731,30 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         # Run NuSMV on no tags
         out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker)
         
-        # Parse output files:
-        csum = modcheck.get_spec_res(out_fn_nt[0])
+        # Parse output files if runtime not = "Killed":
+        if out_rt_nt[0] != 'Killed':
+            csum = modcheck.get_spec_res(out_fn_nt[0])
+        else:
+            csum = 'Killed'
+        if out_rt_nt[1] != 'Killed':
+            nsum = modcheck.get_spec_res(out_fn_nt[1])
+        else:
+            nsum = 'Killed'
         logging.info('csum Result: ' + csum)
-        nsum = modcheck.get_spec_res(out_fn_nt[1])
         logging.info('nsum Result: ' + nsum)
         
         if csum == 'false':
             __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
         elif csum == 'true':
             __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-
+        elif csum == 'Killed':
+            __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
         if nsum == 'false':
             __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
         elif nsum == 'true':
             __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
+        elif nsum == 'Killed':
+            __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
         
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=10, row=(row_id + 4), value=out_fn_nt[0])

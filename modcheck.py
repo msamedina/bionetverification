@@ -54,6 +54,7 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
         start = 0
         stop = 0
         runtime = 0
+        err_flag = 0
                 
         inputval = inval[indx]
         
@@ -107,13 +108,27 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
                         logging.info(prev_rec)
                     break
                 except pexpect.EOF:
+                    err_flag = 1
+                    prev_rec = child.before
+                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modcheker + " was killed."
+                    logging.exception(msg=ermsg)
                     break
-            if i in check_spec:
-                print('Running Specs...')
-                start = datetime.datetime.now()
-           
-            logging.info(str_modcheker + ' command: ' + inputval[i])
-            child.send(inputval[i])
+            
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    start = datetime.datetime.now()
+            
+                logging.info(str_modcheker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                """
+                Need to add error handling for SAT as runtime is added while running
+                while len(out_rt_arr) < 4:
+                    out_rt_arr.append('Killed')
+                """
+                break
     
         child.close()
     
@@ -240,6 +255,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchek
     start = 0
     stop = 0
     runtime = 0
+    err_flag = 0
                     
     logging.info('Opening process: ' + str_modcheker)
     child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
@@ -266,13 +282,24 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchek
                     logging.info(prev_rec)
                 break
             except pexpect.EOF:
+                err_flag = 1
+                prev_rec = child.before
+                logging.info(prev_rec)
+                ermsg = "Process " + str_modcheker + " was killed."
+                logging.exception(msg=ermsg)
                 break
-        if i in check_spec:
-            print('Running Specs...')
-            start = datetime.datetime.now()
-       
-        logging.info(str_modcheker + ' command: ' + inputval[i])
-        child.send(inputval[i])
+        
+        if err_flag == 0:
+            if i in check_spec:
+                print('Running Specs...')
+                start = datetime.datetime.now()
+        
+            logging.info(str_modcheker + ' command: ' + inputval[i])
+            child.send(inputval[i])
+        elif err_flag == 1:
+            while len(out_rt_arr) < 2:
+                out_rt_arr.append('Killed')
+            break
 
     child.close()
     
@@ -315,6 +342,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
     start = 0
     stop = 0
     runtime = 0
+    err_flag = 0
                     
     logging.info('Opening process: ' + str_modcheker)
     child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
@@ -341,14 +369,25 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
                     logging.info(prev_rec)
                 break
             except pexpect.EOF:
+                err_flag = 1
+                prev_rec = child.before
+                logging.info(prev_rec)
+                ermsg = "Process " + str_modcheker + " was killed."
+                logging.exception(msg=ermsg)
                 break
-        if i in check_spec:
-            print('Running Specs...')
-            logging.info('Running specs...')
-            start = datetime.datetime.now()
-       
-        logging.info(str_modcheker + ' command: ' + inputval[i])
-        child.send(inputval[i])
+        
+        if err_flag == 0:
+            if i in check_spec:
+                print('Running Specs...')
+                logging.info('Running specs...')
+                start = datetime.datetime.now()
+            
+            logging.info(str_modcheker + ' command: ' + inputval[i])
+            child.send(inputval[i])
+        elif err_flag == 1:
+             while len(out_rt_arr) < 2:
+                out_rt_arr.append('Killed')
+            break
 
     child.close()
 
@@ -383,7 +422,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
     start = 0
     stop = 0
     runtime = 0
-    
+    err_flag = 0
     output = ''
                     
     logging.info('Opening process: ' + str_modcheker)
@@ -413,14 +452,25 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
                     logging.info(prev_rec)
                 break
             except pexpect.EOF:
+                err_flag = 1
+                prev_rec = child.before
+                logging.info(prev_rec)
+                ermsg = "Process " + str_modcheker + " was killed."
+                logging.exception(msg=ermsg)
                 break
-        if i in check_spec:
-            print('Running Specs...')
-            logging.info('Running specs...')
-            start = datetime.datetime.now()
-       
-        logging.info(str_modcheker + ' command: ' + inputval[i])
-        child.send(inputval[i])
+        
+        if err_flag == 0:
+            if i in check_spec:
+                print('Running Specs...')
+                logging.info('Running specs...')
+                start = datetime.datetime.now()
+            
+            logging.info(str_modcheker + ' command: ' + inputval[i])
+            child.send(inputval[i])
+        elif err_flag == 1:
+            while len(out_rt_arr) < 2:
+                out_rt_arr.append('Killed')
+            break
 
     child.close()
 
@@ -450,6 +500,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
     start = 0
     stop = 0
     runtime = 0
+    err_flag = 0
                     
     logging.info('Opening process: ' + str_modcheker)
     child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
@@ -476,14 +527,25 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
                     logging.info(prev_rec)
                 break
             except pexpect.EOF:
+                err_flag = 1
+                prev_rec = child.before
+                logging.info(prev_rec)
+                ermsg = "Process " + str_modcheker + " was killed."
+                logging.exception(msg=ermsg)
                 break
-        if i in check_spec:
-            print('Running Specs...')
-            logging.info('Running specs...')
-            start = datetime.datetime.now()
-       
-        logging.info(str_modcheker + ' command: ' + inputval[i])
-        child.send(inputval[i])
+        
+        if err_flag == 0:
+            if i in check_spec:
+                print('Running Specs...')
+                logging.info('Running specs...')
+                start = datetime.datetime.now()
+        
+            logging.info(str_modcheker + ' command: ' + inputval[i])
+            child.send(inputval[i])
+        elif err_flag == 1:
+            while len(out_rt_arr) < 2:
+                out_rt_arr.append('Killed')
+            break
 
     child.close()
 
