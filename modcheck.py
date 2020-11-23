@@ -123,16 +123,18 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
                 logging.info(str_modcheker + ' command: ' + inputval[i])
                 child.send(inputval[i])
             elif err_flag == 1:
-                """
-                Need to add error handling for SAT as runtime is added while running
-                while len(out_rt_arr) < 4:
+                rt_len = 0
+                if indx == 0:
+                    rt_len = 2
+                elif indx == 1:
+                    rt_len = 4
+                while len(out_rt_arr) < rt_len:
                     out_rt_arr.append('Killed')
-                """
                 break
     
         child.close()
     
-    return out_fn_arr
+    return out_fn_arr, out_rt_arr
 
 
 def call_nusmv_out_all(filename, spectype, str_modcheker):
@@ -468,8 +470,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
             logging.info(str_modcheker + ' command: ' + inputval[i])
             child.send(inputval[i])
         elif err_flag == 1:
-            while len(out_rt_arr) < 2:
-                out_rt_arr.append('Killed')
+            runtime = 'Killed'
             break
 
     child.close()

@@ -538,9 +538,16 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker)
             
             # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
+            if out_rt[0] != 'Killed':
+                ltl_res = modcheck.get_spec_res(out_fn[0])
+            else:
+                ltl_res = "Killed"
+            if out_rt[1] != 'Killed':
+                ctl_res = modcheck.get_spec_res(out_fn[1])
+            else:
+                ctl_res = 'Killed'
+            
             logging.info('LTL Result: ' + ltl_res)
-            ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
             
             if ltl_res == 'false' and ctl_res == 'true':
@@ -563,10 +570,18 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker)
             
             # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
+            if out_rt[0] != 'Killed':
+                ltl_res = modcheck.get_spec_res(out_fn[0])
+            else:
+                ltl_res = "Killed"
+            if out_rt[1] != 'Killed':
+                ctl_res = modcheck.get_spec_res(out_fn[1])
+            else:
+                ctl_res = 'Killed'
+            
             logging.info('LTL Result: ' + ltl_res)
-            ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
+            
             logging.info('Saving Tags data in Excel')
             __ = wsheet.cell(column=14, row=(row_id + 4), value=out_fn[0])
             __ = wsheet.cell(column=15, row=(row_id + 4), value=ltl_res)

@@ -538,9 +538,16 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
 
         # Parse output files:
-        ltl_res = modcheck.get_spec_res(out_fn[0])
+        if out_rt[0] != 'Killed':
+            ltl_res = modcheck.get_spec_res(out_fn[0])
+        else:
+            ltl_res = "Killed"
+        if out_rt[1] != 'Killed':
+            ctl_res = modcheck.get_spec_res(out_fn[1])
+        else:
+            ctl_res = 'Killed'
+        
         logging.info('LTL Result: ' + ltl_res)
-        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
         
         if ltl_res == 'false' and ctl_res == 'true':
@@ -563,9 +570,16 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
         
         # Parse output files:
-        ltl_res = modcheck.get_spec_res(out_fn[0])
+        if out_rt[0] != 'Killed':
+            ltl_res = modcheck.get_spec_res(out_fn[0])
+        else:
+            ltl_res = "Killed"
+        if out_rt[1] != 'Killed':
+            ctl_res = modcheck.get_spec_res(out_fn[1])
+        else:
+            ctl_res = 'Killed'
+        
         logging.info('LTL Result: ' + ltl_res)
-        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
         
         logging.info('Saving Tags data in Excel')
@@ -620,4 +634,32 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         __ = wsheet.cell(column=10, row=(index + 4), value=out_res)
         __ = wsheet.cell(column=11, row=(index + 4), value=out_rt)
         wbook.save(xl_fn)
-        
+
+
+def f_down_finder(ss_array, int_ss):
+    """
+    Find all force-down junctions, and return their (r, c) coordinates
+        Input:
+            ss_array: array of subsets that may take part in the ExCov
+            int_ss: array of integer subsets
+        Output:
+            rc_f_dwn: array of (r,c) coordinates of all force-down junctions
+    """
+    rc_f_dwn = []
+    
+    for i in range(0, len(ss_array)):
+        for j in range(i + 1, len(ss_array)):
+            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+                c = int_ss[i]
+                r = sum(int_ss[0:j])
+                rc_f_dwn.append([r, c])
+                f.write('(' + str(r) + ',' + str(c) + ') ')
+                for k in range(i + 1, j):
+                    c = int_ss[i] + int_ss[k]
+                    rc_f_dwn.append([r, c])
+                    f.write('(' + str(r) + ',' + str(c) + ') ')
+                    ctemp = sum(int_ss[i:k + 1])
+                    if ctemp > c:
+                        rc_f_dwn.append([r, ctemp])
+                        f.write('(' + str(r) + ',' + str(ctemp) + ') ')
+    return rc_f_dwn
