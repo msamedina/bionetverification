@@ -80,6 +80,7 @@ while problem_type != 4:    # While not quit
         
         # Setup worksheet for data recording
         ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+        ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
         ssp_xl_fn = misc.file_name_cformat('SSP_{0}.xlsx')
         ssp_wb.save(ssp_xl_fn)
 
@@ -203,14 +204,19 @@ while problem_type != 4:    # While not quit
         """
         Finished running SSP problems
         Remove template sheets and close file
+        In case there was no action - delete the file
         """
-        ssp_wb.remove(ssp_wb['ALL_Template'])
-        ssp_wb.remove(ssp_wb['SINGLE_Template'])
-        ssp_wb.remove(ssp_wb['NewSpec_Template'])
-        ssp_wb.remove(ssp_wb['Prism_Template'])
-        ssp_wb.save(ssp_xl_fn)
-
-        logging.info('Output Excel file is: ' + ssp_xl_fn)
+        if len(ssp_wb.sheetnames) > ssp_wb_num_of_sheets:
+            ssp_wb.remove(ssp_wb['ALL_Template'])
+            ssp_wb.remove(ssp_wb['SINGLE_Template'])
+            ssp_wb.remove(ssp_wb['NewSpec_Template'])
+            ssp_wb.remove(ssp_wb['Prism_Template'])
+            ssp_wb.save(ssp_xl_fn)
+            logging.info('Output Excel file is: ' + ssp_xl_fn)
+        else:
+            logging.info('There was no action in file: ' + ssp_xl_fn)
+            logging.info('delete file: ' + ssp_xl_fn)
+            os.remove(ssp_xl_fn)
         logging.info('Closing workbook')
         ssp_wb.close()
 
