@@ -99,13 +99,13 @@ while problem_type != 4:    # While not quit
 
             while ssp_opt != 4:
                 logging.info('Printing SSP menu')
-                ssp.print_ssp_menu()
+                ssp.print_ssp_menu(str_modc)
                 logging.info('Printed SSP menu.')
                 # Get user input for menu selection
                 valid_opt = -1
                 while valid_opt == -1:
                     ssp_opt = misc.int_input()
-                    if ssp_opt in range(1,5):
+                    if ssp_opt in range(1, 5):
                         valid_opt = 1
                         print('Selected option ', str(ssp_opt))
                         logging.info('Selected option: ' + str(ssp_opt))
@@ -163,43 +163,56 @@ while problem_type != 4:    # While not quit
                     ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
 
         elif str_modc == "prism":
-            """
-            Generate prism files
-            """
-            # Use specification per output
-            ssp_prism_nt = ssp.prism_gen(ssp_arr)
+            while ssp_opt != 3:
+                logging.info('Printing SSP menu')
+                ssp.print_ssp_menu(str_modc)
+                logging.info('Printed SSP menu.')
+                # Get user input for menu selection
+                valid_opt = -1
+                while valid_opt == -1:
+                    ssp_opt = misc.int_input()
+                    if ssp_opt in range(1, 4):
+                        valid_opt = 1
+                        print('Selected option ', str(ssp_opt))
+                        logging.info('Selected option: ' + str(ssp_opt))
+                    else:
+                        print('Invalid option selected. '
+                              'Please select a number 1-3.')
+                        logging.info('Invalid option selected.')
+                """
+                Generate prism files
+                """
+                # Use specification per output
+                ssp_prism_nt = ssp.prism_gen(ssp_arr)
 
-            # Get user input for menu selection
-            """
-            Run Prism
-            ------------------
-            """
-            # Add another worksheet based on the template
-            s_source = ssp_wb['Prism_Template']
-            ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-            ssp_s_ws.title = ('SSP_Prism_Results')
-            ssp_wb.save(ssp_xl_fn)
+                if ssp_opt == 1 or ssp_opt == 2:
+                    """
+                    Run Prism
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['Prism_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = 'SSP_Prism_Results'
+                    ssp_wb.save(ssp_xl_fn)
 
-            # Run Prism and get outputs for each individual specification
-            ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
-
-            # back to Main menu
-            ssp_opt = 4
+                    # Run Prism and get outputs for each individual specification
+                    ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, ssp_opt)
 
         # If selected return to main
-        if ssp_opt == 4:
-            """
-            Finished running SSP problems
-            Remove template sheets and close file
-            """
-            ssp_wb.remove(ssp_wb['ALL_Template'])
-            ssp_wb.remove(ssp_wb['SINGLE_Template'])
-            ssp_wb.remove(ssp_wb['NewSpec_Template'])
-            ssp_wb.save(ssp_xl_fn)
+        """
+        Finished running SSP problems
+        Remove template sheets and close file
+        """
+        ssp_wb.remove(ssp_wb['ALL_Template'])
+        ssp_wb.remove(ssp_wb['SINGLE_Template'])
+        ssp_wb.remove(ssp_wb['NewSpec_Template'])
+        ssp_wb.remove(ssp_wb['Prism_Template'])
+        ssp_wb.save(ssp_xl_fn)
 
-            logging.info('Output Excel file is: ' + ssp_xl_fn)
-            logging.info('Closing workbook')
-            ssp_wb.close()
+        logging.info('Output Excel file is: ' + ssp_xl_fn)
+        logging.info('Closing workbook')
+        ssp_wb.close()
 
     """
     ExCov SELECTED

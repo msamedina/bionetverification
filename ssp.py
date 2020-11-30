@@ -9,15 +9,21 @@ import modcheck
 import pandas as pd
 
 
-def print_ssp_menu():
+def print_ssp_menu(str_mc):
     """
     Print menu for SSP options to screen.
     """
-    print('What would you like to look at with this set:\n')
-    print('\t[1] Bulk run output specifications')
-    print('\t[2] Run individual output specifications')
-    print('\t[3] Run general valid-invalid output specifications')
-    print('\t[4] Main Menu')
+    if str_mc == 'NuSMV' or str_mc == 'nuXmv':
+        print('What would you like to look at with this set:\n')
+        print('\t[1] Bulk run output specifications')
+        print('\t[2] Run individual output specifications')
+        print('\t[3] Run general valid-invalid output specifications')
+        print('\t[4] Main Menu')
+    elif str_mc == 'prism':
+        print('What would you like to look at with this set:\n')
+        print('\t[1] Run general valid-invalid output')
+        print('\t[2] Calculate the probabilities of outputs')
+        print('\t[3] Main Menu')
 
 
 def file_name_gen(set_array, arr_length, str_mc='NuSMV'):
@@ -707,7 +713,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         wbook.save(xl_fn)
 
         # Run NuSMV new spec on with tags
-        out_fn, out_rt = modcheck.call_pexpect_ssp(smv_t_arr[index], str_modcheker)
+        out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker)
 
         # Parse output files if runtime not = "Killed":
         if out_rt[0] != 'Killed':
@@ -742,7 +748,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp(smv_nt_arr[index], str_modcheker)
+        out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker)
 
         # Parse output files if runtime not = "Killed":
         if out_rt_nt[0] != 'Killed':
@@ -929,11 +935,12 @@ def print_prism_ssp_nt_spec(filename):
     # Open file and write header into file
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [F = maxrow + 2 sum = k]')
+    f.write('P>0 [F = maxrow + 2 sum = k]\n')
+    f.write('P=? [F = maxrow + 2 sum = k]\n')
     f.close()
 
 
-def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_number):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -946,13 +953,23 @@ def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
     """
     row_id = 0
     for index, ssp in enumerate(ssp_arr):
-
         # Run Prism on no tags
-        out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp(smv_nt_arr[index], str_modcheker,
-                                                                       maxrow=sum(ssp))
+        out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(smv_nt_arr[index], str_modcheker, sum(ssp), spec_number)
+
+        # Parse the results from txt file
         df = pd.read_csv(out_fn_nt, sep=" ")
-        reachable_col = df.index[df['Result'] == True].tolist()
-        unreachable_col = df.index[df['Result'] == False].tolist()
+
+        # Valid-invalid output
+        if spec_number == 1:
+            reachable_col = df.index[df['Result'] == True].tolist()
+            unreachable_col = df.index[df['Result'] == False].tolist()
+        # probabilities
+        elif spec_number == 2:
+            reachable_col = df.index[df['Result'] > 0].tolist()
+            unreachable_col = df.index[df['Result'] == 0].tolist()
+            prob_col = df['Result'].tolist()
+            prob_col = [x for x in prob_col if x > 0]
+
 
         # Parse the results into excel file
         logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
@@ -961,9 +978,10 @@ def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
         __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
         __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_nt_arr[index])
         __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
-        __ = wsheet.cell(column=8, row=(row_id + 4), value=str(unreachable_col))
+        if spec_number == 2:
+            __ = wsheet.cell(column=8, row=(row_id + 4), value=str(prob_col))
+        __ = wsheet.cell(column=9, row=(row_id + 4), value=str(unreachable_col))
         wbook.save(xl_fn)
 
         # Prepare for next input
         row_id += 1
-
