@@ -80,101 +80,145 @@ while problem_type != 4:    # While not quit
         
         # Setup worksheet for data recording
         ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+        ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
         ssp_xl_fn = misc.file_name_cformat('SSP_{0}.xlsx')
         ssp_wb.save(ssp_xl_fn)
 
-        """
-        Generate smv files
-        """
-        # Use specification per output
-        ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr)
-
-        # Use new specifications (csum and nsum for whole network)
-        ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr)
-
         # Pick a model checker (NuSMV or nuXmv)
         str_modc = misc.modcheck_select()
-
         ssp_opt = ''
-        while ssp_opt != 4:
-            logging.info('Printing SSP menu')
-            ssp.print_ssp_menu()
-            logging.info('Printed SSP menu.')
-            # Get user input for menu selection
-            valid_opt = -1
-            while valid_opt == -1:
-                ssp_opt = misc.int_input()
-                if ssp_opt in range(1,5):
-                    valid_opt = 1
-                    print('Selected option ', str(ssp_opt))
-                    logging.info('Selected option: ' + str(ssp_opt))
-                else:
-                    print('Invalid option selected. '
-                          'Please select a number 1-4.')
-                    logging.info('Invalid option selected.')
-            
-            # If selected bulk run
-            if ssp_opt == 1:
-                """
-                Run NuSMV
-                Bulk run specs for per output specs
-                ------------------
-                """
-                # Add another worksheet based on the template
-                a_source = ssp_wb['ALL_Template']
-                ssp_a_ws = ssp_wb.copy_worksheet(a_source)
-                ssp_a_ws.title = ('Bulk_OutSpec')
-                ssp_wb.save(ssp_xl_fn)
-                
-                # Run NuSMV and get output filename for specification
-                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc)
-            
-            # If selected individual out run
-            elif ssp_opt == 2:
-                """
-                Run NuSMV
-                Run each per output spec individually
-                ------------------
-                """
-                # Add another worksheet based on the template
-                s_source = ssp_wb['SINGLE_Template']
-                ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-                ssp_s_ws.title = ('Single_OutSpec')
-                ssp_wb.save(ssp_xl_fn)
-                
-                # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
-            
-            # If selected general specifications
-            elif ssp_opt == 3:
-                """
-                Run NuSMV
-                Run new specs (csum and nsum for whole network)
-                ------------------
-                """
-                # Add another worksheet based on the template
-                s_source = ssp_wb['NewSpec_Template']
-                ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-                ssp_s_ws.title = ('SSP_GenSpec')
-                ssp_wb.save(ssp_xl_fn)
-                
-                # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
 
-            # If selected return to main
-            elif ssp_opt == 4:
+        if str_modc == "NuSMV" or str_modc == "nuXmv":
+            """
+            Generate smv files
+            """
+            # Use specification per output
+            ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr)
+
+            # Use new specifications (csum and nsum for whole network)
+            ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr)
+
+            while ssp_opt != 4:
+                logging.info('Printing SSP menu')
+                ssp.print_ssp_menu(str_modc)
+                logging.info('Printed SSP menu.')
+                # Get user input for menu selection
+                valid_opt = -1
+                while valid_opt == -1:
+                    ssp_opt = misc.int_input()
+                    if ssp_opt in range(1, 5):
+                        valid_opt = 1
+                        print('Selected option ', str(ssp_opt))
+                        logging.info('Selected option: ' + str(ssp_opt))
+                    else:
+                        print('Invalid option selected. '
+                              'Please select a number 1-4.')
+                        logging.info('Invalid option selected.')
+
+                # If selected bulk run
+                if ssp_opt == 1:
+                    """
+                    Run NuSMV
+                    Bulk run specs for per output specs
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    a_source = ssp_wb['ALL_Template']
+                    ssp_a_ws = ssp_wb.copy_worksheet(a_source)
+                    ssp_a_ws.title = ('Bulk_OutSpec')
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get output filename for specification
+                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc)
+
+                # If selected individual out run
+                elif ssp_opt == 2:
+                    """
+                    Run NuSMV
+                    Run each per output spec individually
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['SINGLE_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = ('Single_OutSpec')
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get outputs for each individual specification
+                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
+
+                # If selected general specifications
+                elif ssp_opt == 3:
+                    """
+                    Run NuSMV
+                    Run new specs (csum and nsum for whole network)
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['NewSpec_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = ('SSP_GenSpec')
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get outputs for each individual specification
+                    ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
+
+        elif str_modc == "prism":
+            while ssp_opt != 3:
+                logging.info('Printing SSP menu')
+                ssp.print_ssp_menu(str_modc)
+                logging.info('Printed SSP menu.')
+                # Get user input for menu selection
+                valid_opt = -1
+                while valid_opt == -1:
+                    ssp_opt = misc.int_input()
+                    if ssp_opt in range(1, 4):
+                        valid_opt = 1
+                        print('Selected option ', str(ssp_opt))
+                        logging.info('Selected option: ' + str(ssp_opt))
+                    else:
+                        print('Invalid option selected. '
+                              'Please select a number 1-3.')
+                        logging.info('Invalid option selected.')
                 """
-                Finished running SSP problems
-                Remove template sheets and close file
+                Generate prism files
                 """
-                ssp_wb.remove(ssp_wb['ALL_Template'])
-                ssp_wb.remove(ssp_wb['SINGLE_Template'])
-                ssp_wb.remove(ssp_wb['NewSpec_Template'])
-                ssp_wb.save(ssp_xl_fn)
-                
-                logging.info('Output Excel file is: ' + ssp_xl_fn)
-                logging.info('Closing workbook')
-                ssp_wb.close()
+                # Use specification per output
+                ssp_prism_nt = ssp.prism_gen(ssp_arr)
+
+                if ssp_opt == 1 or ssp_opt == 2:
+                    """
+                    Run Prism
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['Prism_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = 'SSP_Prism_Results'
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run Prism and get outputs for each individual specification
+                    ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, ssp_opt)
+
+        # If selected return to main
+        """
+        Finished running SSP problems
+        Remove template sheets and close file
+        In case there was no action - delete the file
+        """
+        if len(ssp_wb.sheetnames) > ssp_wb_num_of_sheets:
+            ssp_wb.remove(ssp_wb['ALL_Template'])
+            ssp_wb.remove(ssp_wb['SINGLE_Template'])
+            ssp_wb.remove(ssp_wb['NewSpec_Template'])
+            ssp_wb.remove(ssp_wb['Prism_Template'])
+            ssp_wb.save(ssp_xl_fn)
+            logging.info('Output Excel file is: ' + ssp_xl_fn)
+        else:
+            logging.info('There was no action in file: ' + ssp_xl_fn)
+            logging.info('delete file: ' + ssp_xl_fn)
+            os.remove(ssp_xl_fn)
+        logging.info('Closing workbook')
+        ssp_wb.close()
 
     """
     ExCov SELECTED

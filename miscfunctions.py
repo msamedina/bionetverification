@@ -138,12 +138,12 @@ def modcheck_select():
     Output:
         str_modc: string for model checker name
     """
-    mod_c_opt = ['NuSMV', 'nuXmv']
-    menu = 'Please select a model checker:\n\t[1] NuSMV\n\t[2] nuXmv\n'
+    mod_c_opt = ['NuSMV', 'nuXmv', 'prism']
+    menu = 'Please select a model checker:\n\t[1] NuSMV\n\t[2] nuXmv\n\t[3] Prism\n'
     val = -1
     while val == -1:
-        mod_c = int_input(out_str = menu)
-        if mod_c in range(1,3):
+        mod_c = int_input(out_str=menu)
+        if mod_c in range(1, 4):
             val = 1
             str_modc = mod_c_opt[mod_c - 1]
             print('Selected ' + str_modc)

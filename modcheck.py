@@ -123,18 +123,16 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
                 logging.info(str_modcheker + ' command: ' + inputval[i])
                 child.send(inputval[i])
             elif err_flag == 1:
-                rt_len = 0
-                if indx == 0:
-                    rt_len = 2
-                elif indx == 1:
-                    rt_len = 4
-                while len(out_rt_arr) < rt_len:
+                """
+                Need to add error handling for SAT as runtime is added while running
+                while len(out_rt_arr) < 4:
                     out_rt_arr.append('Killed')
+                """
                 break
     
         child.close()
     
-    return out_fn_arr, out_rt_arr
+    return out_fn_arr
 
 
 def call_nusmv_out_all(filename, spectype, str_modcheker):
@@ -387,9 +385,9 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
             logging.info(str_modcheker + ' command: ' + inputval[i])
             child.send(inputval[i])
         elif err_flag == 1:
-            while len(out_rt_arr) < 2:
+             while len(out_rt_arr) < 2:
                 out_rt_arr.append('Killed')
-            break
+             break
 
     child.close()
 
@@ -470,7 +468,8 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
             logging.info(str_modcheker + ' command: ' + inputval[i])
             child.send(inputval[i])
         elif err_flag == 1:
-            runtime = 'Killed'
+            while len(out_rt_arr) < 2:
+                out_rt_arr.append('Killed')
             break
 
     child.close()
@@ -494,7 +493,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
 
     # NuSMV inputs
     inputval = ['go\n', 'check_ctlspec -o ' + out_fn_arr[0] + ' -P "csum"\n',
-                  'check_ctlspec -o ' + out_fn_arr[1] + ' -P "nsum"\n', 'quit\n']
+                'check_ctlspec -o ' + out_fn_arr[1] + ' -P "nsum"\n', 'quit\n']
     check_spec = [1, 2]
 
     # Prepare to catch runtimes
@@ -502,7 +501,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
     stop = 0
     runtime = 0
     err_flag = 0
-                    
+
     logging.info('Opening process: ' + str_modcheker)
     child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
@@ -534,13 +533,13 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
                 ermsg = "Process " + str_modcheker + " was killed."
                 logging.exception(msg=ermsg)
                 break
-        
+
         if err_flag == 0:
             if i in check_spec:
                 print('Running Specs...')
                 logging.info('Running specs...')
                 start = datetime.datetime.now()
-        
+
             logging.info(str_modcheker + ' command: ' + inputval[i])
             child.send(inputval[i])
         elif err_flag == 1:
@@ -548,6 +547,35 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
                 out_rt_arr.append('Killed')
             break
 
+    child.close()
+
+    return out_fn_arr, out_rt_arr
+
+
+def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
+    """
+    Run NuSMV/nuXmv or Prism Model Checker on a given file
+    Uses the pexpect library to run the relevant model checker.
+    NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
+    NOTE: THIS IS FOR SSP (new spec)
+        Input:
+            filename: The NuSMV/nuXmv/Prism filename on which to run
+            str_modcheker: string containing name of model checker (NuSMV, nuXmv or Prism)
+            maxrow: sum of subset, for prism file
+    """
+
+    out_fn_arr = f'res_{maxrow}.txt'
+    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn_arr}:csv']
+    out_rt_arr = []
+
+    logging.info('Opening process: ' + str_modcheker)
+    child = pexpect.spawn(str_modcheker, args=input_fn,
+                          logfile=sys.stdout, encoding='utf-8',
+                          timeout=None)
+    try:
+        child.expect('\n' + str_modcheker)
+    except pexpect.EOF:
+        print('')
     child.close()
 
     return out_fn_arr, out_rt_arr
