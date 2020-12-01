@@ -52,14 +52,14 @@ def read_ec(filename):
     uni_list = list()
     subsets_list = list()
     num_prob = 0
-    
+
     # Temp collection variables
     num_subsets = 0
     subset_count = 0
     sset = list()
     sset_list = list()
     uni = list()
-    
+
     # Run through the lines of data in the file
     for line in in_data:
         tokens = line.split()
@@ -104,7 +104,7 @@ def read_ec(filename):
     subsets_list.append(sset_list[:])
     uni.clear()
     sset_list.clear()
-    
+
     logging.info('Total number of ExCov problems: ' + str(num_prob))
     return uni_list, subsets_list, num_prob
 
@@ -128,25 +128,28 @@ def smv_gen(universes, subsets, num_probs):
     max_sums = list()
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
-        
+
+        # Bit-mapping optimization of universe
+        uni = rearrange_universe(sets, uni)
+
         # Generate binary universe representation
         logging.info('Converting universe to binary format.')
         uni_bin = list()
-        for i in range(0,len(uni)):
+        for i in range(0, len(uni)):
             uni_bin.append('1')
         uni_bin_s = ''.join(str(e) for e in uni_bin)
         logging.info('Universe in binary is: ' + uni_bin_s + '\n')
-        
+
         # Convert binary universe to integer representation
         uni_bin_int = int(uni_bin_s, base=2)
         ec_outputs.append(uni_bin_int)
-        logging.info('Integer convesion of binary universe is: ' + str(uni_bin_int))
-        
+        logging.info('Integer conversions of binary universe is: ' + str(uni_bin_int))
+
         # Convert subsets to binary representation
         sets_bin = list()
         for i in range(0, len(sets)):
             sets_bin.append(bin_rep(sets[i], uni))
-            logging.info('Set ' + str(i+1) + ' in binary is: ' + str(sets_bin[-1]))
+            logging.info('Set ' + str(i + 1) + ' in binary is: ' + str(sets_bin[-1]))
 
         # Convert binary to integer representation
         sets_bin_int = list()
@@ -163,14 +166,14 @@ def smv_gen(universes, subsets, num_probs):
         print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id)
         logging.info('Generated NuSMV file with tags')
         ec_smv.append(ec_smv_name)
-        
+
         # Without tags
         logging.info('Generating NuSMV file without tags...')
         ec_smv_name_nt = 'NT_' + ec_smv_name
         print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s)
         logging.info('Generated NuSMV file without tags')
         ec_smv_nt.append(ec_smv_name_nt)
-        
+
     return ec_smv, ec_smv_nt, ec_outputs, max_sums
 
 
@@ -285,7 +288,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     # Find all frcDwn junctions
     for i in range(0, len(ss_array)):
         for j in range(i + 1, len(ss_array)):
-            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
                 c = int_ss[i]
                 r = sum(int_ss[0:j])
                 rc_f_dwn.append([r, c])
@@ -358,7 +361,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
 
 
 def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
-                 bin_uni):
+                    bin_uni):
     """
     Print out the ExCov network description to the smv file
         Input:
@@ -432,7 +435,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     # Find all frcDwn junctions
     for i in range(0, len(ss_array)):
         for j in range(i + 1, len(ss_array)):
-            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
                 c = int_ss[i]
                 r = sum(int_ss[0:j])
                 rc_f_dwn.append([r, c])
@@ -489,6 +492,28 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.close()
 
 
+def rearrange_universe(subsets, universe):
+    """
+    Calculate the occurrences of numbers in subsets, and rearrange the universe by sorting the occurrences
+        Input:
+            arr: subset being calculated occurrences
+            universe: the universe array to be rearrange
+        Output:
+            occurrences_rep: universe representation by sorted occurrences
+    """
+
+    # unlist the subsets for one long list
+    subsets = sum(subsets, [])
+
+    occurrences = []
+    for i in range(0, len(universe)):
+        occurrences.append(subsets.count(i + 1))
+    occurrences_rep = sorted(range(len(occurrences)), reverse=True, key=lambda k: occurrences[k])
+    for i in range(0, len(occurrences_rep)):
+        occurrences_rep[i] += 1
+    return occurrences_rep
+
+
 def bin_rep(subset, universe):
     """
     Generate binary encoding of given ExCov problem
@@ -533,30 +558,23 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         __ = wsheet.cell(column=5, row=(index + 4), value=smv_t_arr[index])
         __ = wsheet.cell(column=6, row=(index + 4), value=smv_nt_arr[index])
         wbook.save(xl_fn)
-        
+
         # Run NuSMV on with tags
         out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
 
         # Parse output files:
-        if out_rt[0] != 'Killed':
-            ltl_res = modcheck.get_spec_res(out_fn[0])
-        else:
-            ltl_res = "Killed"
-        if out_rt[1] != 'Killed':
-            ctl_res = modcheck.get_spec_res(out_fn[1])
-        else:
-            ctl_res = 'Killed'
-        
+        ltl_res = modcheck.get_spec_res(out_fn[0])
         logging.info('LTL Result: ' + ltl_res)
+        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
-        
+
         if ltl_res == 'false' and ctl_res == 'true':
             __ = wsheet.cell(column=7, row=(index + 4), value='YES')
         elif ltl_res == 'true' and ctl_res == 'false':
             __ = wsheet.cell(column=7, row=(index + 4), value='NO')
         else:
             __ = wsheet.cell(column=7, row=(index + 4), value='INVALID RESULT')
-                
+
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[0])
         __ = wsheet.cell(column=9, row=(index + 4), value=ltl_res)
@@ -568,20 +586,13 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
 
         # Run NuSMV on no tags
         out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
-        
+
         # Parse output files:
-        if out_rt[0] != 'Killed':
-            ltl_res = modcheck.get_spec_res(out_fn[0])
-        else:
-            ltl_res = "Killed"
-        if out_rt[1] != 'Killed':
-            ctl_res = modcheck.get_spec_res(out_fn[1])
-        else:
-            ctl_res = 'Killed'
-        
+        ltl_res = modcheck.get_spec_res(out_fn[0])
         logging.info('LTL Result: ' + ltl_res)
+        ctl_res = modcheck.get_spec_res(out_fn[1])
         logging.info('CTL Result: ' + ctl_res)
-        
+
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=14, row=(index + 4), value=out_fn[0])
         __ = wsheet.cell(column=15, row=(index + 4), value=ltl_res)
@@ -592,7 +603,8 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         wbook.save(xl_fn)
 
 
-def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn,
+                  str_modcheker):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -618,48 +630,21 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         __ = wsheet.cell(column=6, row=(index + 4), value=smv_t_arr[index])
         __ = wsheet.cell(column=7, row=(index + 4), value=smv_nt_arr[index])
         wbook.save(xl_fn)
-        
+
         # Run NuSMV on with tags
-        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 2, out_interest[index], max_sums[index], str_modcheker)
-                
+        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 2, out_interest[index], max_sums[index],
+                                                          str_modcheker)
+
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=8, row=(index + 4), value=out_res)
         __ = wsheet.cell(column=9, row=(index + 4), value=out_rt)
         wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 2, out_interest[index], max_sums[index], str_modcheker)
-        
+        out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 2, out_interest[index], max_sums[index],
+                                                          str_modcheker)
+
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=10, row=(index + 4), value=out_res)
         __ = wsheet.cell(column=11, row=(index + 4), value=out_rt)
         wbook.save(xl_fn)
-
-
-def f_down_finder(ss_array, int_ss):
-    """
-    Find all force-down junctions, and return their (r, c) coordinates
-        Input:
-            ss_array: array of subsets that may take part in the ExCov
-            int_ss: array of integer subsets
-        Output:
-            rc_f_dwn: array of (r,c) coordinates of all force-down junctions
-    """
-    rc_f_dwn = []
-    
-    for i in range(0, len(ss_array)):
-        for j in range(i + 1, len(ss_array)):
-            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
-                c = int_ss[i]
-                r = sum(int_ss[0:j])
-                rc_f_dwn.append([r, c])
-                f.write('(' + str(r) + ',' + str(c) + ') ')
-                for k in range(i + 1, j):
-                    c = int_ss[i] + int_ss[k]
-                    rc_f_dwn.append([r, c])
-                    f.write('(' + str(r) + ',' + str(c) + ') ')
-                    ctemp = sum(int_ss[i:k + 1])
-                    if ctemp > c:
-                        rc_f_dwn.append([r, ctemp])
-                        f.write('(' + str(r) + ',' + str(ctemp) + ') ')
-    return rc_f_dwn
