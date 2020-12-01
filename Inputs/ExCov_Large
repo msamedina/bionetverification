@@ -1,0 +1,54 @@
+c Exact Cover Sample Input File
+c This is a collection of simple ExCov examples
+c Using dimacs basis
+c c is a comment
+c p is the problem type, excov includes one element for number of subsets
+c u is the universe that should be covered
+c s is a subset, number of s rows after u should be the same as the excov element
+c First has a cover second has no cover
+p excov 21
+u 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 0
+s 3 8 11 20 0
+s 2 3 13 14 21 0
+s 4 8 12 17 0
+s 11 17 18 0
+s 1 5 14 16 20 0
+s 17 18 21 0
+s 6 11 18 0
+s 1 4 8 13 0
+s 7 12 14 20 0
+s 2 9 10 13 21 0
+s 7 11 12 17 18 0
+s 3 4 11 19 0
+s 8 14 0 
+s 1 13 20 0
+s 2 3 15 17 19 0
+s 2 6 7 12 18 20 0
+s 1 4 8 11 0
+s 12 14 17 0
+s 7 8 0
+s 2 7 9 12 14 18 0
+s 3 21 0
+p excov 21
+u 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 0
+s 3 8 11 20 0
+s 2 3 13 14 21 0
+s 4 8 12 17 0
+s 11 17 18 0
+s 1 14 16 20 0
+s 17 18 21 0
+s 6 11 18 0
+s 1 4 8 13 0
+s 7 12 14 20 0
+s 2 9 10 13 21 0
+s 7 11 12 17 18 0
+s 3 4 11 19 0
+s 8 14 0 
+s 1 13 20 0
+s 2 3 15 17 19 0
+s 2 6 7 12 18 20 0
+s 1 4 8 11 0
+s 12 14 17 0
+s 7 8 0
+s 2 7 9 12 14 18 0
+s 3 21 0

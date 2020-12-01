@@ -648,3 +648,29 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         __ = wsheet.cell(column=10, row=(index + 4), value=out_res)
         __ = wsheet.cell(column=11, row=(index + 4), value=out_rt)
         wbook.save(xl_fn)
+
+
+def f_down_finder(ss_array, int_ss):
+    """
+    Find all force-down junctions, and return their (r, c) coordinates
+        Input:
+            ss_array: array of subsets that may take part in the ExCov
+            int_ss: array of integer subsets
+        Output:
+            rc_f_dwn: array of (r,c) coordinates of all force-down junctions
+    """
+    rc_f_dwn = []
+
+    for i in range(0, len(ss_array)):
+        for j in range(i + 1, len(ss_array)):
+            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+                c = int_ss[i]
+                r = sum(int_ss[0:j])
+                rc_f_dwn.append([r, c])
+                for k in range(i + 1, j):
+                    c = int_ss[i] + int_ss[k]
+                    rc_f_dwn.append([r, c])
+                    ctemp = sum(int_ss[i:k + 1])
+                    if ctemp > c:
+                        rc_f_dwn.append([r, ctemp])
+    return rc_f_dwn
