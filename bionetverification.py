@@ -255,13 +255,11 @@ while problem_type != 4:    # While not quit
             # Add another worksheet based on the template
             source = ec_wb['EC_Template']
             ec_ws = ec_wb.copy_worksheet(source)
-            ec_ws.title = ('ExCov')
+            ec_ws.title = 'ExCov'
             ec_wb.save(ec_xl_fn)
 
             # Run NuSMV and get outputs for each individual specification
             ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
-            ec_wb.remove(ec_wb['EC_Template'])
-            ec_wb.save(ec_xl_fn)
 
         elif str_modc == "prism":
 
@@ -281,22 +279,24 @@ while problem_type != 4:    # While not quit
             ec_wb.save(ec_xl_fn)
 
             # Add another worksheet based on the template
-            source = ec_wb['EC_Template']
+            source = ec_wb['EC_Prism_Template']
             ec_ws = ec_wb.copy_worksheet(source)
-            ec_ws.title = ('ExCov')
+            ec_ws.title = 'ExCov'
             ec_wb.save(ec_xl_fn)
 
             # Run Prism and get outputs for each individual specification
-            ec.run_prism(universes, subsets_arrays, ec_outputs, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
-            ec_wb.remove(ec_wb['EC_Template'])
-            ec_wb.save(ec_xl_fn)
+            ec.run_prism(universes, subsets_arrays, ec_outputs, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn)
 
         """
         Finished running ExCov
         """
+        ec_wb.remove(ec_wb['EC_Template'])
+        ec_wb.remove(ec_wb['EC_Prism_Template'])
+        ec_wb.save(ec_xl_fn)
         logging.info('Output Excel file is: ' + ec_xl_fn)
         logging.info('Closing workbook')
         ec_wb.close()
+
     """
     SAT SELECTED
     """

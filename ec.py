@@ -656,16 +656,16 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
 
 def prism_gen(universes, subsets):
     """
-    Loop through array of ExCov problems and generate two smv files for each (with and without tags)
+    Loop through array of ExCov problems and generate prism file for each (with and without tags)
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
         Output:
-            ec_smv_nt: list of smv file names without tags
+            ec_prism_nt: list of prism file names without tags
             ec_outputs: list of outputs of interest (ExCov output) for each problem
             max_sums: list of maximum sum of each problem
     """
-    ec_smv_nt = list()
+    ec_prism_nt = list()
     ec_outputs = list()
     max_sums = list()
     for uni, sets in zip(universes, subsets):
@@ -708,19 +708,19 @@ def prism_gen(universes, subsets):
         ec_prism_name_nt = 'NT_' + ec_prism_name
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=True)
         logging.info('Generated Prism file without tags')
-        ec_smv_nt.append(ec_prism_name_nt)
+        ec_prism_nt.append(ec_prism_name_nt)
 
     # create spec file
     print_prism_ec_nt_spec('spec_ssp.pctl')
 
-    return ec_smv_nt, ec_outputs, max_sums
+    return ec_prism_nt, ec_outputs, max_sums
 
 
 def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u):
     """
     Print out the ExCov network description to the prism file
         Input:
-            filename: the smv filename to be used
+            filename: the prism filename to be used
             universe_array: universe set defining the ExCov
             ss_array: array of subsets that may take part in the ExCov
             bin_ss: array of binary subsets
@@ -862,26 +862,50 @@ def print_prism_ec_nt_spec(filename):
     # BEGINNING OF FILE CREATION
     # ----------------
 
-    # Open file and write header into file
+    # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [F = maxrow + 2 sum = k]\n')
-    f.write('P=? [F = maxrow + 2 sum = k]\n')
+    f.write('P>0 [F sum = k]\n')
+    f.write('P=? [F=maxrow+2 sum = k]\n')
     f.close()
 
 
-def run_prism(universe, subsets, out_interest, smv_nt_arr, wbook, wsheet, xl_fn):
+def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn):
     """
-    Loop through array of ExCov smv files and run NuSMV. Save results in Excel
+    Loop through array of ExCov prism files and run Prism. Save results in Excel
         Input:
             universes: array of ExCov universes problems
             subsets: array of ExCov sets of subsets
             out_interest: array of relevant exact cover outputs
-            smv_nt_arr: array of smv files not using tagging
+            prism_nt_arr: array of prism files not using tagging
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
     """
+
+    for index, (uni, sets) in enumerate(zip(universe, subsets)):
+        # Save index, universe, num subsets, subsets, and filenames in excel
+        logging.info('Inputting ID, uni, num subsets, and set data into Excel...')
+        __ = wsheet.cell(column=1, row=(index + 4), value=index)
+        __ = wsheet.cell(column=2, row=(index + 4), value=repr(uni))
+        __ = wsheet.cell(column=3, row=(index + 4), value=len(sets))
+        __ = wsheet.cell(column=4, row=(index + 4), value=repr(sets))
+        __ = wsheet.cell(column=5, row=(index + 4), value=prism_nt_arr[index])
+        wbook.save(xl_fn)
+
+        # Run Prism on no tags
+        out_fn = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[index], str_modcheker='prism')
+
+        # Parse output files:
+        exist_res = open(f'{out_fn[0]}', "r").readlines()[1][:-1]
+        logging.info('Exist Result: ' + exist_res)
+        prob_res = open(f'{out_fn[1]}', "r").readlines()[1][:-1]
+        logging.info('Prob Result: ' + prob_res)
+
+        logging.info('Saving data in Excel')
+        __ = wsheet.cell(column=6, row=(index + 4), value=exist_res)
+        __ = wsheet.cell(column=7, row=(index + 4), value=prob_res)
+        wbook.save(xl_fn)
 
 
 def f_down_finder(ss_array, int_ss, universe, cut=False):
