@@ -115,7 +115,7 @@ def smv_gen(universes, subsets, num_probs):
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
-            num_probs: The number of problems (nuumber of universes and subset sets)
+            num_probs: The number of problems (number of universes and subset sets)
         Output:
             ec_smv: list of smv file names with tags
             ec_smv_nt: list of smv file names without tags
@@ -161,7 +161,7 @@ def smv_gen(universes, subsets, num_probs):
         # Create EC NuSMV File
         # With tags
         logging.info('Generating NuSMV file with tags...')
-        ec_smv_name = file_name_smv(uni, len(uni))
+        ec_smv_name = file_name(uni, len(uni), 'smv')
         max_tag_id = list()
         print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id)
         logging.info('Generated NuSMV file with tags')
@@ -187,19 +187,23 @@ def print_ec_menu():
     print('\t[3] Return to Main Menu')
 
 
-def file_name_smv(universe_array, arr_length):
+def file_name(universe_array, arr_length, str_modc):
     """
     Generate smv file name for given ExCov problem using universe.
         Inputs:
             universe_array: the given universe
             arr_length: number of elements in universe
+            str_modc: string containing name of model checker (smv or prism)
         Output:
             filename: smv file name for ExCov network with formatting
     """
     filename = 'autoExCov_'
     for i in range(arr_length):
         filename += str(universe_array[i]) + '_'
-    filename += 'Universe_{0}.smv'
+    if str_modc == 'smv':
+        filename += 'Universe_{0}.smv'
+    elif str_modc == 'prism':
+        filename += 'Universe_{0}.pm'
     return misc.file_name_cformat(filename)
 
 
@@ -650,27 +654,290 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         wbook.save(xl_fn)
 
 
-def f_down_finder(ss_array, int_ss):
+def prism_gen(universes, subsets):
+    """
+    Loop through array of ExCov problems and generate prism file for each (with and without tags)
+        Input:
+            universes: the list of universes
+            subsets: The list of sets of subsets
+        Output:
+            ec_prism_nt: list of prism file names without tags
+            ec_outputs: list of outputs of interest (ExCov output) for each problem
+            max_sums: list of maximum sum of each problem
+    """
+    ec_prism_nt = list()
+    ec_outputs = list()
+    max_sums = list()
+    for uni, sets in zip(universes, subsets):
+        logging.info('Universe is: ' + str(uni) + '\n')
+
+        # Bit-mapping optimization of universe
+        uni = rearrange_universe(sets, uni)
+
+        # Generate binary universe representation
+        logging.info('Converting universe to binary format.')
+        uni_bin = list()
+        for i in range(0, len(uni)):
+            uni_bin.append('1')
+        uni_bin_s = ''.join(str(e) for e in uni_bin)
+        logging.info('Universe in binary is: ' + uni_bin_s + '\n')
+
+        # Convert binary universe to integer representation
+        uni_bin_int = int(uni_bin_s, base=2)
+        ec_outputs.append(uni_bin_int)
+        logging.info('Integer conversions of binary universe is: ' + str(uni_bin_int))
+
+        # Convert subsets to binary representation
+        sets_bin = list()
+        for i in range(0, len(sets)):
+            sets_bin.append(bin_rep(sets[i], uni))
+            logging.info('Set ' + str(i + 1) + ' in binary is: ' + str(sets_bin[-1]))
+
+        # Convert binary to integer representation
+        sets_bin_int = list()
+        for i in range(0, len(sets_bin)):
+            sets_bin_int.append(int(sets_bin[i], base=2))
+        logging.info('These sets will be treated as the following integers: ' + str(sets_bin_int) + '\n')
+        max_sums.append(sum(sets_bin_int))
+
+        # Create EC Prism File
+
+        # Without tags
+        logging.info('Generating Prism file without tags...')
+        ec_prism_name = file_name(uni, len(uni), 'prism')
+        ec_prism_name_nt = 'NT_' + ec_prism_name
+        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=True)
+        logging.info('Generated Prism file without tags')
+        ec_prism_nt.append(ec_prism_name_nt)
+
+    # create spec file
+    print_prism_ec_nt_spec('spec_ssp.pctl')
+
+    return ec_prism_nt, ec_outputs, max_sums
+
+
+def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u):
+    """
+    Print out the ExCov network description to the prism file
+        Input:
+            filename: the prism filename to be used
+            universe_array: universe set defining the ExCov
+            ss_array: array of subsets that may take part in the ExCov
+            bin_ss: array of binary subsets
+            int_ss: array of integer subsets
+            int_uni: integer universe array
+            bin_uni: binary universe array
+    """
+
+    # ----------------
+    # BEGINNING OF FILE CREATION
+    # ----------------
+
+    # Open file and write header into file
+    f = open(filename, 'w')
+    f.write('// Exact Cover\n' + '// Universe:\t' + str(universe)
+            + '\tBit Form:\t' + uni_bin_s)
+    f.write('\n// Set of Subsets:\t' + str(ss_array) + '\tBit Form:\t'
+            + str(sets_bin) + '\n')
+    f.write('// This will be treated as k = ' + str(uni_bin_int) + ' and ss = '
+            + str(sets_bin_int) + '\n/////////////////////////////\n\n')
+
+    # ----------------
+    # Find row locations of split junctions
+    split_junctions = [0]
+    for i in range(0, len(ss_array) - 1):
+        split_junctions.append(sets_bin_int[i] + split_junctions[i])
+    sum_total = sum(sets_bin_int)
+    # ----------------
+
+    f.write('dtmc\n')
+
+    # ----------------
+    #      CONSTS
+    # ----------------
+    f.write('\n// Consts:\n')
+    f.write('const pass = 0;\n')
+    f.write('const split = 1;\n')
+    f.write('const dwn = 0;\n')
+    f.write('const diag = 1;\n')
+    f.write(f'const maxrow = {sum_total};\n')
+    f.write('const maxrow_1 = maxrow + 1;\n')
+    if cut_in_u:
+        f.write(f'const maxcol = {uni_bin_int + 1};\n')
+    else:
+        f.write('const maxcol = maxrow;\n')
+    f.write(f'const maxcol_1 = maxcol + 1;\n')
+    f.write(f'const double mu  = 1;\n')
+    f.write(f'const u = {uni_bin_int};\n')
+
+    # ------------------
+    #      FORMULAS
+    # ------------------
+
+    # fill 'next is split'
+    f.write('\n\n// Formulas:\n')
+    f.write('formula next_is_split = (')
+    for sj in split_junctions[1:]:
+        # if cut_in_u and sj > uni_bin_int:
+        #   break
+        f.write(f'row = {sj - 1}')
+        if sj != split_junctions[-1]:  # and split_junctions[split_junctions.index(sj) + 1] < uni_bin_int:
+            f.write(' | ')
+    f.write(') & !reach_maxcol & !ExCov_force;\n')
+
+    # fill 'next is not split'
+    f.write('formula next_is_not_split = !start & ')
+    for sj in split_junctions[1:]:
+        # if cut_in_u and sj > uni_bin_int:
+        # break
+        f.write(f'row != {sj - 1} & ')
+    f.write('row != maxrow & !reach_maxcol & !ExCov_force;\n')
+
+    # fill 'next is maxrow', start and maxcol
+    f.write('formula next_is_maxrow = row = maxrow;\n')
+    f.write('formula start = row = -1;\n')
+    f.write(f'formula reach_maxcol = column = {uni_bin_int + 1};\n')
+
+    # fill ExCov force down
+    f.write('formula ExCov_force =')
+    rc_f_dwn_list = f_down_finder(ss_array, sets_bin_int, universe=uni_bin_int, cut=cut_in_u)
+
+    for k in rc_f_dwn_list:
+        f.write(f' (row = {k[0]} & column = {k[1]})')
+        if k != rc_f_dwn_list[-1]:
+            f.write(' | ')
+        else:
+            f.write(';')
+
+    # ------------------
+    #    MODULE NET
+    # ------------------
+
+    # declaration
+    f.write('\n\n// Module:\n')
+    f.write('module net\n')
+    f.write('\trow: [-1..maxrow] init -1;\n')
+    f.write('\tcolumn: [-1..maxcol] init -1;\n')
+    f.write('\tjunction: [pass..split];\n')
+    f.write('\tdir: [dwn..diag] init dwn;\n')
+    f.write(f'\tsum: [-1..maxcol] init -1;\n')
+
+    # transition relation
+    str_temp = "[] (start | next_is_maxrow) -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) & (sum' = column) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0) & (sum' = column);"
+    f.write('\n\t' + str_temp + '\n')
+    str_temp = "	[] next_is_split -> 0.5 : (junction' = split) & (dir' = diag) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1)) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1));"
+    f.write(str_temp + '\n')
+    str_temp = "	[] next_is_not_split -> mu: (junction' = pass) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir) + (1-mu):(junction' = pass) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1)) & (dir' = mod(dir+1,2));"
+    f.write(str_temp + '\n')
+    str_temp = "	[] ExCov_force -> (junction' = pass) & (column' = column) & (row' = mod(row + 1, maxrow_1)) & (dir'=dwn);"
+    f.write(str_temp + '\n')
+    str_temp = "	[] reach_maxcol  -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) & (sum' = -1) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0) & (sum' = -1);"
+    f.write(str_temp + '\n')
+
+    f.write('\nendmodule\n')
+
+    # ------------------
+    #  REWARD + LABELS
+    # ------------------
+    f.write('\n\n// Rewards:\n')
+    f.write('rewards "steps"\n')
+    f.write('\ttrue : 1;\n')
+    f.write('endrewards\n')
+
+    f.write('label\t"interesting" = sum = u;')
+
+    f.close()
+
+
+def print_prism_ec_nt_spec(filename):
+    """
+    Print out the SSP network description to the prism file
+        Input:
+            num_of_primes: the number of elements in the set S.
+            bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
+            mu: a probability of an error. By default there is no error, so mu = 1.
+    """
+
+    # ----------------
+    # BEGINNING OF FILE CREATION
+    # ----------------
+
+    # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
+    f = open(filename, 'w')
+    f.write('const int k;\n\n')
+    f.write('P>0 [F sum = k]\n')
+    f.write('P=? [F=maxrow+2 sum = k]\n')
+    f.close()
+
+
+def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn):
+    """
+    Loop through array of ExCov prism files and run Prism. Save results in Excel
+        Input:
+            universes: array of ExCov universes problems
+            subsets: array of ExCov sets of subsets
+            out_interest: array of relevant exact cover outputs
+            prism_nt_arr: array of prism files not using tagging
+            wbook: The excel workbook
+            wsheet: the excel worksheet
+            xl_fn: excel file name
+    """
+
+    for index, (uni, sets) in enumerate(zip(universe, subsets)):
+        # Save index, universe, num subsets, subsets, and filenames in excel
+        logging.info('Inputting ID, uni, num subsets, and set data into Excel...')
+        __ = wsheet.cell(column=1, row=(index + 4), value=index)
+        __ = wsheet.cell(column=2, row=(index + 4), value=repr(uni))
+        __ = wsheet.cell(column=3, row=(index + 4), value=len(sets))
+        __ = wsheet.cell(column=4, row=(index + 4), value=repr(sets))
+        __ = wsheet.cell(column=5, row=(index + 4), value=prism_nt_arr[index])
+        wbook.save(xl_fn)
+
+        # Run Prism on no tags
+        out_fn = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[index], str_modcheker='prism')
+
+        # Parse output files:
+        exist_res = open(f'{out_fn[0]}', "r").readlines()[1][:-1]
+        logging.info('Exist Result: ' + exist_res)
+        prob_res = open(f'{out_fn[1]}', "r").readlines()[1][:-1]
+        logging.info('Prob Result: ' + prob_res)
+
+        logging.info('Saving data in Excel')
+        __ = wsheet.cell(column=6, row=(index + 4), value=exist_res)
+        __ = wsheet.cell(column=7, row=(index + 4), value=prob_res)
+        wbook.save(xl_fn)
+
+
+def f_down_finder(ss_array, int_ss, universe, cut=False):
     """
     Find all force-down junctions, and return their (r, c) coordinates
         Input:
             ss_array: array of subsets that may take part in the ExCov
             int_ss: array of integer subsets
+            cut: option to ignore all (r, c) which c > universe
         Output:
-            rc_f_dwn: array of (r,c) coordinates of all force-down junctions
+            rc_f_dwn: array of (r, c) coordinates of all force-down junctions
     """
     rc_f_dwn = []
 
     for i in range(0, len(ss_array)):
         for j in range(i + 1, len(ss_array)):
-            if not(set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
                 c = int_ss[i]
+                if cut and c > universe:
+                    continue
                 r = sum(int_ss[0:j])
-                rc_f_dwn.append([r, c])
+                if [r, c] not in rc_f_dwn:
+                    rc_f_dwn.append([r, c])
                 for k in range(i + 1, j):
                     c = int_ss[i] + int_ss[k]
-                    rc_f_dwn.append([r, c])
+                    if cut and c > universe:
+                        continue
+                    if [r, c] not in rc_f_dwn:
+                        rc_f_dwn.append([r, c])
                     ctemp = sum(int_ss[i:k + 1])
-                    if ctemp > c:
+                    if cut and ctemp > universe:
+                        continue
+                    if [r, ctemp] not in rc_f_dwn:
                         rc_f_dwn.append([r, ctemp])
     return rc_f_dwn

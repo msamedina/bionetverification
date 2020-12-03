@@ -232,42 +232,71 @@ while problem_type != 4:    # While not quit
         excov_pstr = 'Please enter ExCov problems filename: '
         excov_fn = misc.input_exists(input_dir, excov_pstr)
         universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
- 
-        """
-        Generate smv files
-        """
-        ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, num_probs)
-        
+
         # Pick a model checker (NuSMV or nuXmv)
         str_modc = misc.modcheck_select()
 
-        """
-        Run NuSMV
-        Single spec for exact cover output
-        ------------------
-        """
-        # Setup worksheet for data recording
-        ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-        ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
-        ec_wb.save(ec_xl_fn)
-        
-        # Add another worksheet based on the template
-        source = ec_wb['EC_Template']
-        ec_ws = ec_wb.copy_worksheet(source)
-        ec_ws.title = ('ExCov')
-        ec_wb.save(ec_xl_fn)
-        
-        # Run NuSMV and get outputs for each individual specification
-        ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
-        ec_wb.remove(ec_wb['EC_Template'])
-        ec_wb.save(ec_xl_fn)
-        
+        if str_modc == "NuSMV" or str_modc == "nuXmv":
+            """
+            Generate smv files
+            """
+            ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, num_probs)
+
+            """
+            Run NuSMV
+            Single spec for exact cover output
+            ------------------
+            """
+            # Setup worksheet for data recording
+            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
+            ec_wb.save(ec_xl_fn)
+
+            # Add another worksheet based on the template
+            source = ec_wb['EC_Template']
+            ec_ws = ec_wb.copy_worksheet(source)
+            ec_ws.title = 'ExCov'
+            ec_wb.save(ec_xl_fn)
+
+            # Run NuSMV and get outputs for each individual specification
+            ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
+
+        elif str_modc == "prism":
+
+            """
+            Generate prism files
+            """
+            ec_smv_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays)
+
+            """
+            Run prism
+            Single spec for exact cover output
+            ------------------
+            """
+            # Setup worksheet for data recording
+            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
+            ec_wb.save(ec_xl_fn)
+
+            # Add another worksheet based on the template
+            source = ec_wb['EC_Prism_Template']
+            ec_ws = ec_wb.copy_worksheet(source)
+            ec_ws.title = 'ExCov'
+            ec_wb.save(ec_xl_fn)
+
+            # Run Prism and get outputs for each individual specification
+            ec.run_prism(universes, subsets_arrays, ec_outputs, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn)
+
         """
         Finished running ExCov
         """
+        ec_wb.remove(ec_wb['EC_Template'])
+        ec_wb.remove(ec_wb['EC_Prism_Template'])
+        ec_wb.save(ec_xl_fn)
         logging.info('Output Excel file is: ' + ec_xl_fn)
         logging.info('Closing workbook')
         ec_wb.close()
+
     """
     SAT SELECTED
     """
