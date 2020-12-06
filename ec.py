@@ -922,22 +922,25 @@ def f_down_finder(ss_array, int_ss, universe, cut=False):
 
     for i in range(0, len(ss_array)):
         for j in range(i + 1, len(ss_array)):
-            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
+            if not set(ss_array[i]).isdisjoint(set(ss_array[j])):
                 c = int_ss[i]
                 if cut and c > universe:
                     continue
                 r = sum(int_ss[0:j])
                 if [r, c] not in rc_f_dwn:
                     rc_f_dwn.append([r, c])
-                for k in range(i + 1, j):
-                    c = int_ss[i] + int_ss[k]
-                    if cut and c > universe:
+                for k in range(1, j):
+                    if k == i:
                         continue
-                    if [r, c] not in rc_f_dwn:
-                        rc_f_dwn.append([r, c])
-                    ctemp = sum(int_ss[i:k + 1])
-                    if cut and ctemp > universe:
-                        continue
-                    if [r, ctemp] not in rc_f_dwn:
-                        rc_f_dwn.append([r, ctemp])
+                    if set(ss_array[i]).isdisjoint(set(ss_array[k])):
+                        c = int_ss[i] + int_ss[k]
+                        if cut and c > universe:
+                            continue
+                        if [r, c] not in rc_f_dwn:
+                            rc_f_dwn.append([r, c])
+                        ctemp = sum(int_ss[i:k + 1])
+                        if cut and ctemp > universe:
+                            continue
+                        if [r, ctemp] not in rc_f_dwn:
+                            rc_f_dwn.append([r, ctemp])
     return rc_f_dwn
