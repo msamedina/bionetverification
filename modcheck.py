@@ -567,7 +567,7 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
 
     # run specifications: 1. check the profile of output.
     out_fn_arr = f'res_{maxrow}.txt'
-    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn_arr}:txt']
+    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn_arr}:csv']
     out_rt_arr = []
 
     logging.info('Opening process: ' + str_modcheker)
@@ -600,7 +600,7 @@ def call_pexpect_ec_prism(filename, universe, str_modcheker):
 
     # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     for spec_num in range(1, 3, 1):
-        input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k={universe}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+        input_fn = [filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-const', f'k={universe}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
         out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
         logging.info('Opening process: ' + str_modcheker)
         child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)

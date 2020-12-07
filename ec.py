@@ -668,6 +668,7 @@ def prism_gen(universes, subsets):
     ec_prism_nt = list()
     ec_outputs = list()
     max_sums = list()
+    i = 0
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
 
@@ -711,7 +712,7 @@ def prism_gen(universes, subsets):
         ec_prism_nt.append(ec_prism_name_nt)
 
     # create spec file
-    print_prism_ec_nt_spec('spec_ssp.pctl')
+    print_prism_ec_nt_spec('spec_ec.pctl')
 
     return ec_prism_nt, ec_outputs, max_sums
 
@@ -723,10 +724,11 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
             filename: the prism filename to be used
             universe_array: universe set defining the ExCov
             ss_array: array of subsets that may take part in the ExCov
-            bin_ss: array of binary subsets
-            int_ss: array of integer subsets
-            int_uni: integer universe array
-            bin_uni: binary universe array
+            sets_bin: array of binary subsets
+            sets_bin_int: array of integer subsets
+            uni_bin_int: integer universe array
+            uni_bin_s: binary universe array
+            cut_in_u: option to ignore all (r, c) which c > universe
     """
 
     # ----------------
@@ -800,7 +802,7 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
 
     # fill ExCov force down
     f.write('formula ExCov_force =')
-    rc_f_dwn_list = f_down_finder(ss_array, sets_bin_int, universe=uni_bin_int, cut=cut_in_u)
+    rc_f_dwn_list = f_down_finder(sets_bin_int, universe=uni_bin_int, cut=cut_in_u)
 
     for k in rc_f_dwn_list:
         f.write(f' (row = {k[0]} & column = {k[1]})')
@@ -908,39 +910,28 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
         wbook.save(xl_fn)
 
 
-def f_down_finder(ss_array, int_ss, universe, cut=False):
+def f_down_finder(int_ss, universe, cut=False):
     """
     Find all force-down junctions, and return their (r, c) coordinates
         Input:
-            ss_array: array of subsets that may take part in the ExCov
-            int_ss: array of integer subsets
+            int_ss: array of integer subsets that may take part in the ExCov
+            universe: universe set defining the ExCov, as integer
             cut: option to ignore all (r, c) which c > universe
         Output:
             rc_f_dwn: array of (r, c) coordinates of all force-down junctions
     """
     rc_f_dwn = []
 
-    for i in range(0, len(ss_array)):
-        for j in range(i + 1, len(ss_array)):
-            if not set(ss_array[i]).isdisjoint(set(ss_array[j])):
-                c = int_ss[i]
-                if cut and c > universe:
-                    continue
-                r = sum(int_ss[0:j])
+    for i in int_ss[1:]:
+        # calculate the row
+        r = sum(int_ss[0:int_ss.index(i)])
+        for c in range(1, r + 1, 1):
+            if c > universe and cut:
+                break
+            # if i & c > 0, they have common bits.
+            # in this case [r, c] are force down junction
+            if (i & c) > 0:
                 if [r, c] not in rc_f_dwn:
                     rc_f_dwn.append([r, c])
-                for k in range(1, j):
-                    if k == i:
-                        continue
-                    if set(ss_array[i]).isdisjoint(set(ss_array[k])):
-                        c = int_ss[i] + int_ss[k]
-                        if cut and c > universe:
-                            continue
-                        if [r, c] not in rc_f_dwn:
-                            rc_f_dwn.append([r, c])
-                        ctemp = sum(int_ss[i:k + 1])
-                        if cut and ctemp > universe:
-                            continue
-                        if [r, ctemp] not in rc_f_dwn:
-                            rc_f_dwn.append([r, ctemp])
+
     return rc_f_dwn

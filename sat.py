@@ -505,7 +505,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
-        output_fn, output_rt = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
+        output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
                                                      var_ord_fn, [8, 14], i,
                                                      xl_ws, xl_wb, xl_fn, str_modcheker)
         # Input collected data to Excel Sheet
