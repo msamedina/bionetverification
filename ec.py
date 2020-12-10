@@ -669,6 +669,7 @@ def prism_gen(universes, subsets):
     ec_outputs = list()
     max_sums = list()
     i = 0
+    j = 0
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
 
@@ -706,7 +707,8 @@ def prism_gen(universes, subsets):
         # Without tags
         logging.info('Generating Prism file without tags...')
         ec_prism_name = file_name(uni, len(uni), 'prism')
-        ec_prism_name_nt = 'NT_' + ec_prism_name
+        ec_prism_name_nt = 'NT_' + str(j) + '_' + ec_prism_name
+        j = j + 1
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=True)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
@@ -853,16 +855,10 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
 
 def print_prism_ec_nt_spec(filename):
     """
-    Print out the SSP network description to the prism file
+    Print out the ExCov spec for prism file
         Input:
-            num_of_primes: the number of elements in the set S.
-            bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
-            mu: a probability of an error. By default there is no error, so mu = 1.
+            filename: name of the spec file
     """
-
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
 
     # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     f = open(filename, 'w')

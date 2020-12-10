@@ -102,6 +102,22 @@ def file_name_smv(num_clause, num_var, noclau):
     return misc.file_name_cformat(filename)
 
 
+# Functions for prism files
+def file_name_prism(num_clause, num_var, noclau):
+    """
+    Generate prism file name for given SAT problem using number of clauses and
+    variables, and type
+        Input:
+            num_clause: number of clauses
+            num_var: number of variables
+        Output:
+            filename: prism file name for the SAT network with formatting
+    """
+    filename = ("autoSAT_noClau_" + str(num_clause) + "_Clauses_"
+        + str(num_var) + "_Vars_{0}.pm")
+    return misc.file_name_cformat(filename)
+
+
 def print_smv_noClau(filename, cnf_list, num_clause, num_var):
     """
     Print out the SAT no clause network description to the smv file
@@ -360,6 +376,92 @@ def print_smv_clau(filename, cnf_list, num_clause, num_var):
     f.close()
 
 
+def print_prism(filename, cnf_list, num_clause, num_var):
+    """
+    Print out the SAT network description to the prism file
+    Defines a separate variable for indication of clause junctions as tag
+    variable only indicates the clauses entered
+        Input:
+            filename: the prism filename to be used
+            cnf_list: The CNF list for the 3-SAT problem
+            num_clause: The number of clauses
+            num_var: The number of variables
+    """
+    # Write header into file
+    f = open(filename, 'w')
+    now = datetime.datetime.now()
+    f.write('// Avraham Raviv,\t' + now.strftime("%d-%m-%Y"))
+    f.write('\n// SAT Problem\n// ' + str(num_clause) + ' Clauses and '
+            + str(num_var) + ' Variables: ' + str(cnf_list)
+            + '\n')
+
+    # Write beginning of module and variable definitions
+    f.write('dtmc\n\n')
+    f.write(f'const numOfClauses = {num_clause};\n')
+    f.write(f'const maxsum = {num_clause + 1};\n')
+    f.write(f'const maxL = {num_var};\n')
+    f.write('module sat\n')
+
+    # Defining variables
+    for c in range(num_clause):
+        f.write("\n\t")
+        for v in range(num_var):
+            if (v + 1) in cnf_list[c]:
+                value_to_assign = 1
+            elif -(v + 1) in cnf_list[c]:
+                value_to_assign = 0
+            else:
+                value_to_assign = 2
+            f.write(f'c{c+1}_{v+1} : [0..2] init {value_to_assign}; ')
+
+    f.write("\n\n\t")
+    for v in range(num_var):
+        f.write(f'L{v + 1} : [0..1]; ')
+
+    f.write("\n\n\t")
+    f.write('start: bool init true;\n\t')
+    f.write('change_L: [0..maxL] init 1;\n\t')
+    f.write('clause: [1..numOfClauses] init 1;\n\t')
+    f.write('sum: [0..maxsum] init 0;\n')
+
+    # Write the choose vec
+    str_temp = "[] start & change_L = 0 -> (sum' = 0) & (change_L' = mod(change_L + 1, maxL + 1));"
+    f.write('\n\t' + str_temp)
+
+    for l in range(1, num_var - 1, 1):
+        str_temp = f"[] start & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1));"
+        f.write('\n\n\t' + str_temp)
+    l = l + 1
+    str_temp = f"[] start & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start);"
+    f.write('\n\n\t' + str_temp + '\n')
+
+    # Write the tagging process
+    for c in range(1, num_clause, 1):
+        str_temp = f"[] !start & clause = {c} -> (sum' = mod(sum + ((("
+        f.write('\n\t' + str_temp)
+        for v in range(1, num_var + 1, 1):
+            f.write(f"(c{c}_{v} = L{v})")
+            if v != num_var:
+                f.write(" | ")
+        str_temp = "))?1:0), maxsum)) & (clause' = mod(clause, numOfClauses) + 1);"
+        f.write(str_temp + '\n')
+    c = c + 1
+    str_temp = f"[] !start & clause = {c} -> (sum' = mod(sum + ((("
+    f.write('\n\t' + str_temp)
+    for v in range(1, num_var + 1, 1):
+        f.write(f"(c{c}_{v} = L{v})")
+        if v != num_var:
+            f.write(" | ")
+    str_temp = "))?1:0), maxsum)) & (start' = !start) & (clause' = mod(clause, numOfClauses) + 1);"
+    f.write(str_temp + '\n')
+
+    f.write("\nendmodule\n")
+    f.write(f"\nlabel	" + '"interesting"' + f'= sum = {num_clause} & start = true;\n')
+
+    # Close File
+    f.close()
+
+
 def cnf_gen(sample_size, n_max, xl_ws, xl_wb, xl_fn):
     """
     Generate random DIMACS files of 3-SAT problem samples using the cnfformula
@@ -555,6 +657,100 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             __ = xl_ws.cell(column=(c_spec_res_col[j]), row=(i + 6),
                             value=result)
             xl_wb.save(xl_fn)
+
+
+def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
+    """
+    Function that runs through the generated DIMACS samples and generates prism files
+        Input:
+            dimacs_file_list: List of sample DIMACS file names
+            sample_size: The number of 3-SAT problems created
+        Outputs:
+            prism_fns: List of the prism file names
+    """
+    prism_fns = list()
+    for i in range(sample_size):
+        # Read the i-th DIMACS file
+        cnf, num_clause, num_var = dimacs_reader(dimacs_file_list[i])
+        num_var_new, cnf = cnf_preprocessing(num_var, num_clause, cnf)
+        if num_var != num_var_new:
+            # Enter new num_var value into excel file
+            __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
+            xl_wb.save(xl_fn)
+
+        # Enter cnf into Excel file
+        __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
+        xl_wb.save(xl_fn)
+
+        print(dimacs_file_list[i] + ' has been read')
+        logging.info(dimacs_file_list[i] + ' has been read')
+
+        # Generate prism files
+        file_name = file_name_prism(num_clause, num_var_new, True)
+        logging.info('prism file name is:  ' + file_name)
+        print_prism(file_name, cnf, num_clause, num_var_new)
+        prism_fns.append(file_name)
+        print_prism_spec('spec_ec.pctl')
+
+        # Enter NoClau filename into Excel file
+        __ = xl_ws.cell(column=7, row=(i + 6), value=file_name)
+        xl_wb.save(xl_fn)
+
+        logging.info('NoClau prism file has been generated')
+
+    return prism_fns
+
+
+def print_prism_spec(filename):
+    """
+    Print out the ExCov spec for prism file
+        Input:
+            filename: name of the spec file
+    """
+
+    # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
+    f = open(filename, 'w')
+    f.write('const int k;\n\n')
+    f.write('P>0 [ F sum=numOfClauses & start ]\n')
+    f.write('P=? [ F sum=numOfClauses & start ]\n')
+    f.close()
+
+
+def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
+    """
+    Function that runs through prism files
+    Captures the run-time of each spec on each network description
+        Input:
+            prism_fns: List of the prism file names
+            sample_size: The number of 3-SAT problems created
+            xl_ws: Excel worksheet where to save data
+    """
+    for i in range(sample_size):
+
+        # Get cnf num_v and num_c from excel for variable re-ordering
+        num_c = xl_ws.cell(row=(i + 6), column=2).value
+        num_v = xl_ws.cell(row=(i + 6), column=3).value
+        cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
+
+        # Create Variable Re-Ordering file for sample i noClau
+        var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
+
+        # Run NoClau
+        print('Running NoClau of sample ' + str(i) + '...')
+        logging.info('Running NoClau of sample ' + str(i) + '...')
+        output_fn = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
+        # Input collected data to Excel Sheet
+
+        # Parse output files:
+        exist_res = open(f'{output_fn[0]}', "r").readlines()[1][:-1]
+        logging.info('Exist Result: ' + exist_res)
+        prob_res = open(f'{output_fn[1]}', "r").readlines()[1][:-1]
+        logging.info('Prob Result: ' + prob_res)
+
+        logging.info('Saving data in Excel')
+        __ = xl_ws.cell(column=9, row=(i + 6), value=exist_res)
+        __ = xl_ws.cell(column=10, row=(i + 6), value=prob_res)
+        xl_wb.save(xl_fn)
 
 
 def mini_sat_solver(in_files, sample_size, xl_ws, xl_wb, xl_fn):

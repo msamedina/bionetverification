@@ -135,6 +135,36 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
     return out_fn_arr
 
 
+def call_prism_pexpect_sat(filename, str_modcheker):
+    """
+    Run Prism Model Checker on a given file
+    Uses the pexpect library to run the relevant model checker.
+    NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
+    NOTE: THIS IS FOR SSP (new spec)
+        Input:
+            filename: The Prism filename on which to run
+            str_modcheker: string containing name of model checker (NuSMV, nuXmv or Prism)
+    """
+
+    fn_arr = f'res_sat'
+    out_fn_arr = []
+
+    # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
+    for spec_num in range(1, 3, 1):
+        input_fn = ['-cuddmaxmem', '4g', filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+        out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
+        logging.info('Opening process: ' + str_modcheker)
+        child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
+        try:
+            child.expect('\n' + str_modcheker)
+        except pexpect.EOF:
+            print('')
+        child.close()
+
+    return out_fn_arr
+
+
+
 def call_nusmv_out_all(filename, spectype, str_modcheker):
     """
     OBSOLETE
@@ -600,7 +630,7 @@ def call_pexpect_ec_prism(filename, universe, str_modcheker):
 
     # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     for spec_num in range(1, 3, 1):
-        input_fn = [filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-const', f'k={universe}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+        input_fn = ['-javastack', '1g', filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-const', f'k={universe}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
         out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
         logging.info('Opening process: ' + str_modcheker)
         child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
