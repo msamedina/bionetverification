@@ -140,7 +140,7 @@ def call_prism_pexpect_sat(filename, str_modcheker):
     Run Prism Model Checker on a given file
     Uses the pexpect library to run the relevant model checker.
     NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
-    NOTE: THIS IS FOR SSP (new spec)
+    NOTE: THIS IS FOR SAT (new spec)
         Input:
             filename: The Prism filename on which to run
             str_modcheker: string containing name of model checker (NuSMV, nuXmv or Prism)
