@@ -499,6 +499,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
 def rearrange_universe(subsets, universe):
     """
     Calculate the occurrences of numbers in subsets, and rearrange the universe by sorting the occurrences
+    This function created for bit-mapping optimization
         Input:
             arr: subset being calculated occurrences
             universe: the universe array to be rearrange
@@ -656,7 +657,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
 
 def prism_gen(universes, subsets):
     """
-    Loop through array of ExCov problems and generate prism file for each (with and without tags)
+    Loop through array of ExCov problems and generate prism file for each
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
@@ -703,8 +704,6 @@ def prism_gen(universes, subsets):
         max_sums.append(sum(sets_bin_int))
 
         # Create EC Prism File
-
-        # Without tags
         logging.info('Generating Prism file without tags...')
         ec_prism_name = file_name(uni, len(uni), 'prism')
         ec_prism_name_nt = 'NT_' + str(j) + '_' + ec_prism_name
@@ -860,7 +859,7 @@ def print_prism_ec_nt_spec(filename):
             filename: name of the spec file
     """
 
-    # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
+    # write 2 specifications: 1. check if ExCov is exist. 2. what is the probability to get the ExCov.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
     f.write('P>0 [F sum = k]\n')
@@ -870,7 +869,7 @@ def print_prism_ec_nt_spec(filename):
 
 def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn):
     """
-    Loop through array of ExCov prism files and run Prism. Save results in Excel
+    Loop through array of ExCov prism files and run Prism model checker. Save results in Excel
         Input:
             universes: array of ExCov universes problems
             subsets: array of ExCov sets of subsets
@@ -918,14 +917,16 @@ def f_down_finder(int_ss, universe, cut=False):
     """
     rc_f_dwn = []
 
+    # loop over split rows
     for i in int_ss[1:]:
         # calculate the row
         r = sum(int_ss[0:int_ss.index(i)])
+        # loop over all junction in split row
         for c in range(1, r + 1, 1):
             if c > universe and cut:
                 break
-            # if i & c > 0, they have common bits.
-            # in this case [r, c] are force down junction
+            # if i & c > 0, they have at least one common bit, so they are not disjoint
+            # in this case [r, c] have to be force down junction
             if (i & c) > 0:
                 if [r, c] not in rc_f_dwn:
                     rc_f_dwn.append([r, c])
