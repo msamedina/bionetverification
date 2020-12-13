@@ -970,7 +970,6 @@ def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_num
             prob_col = df['Result'].tolist()
             prob_col = [x for x in prob_col if x > 0]
 
-
         # Parse the results into excel file
         logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
         __ = wsheet.cell(column=1, row=(row_id + 4), value=index)

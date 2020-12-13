@@ -499,6 +499,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
 def rearrange_universe(subsets, universe):
     """
     Calculate the occurrences of numbers in subsets, and rearrange the universe by sorting the occurrences
+    This function created for bit-mapping optimization
         Input:
             arr: subset being calculated occurrences
             universe: the universe array to be rearrange
@@ -656,7 +657,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
 
 def prism_gen(universes, subsets):
     """
-    Loop through array of ExCov problems and generate prism file for each (with and without tags)
+    Loop through array of ExCov problems and generate prism file for each
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
@@ -668,6 +669,8 @@ def prism_gen(universes, subsets):
     ec_prism_nt = list()
     ec_outputs = list()
     max_sums = list()
+    i = 0
+    j = 0
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
 
@@ -701,17 +704,16 @@ def prism_gen(universes, subsets):
         max_sums.append(sum(sets_bin_int))
 
         # Create EC Prism File
-
-        # Without tags
         logging.info('Generating Prism file without tags...')
         ec_prism_name = file_name(uni, len(uni), 'prism')
-        ec_prism_name_nt = 'NT_' + ec_prism_name
+        ec_prism_name_nt = 'NT_' + str(j) + '_' + ec_prism_name
+        j = j + 1
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=True)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
 
     # create spec file
-    print_prism_ec_nt_spec('spec_ssp.pctl')
+    print_prism_ec_nt_spec('spec_ec.pctl')
 
     return ec_prism_nt, ec_outputs, max_sums
 
@@ -723,10 +725,11 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
             filename: the prism filename to be used
             universe_array: universe set defining the ExCov
             ss_array: array of subsets that may take part in the ExCov
-            bin_ss: array of binary subsets
-            int_ss: array of integer subsets
-            int_uni: integer universe array
-            bin_uni: binary universe array
+            sets_bin: array of binary subsets
+            sets_bin_int: array of integer subsets
+            uni_bin_int: integer universe array
+            uni_bin_s: binary universe array
+            cut_in_u: option to ignore all (r, c) which c > universe
     """
 
     # ----------------
@@ -800,7 +803,7 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
 
     # fill ExCov force down
     f.write('formula ExCov_force =')
-    rc_f_dwn_list = f_down_finder(ss_array, sets_bin_int, universe=uni_bin_int, cut=cut_in_u)
+    rc_f_dwn_list = f_down_finder(sets_bin_int, universe=uni_bin_int, cut=cut_in_u)
 
     for k in rc_f_dwn_list:
         f.write(f' (row = {k[0]} & column = {k[1]})')
@@ -851,18 +854,12 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
 
 def print_prism_ec_nt_spec(filename):
     """
-    Print out the SSP network description to the prism file
+    Print out the ExCov spec for prism file
         Input:
-            num_of_primes: the number of elements in the set S.
-            bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
-            mu: a probability of an error. By default there is no error, so mu = 1.
+            filename: name of the spec file
     """
 
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
-
-    # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
+    # write 2 specifications: 1. check if ExCov is exist. 2. what is the probability to get the ExCov.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
     f.write('P>0 [F sum = k]\n')
@@ -872,7 +869,7 @@ def print_prism_ec_nt_spec(filename):
 
 def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn):
     """
-    Loop through array of ExCov prism files and run Prism. Save results in Excel
+    Loop through array of ExCov prism files and run Prism model checker. Save results in Excel
         Input:
             universes: array of ExCov universes problems
             subsets: array of ExCov sets of subsets
@@ -908,36 +905,29 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
         wbook.save(xl_fn)
 
 
-def f_down_finder(ss_array, int_ss, universe, cut=False):
+def f_down_finder(int_ss, universe, cut=False):
     """
     Find all force-down junctions, and return their (r, c) coordinates
         Input:
-            ss_array: array of subsets that may take part in the ExCov
-            int_ss: array of integer subsets
+            int_ss: array of integer subsets that may take part in the ExCov
+            universe: universe set defining the ExCov, as integer
             cut: option to ignore all (r, c) which c > universe
         Output:
             rc_f_dwn: array of (r, c) coordinates of all force-down junctions
     """
     rc_f_dwn = []
 
-    for i in range(0, len(ss_array)):
-        for j in range(i + 1, len(ss_array)):
-            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
-                c = int_ss[i]
-                if cut and c > universe:
-                    continue
-                r = sum(int_ss[0:j])
-                if [r, c] not in rc_f_dwn:
-                    rc_f_dwn.append([r, c])
-                for k in range(i + 1, j):
-                    c = int_ss[i] + int_ss[k]
-                    if cut and c > universe:
-                        continue
-                    if [r, c] not in rc_f_dwn:
-                        rc_f_dwn.append([r, c])
-                    ctemp = sum(int_ss[i:k + 1])
-                    if cut and ctemp > universe:
-                        continue
-                    if [r, ctemp] not in rc_f_dwn:
-                        rc_f_dwn.append([r, ctemp])
+    # loop over split rows
+    for i in int_ss[1:]:
+        # calculate the row
+        r = sum(int_ss[0:int_ss.index(i)])
+        # loop over all junction in split row
+        for c in range(1, r + 1, 1):
+            if c > universe and cut:
+                break
+            # if i & c > 0, they have at least one common bit, so they are not disjoint
+            # in this case [r, c] have to be force down junction
+            if (i & c) > 0:
+                rc_f_dwn.append([r, c])
+
     return rc_f_dwn
