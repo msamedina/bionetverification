@@ -180,13 +180,14 @@ while problem_type != 4:    # While not quit
                         print('Invalid option selected. '
                               'Please select a number 1-3.')
                         logging.info('Invalid option selected.')
-                """
-                Generate prism files
-                """
-                # Use specification per output
-                ssp_prism_nt = ssp.prism_gen(ssp_arr)
 
                 if ssp_opt == 1 or ssp_opt == 2:
+                    """
+                    Generate prism files
+                    """
+                    # Use specification per output
+                    ssp_prism_nt = ssp.prism_gen(ssp_arr)
+
                     """
                     Run Prism
                     ------------------
@@ -240,7 +241,7 @@ while problem_type != 4:    # While not quit
             """
             Generate smv files
             """
-            ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, num_probs)
+            ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, bit_mapping=True)
 
             """
             Run NuSMV
@@ -266,7 +267,7 @@ while problem_type != 4:    # While not quit
             """
             Generate prism files
             """
-            ec_smv_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays)
+            ec_smv_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, bit_mapping=True)
 
             """
             Run prism
