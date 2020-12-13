@@ -795,16 +795,18 @@ def prism_gen(ssp_arr):
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
     """
+    print('What would you like to set mu (probability of pass junction to change the direction)?:\n')
+    mu_user_input = float(input())
+
     ssp_prism_nt = []
     for ssp in ssp_arr:
         # Create SSP Prism File
         max_tag_id = []
         ssp_prism_name = file_name_gen(ssp, len(ssp), 'prism')
-
         # Without tags
         logging.info('Generating Prism file without tags...')
         ssp_prism_name_nt = 'NT_' + ssp_prism_name
-        print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp))
+        print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=mu_user_input, bug_cell=None)
         logging.info('Generated Prism file without tags')
         ssp_prism_nt.append(ssp_prism_name_nt)
 
@@ -814,13 +816,13 @@ def prism_gen(ssp_arr):
     return ssp_prism_nt
 
 
-def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, bug_cell=None, mu=1):
+def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu, bug_cell=None):
     """
     Print out the SSP network description to the prism file
         Input:
             num_of_primes: the number of elements in the set S.
             bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
-            mu: a probability of an error. By default there is no error, so mu = 1.
+            mu: a probability of an error. By default there is no error, so mu = 0.
     """
 
     # ----------------
@@ -901,7 +903,7 @@ def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, bug_cell=None, m
     f.write('\n\t' + str_temp + '\n')
     str_temp = "	[] next_is_split -> 0.5 : (junction' = split) & (dir' = diag) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1));"
     f.write(str_temp + '\n')
-    str_temp = "	[] next_is_not_split -> mu: (junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir) + (1-mu):(junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir' = mod(dir+1,2));"
+    str_temp = "	[] next_is_not_split -> (1 - mu): (junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir) + mu:(junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir' = mod(dir+1,2));"
     f.write(str_temp + '\n')
     str_temp = "	[] force_dir -> (junction' = pass) & (column' = column) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir_bug);"
     f.write(str_temp + '\n')
