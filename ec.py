@@ -928,7 +928,6 @@ def f_down_finder(int_ss, universe, cut=False):
             # if i & c > 0, they have at least one common bit, so they are not disjoint
             # in this case [r, c] have to be force down junction
             if (i & c) > 0:
-                if [r, c] not in rc_f_dwn:
-                    rc_f_dwn.append([r, c])
+                rc_f_dwn.append([r, c])
 
     return rc_f_dwn
