@@ -795,8 +795,8 @@ def prism_gen(ssp_arr):
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
     """
-    print('What would you like to set mu (probability of pass junction to change the direction)?:\n')
-    mu_user_input = float(input())
+    # set mu
+    mu_user_input = misc.prism_set_mu()
 
     ssp_prism_nt = []
     for ssp in ssp_arr:
@@ -805,7 +805,11 @@ def prism_gen(ssp_arr):
         ssp_prism_name = file_name_gen(ssp, len(ssp), 'prism')
         # Without tags
         logging.info('Generating Prism file without tags...')
-        ssp_prism_name_nt = 'NT_' + ssp_prism_name
+        ssp_prism_name_nt = 'NT_mu_0_' + ssp_prism_name
+        print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=0, bug_cell=None)
+        logging.info('Generated Prism file with mu = 0')
+        ssp_prism_nt.append(ssp_prism_name_nt)
+        ssp_prism_name_nt = f'NT_mu_{mu_user_input}_' + ssp_prism_name
         print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=mu_user_input, bug_cell=None)
         logging.info('Generated Prism file without tags')
         ssp_prism_nt.append(ssp_prism_name_nt)
@@ -942,7 +946,7 @@ def print_prism_ssp_nt_spec(filename):
     f.close()
 
 
-def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_number):
+def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_number):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -954,14 +958,29 @@ def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_num
             xl_fn: excel file name
     """
     row_id = 0
+    out_fn_nt = []
+
+    # duplicate for calculating each spec twice - with and without errors (mu = 0 and  mu > 0)
+    ssp_arr_temp = []
+    for i in ssp_arr:
+        ssp_arr_temp.extend([i, i])
+    ssp_arr = ssp_arr_temp
+
     for index, ssp in enumerate(ssp_arr):
         # Run Prism on no tags
-        out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(smv_nt_arr[index], str_modcheker, sum(ssp), spec_number)
+
+        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
+            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp), spec_number)
+        else:
+            continue
 
         # Parse the results from txt file
         df = pd.read_csv(out_fn_nt, sep=" ")
 
         # Valid-invalid output
+        reachable_col = []
+        prob_col = []
+        unreachable_col = []
         if spec_number == 1:
             reachable_col = df.index[df['Result'] == True].tolist()
             unreachable_col = df.index[df['Result'] == False].tolist()
@@ -970,19 +989,26 @@ def run_prism(ssp_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_num
             reachable_col = df.index[df['Result'] > 0].tolist()
             unreachable_col = df.index[df['Result'] == 0].tolist()
             prob_col = df['Result'].tolist()
-            prob_col = [x for x in prob_col if x > 0]
+            # prob_col = [x for x in prob_col if x > 0]
 
         # Parse the results into excel file
-        logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
-        __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
-        __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
-        __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
-        __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_nt_arr[index])
-        __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
-        if spec_number == 2:
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=str(prob_col))
-        __ = wsheet.cell(column=9, row=(row_id + 4), value=str(unreachable_col))
+        if index % 2 == 0:
+            logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
+            __ = wsheet.cell(column=1, row=(row_id + 4), value=int(index / 2))
+            __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
+            __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
+            __ = wsheet.cell(column=4, row=(row_id + 4), value=prism_nt_arr[index])
+            __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
+            __ = wsheet.cell(column=8, row=(row_id + 4), value=str(unreachable_col))
+            if spec_number == 2:
+                __ = wsheet.cell(column=9, row=(row_id + 4), value=str(prob_col))
+        else:
+            __ = wsheet.cell(column=10, row=(row_id + 4), value=str(reachable_col))
+            __ = wsheet.cell(column=11, row=(row_id + 4), value=str(unreachable_col))
+            if spec_number == 2:
+                __ = wsheet.cell(column=12, row=(row_id + 4), value=str(prob_col))
         wbook.save(xl_fn)
 
         # Prepare for next input
-        row_id += 1
+        if index % 2 == 1:
+            row_id += 1

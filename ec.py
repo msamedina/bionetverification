@@ -6,7 +6,7 @@ import miscfunctions as misc
 import logging
 # import nusmv
 import modcheck
-
+import pandas as pd
 
 def receive_subsets(num_subsets):
     """
@@ -669,11 +669,10 @@ def prism_gen(universes, subsets, bit_mapping=True):
     ec_prism_nt = list()
     ec_outputs = list()
     max_sums = list()
-    i = 0
     j = 0
 
-    print('What would you like to set mu (probability of pass junction to change the direction)?:\n')
-    mu_user_input = float(input())
+    # set mu
+    mu_user_input = misc.prism_set_mu()
 
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
@@ -693,6 +692,7 @@ def prism_gen(universes, subsets, bit_mapping=True):
         # Convert binary universe to integer representation
         uni_bin_int = int(uni_bin_s, base=2)
         ec_outputs.append(uni_bin_int)
+
         logging.info('Integer conversions of binary universe is: ' + str(uni_bin_int))
 
         # Convert subsets to binary representation
@@ -713,11 +713,16 @@ def prism_gen(universes, subsets, bit_mapping=True):
         # Without tags
         logging.info('Generating Prism file without tags...')
         ec_prism_name = file_name(uni, len(uni), 'prism')
-        ec_prism_name_nt = 'NT_' + str(j) + '_' + ec_prism_name
+        ec_prism_name_nt = 'NT_mu_0_' + str(j) + '_' + ec_prism_name
+        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=True)
+        logging.info('Generated Prism file with mu = 0')
+        ec_prism_nt.append(ec_prism_name_nt)
         j = j + 1
+        ec_prism_name_nt = f'NT_mu_{mu_user_input}_' + str(j) + '_' + ec_prism_name
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=True)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
+        j = j + 1
 
     # create spec file
     print_prism_ec_nt_spec('spec_ec.pctl')
@@ -874,7 +879,7 @@ def print_prism_ec_nt_spec(filename):
     f.close()
 
 
-def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn):
+def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_fn, spec_num):
     """
     Loop through array of ExCov prism files and run Prism. Save results in Excel
         Input:
@@ -885,31 +890,67 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            spec_num: type of check - check if exist EC or calculate the probability to get the outputs
     """
+
+    # duplicate for calculating each spec twice - with and without errors (mu = 0 and  mu > 0)
+    subsets_temp = []
+    for i in subsets:
+        subsets_temp.extend([i, i])
+    subsets = subsets_temp
+
+    universe_temp = []
+    for i in universe:
+        universe_temp.extend([i, i])
+    universe = universe_temp
 
     for index, (uni, sets) in enumerate(zip(universe, subsets)):
         # Save index, universe, num subsets, subsets, and filenames in excel
         logging.info('Inputting ID, uni, num subsets, and set data into Excel...')
-        __ = wsheet.cell(column=1, row=(index + 4), value=index)
-        __ = wsheet.cell(column=2, row=(index + 4), value=repr(uni))
-        __ = wsheet.cell(column=3, row=(index + 4), value=len(sets))
-        __ = wsheet.cell(column=4, row=(index + 4), value=repr(sets))
-        __ = wsheet.cell(column=5, row=(index + 4), value=prism_nt_arr[index])
+        __ = wsheet.cell(column=1, row=(int(index / 2) + 4), value=int(index / 2))
+        __ = wsheet.cell(column=2, row=(int(index / 2) + 4), value=repr(uni))
+        __ = wsheet.cell(column=3, row=(int(index / 2) + 4), value=len(sets))
+        __ = wsheet.cell(column=4, row=(int(index / 2) + 4), value=repr(sets))
+        __ = wsheet.cell(column=5, row=(int(index / 2) + 4), value=prism_nt_arr[int(index / 2)])
         wbook.save(xl_fn)
 
         # Run Prism on no tags
-        out_fn = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[index], str_modcheker='prism')
+        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
+            out_fn = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
+        else:
+            continue
 
         # Parse output files:
         exist_res = open(f'{out_fn[0]}', "r").readlines()[1][:-1]
         logging.info('Exist Result: ' + exist_res)
-        prob_res = open(f'{out_fn[1]}', "r").readlines()[1][:-1]
-        logging.info('Prob Result: ' + prob_res)
+
+        prob_res = None
+        if spec_num == 1:
+            prob_res = open(f'{out_fn[1]}', "r").readlines()[1][:-1]
+            logging.info('Prob Result: ' + prob_res)
+        elif spec_num == 2:
+            df = pd.read_csv(out_fn[1], sep=" ")
+            prob_res = df['Result'].tolist()
+            logging.info('Prob Result: ' + str(prob_res))
 
         logging.info('Saving data in Excel')
-        __ = wsheet.cell(column=6, row=(index + 4), value=exist_res)
-        __ = wsheet.cell(column=7, row=(index + 4), value=prob_res)
+        if index % 2 == 0:
+            __ = wsheet.cell(column=6, row=(int(index / 2) + 4), value=exist_res)
+            __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=str(prob_res))
+        else:
+            __ = wsheet.cell(column=8, row=(int(index / 2) + 4), value=exist_res)
+            __ = wsheet.cell(column=9, row=(int(index / 2) + 4), value=str(prob_res))
         wbook.save(xl_fn)
+
+
+def ec_prism_menu():
+    print('Select a check type:')
+    print('\t[1] Check if ExCov exist')
+    print('\t[2] Calculate the probabilities of the outputs')
+    print('\t[3] Main menu')
+
+    user_input = int(input())
+    return user_input
 
 
 def f_down_finder(int_ss, universe, cut=False):

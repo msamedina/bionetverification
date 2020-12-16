@@ -150,3 +150,10 @@ def modcheck_select():
             return str_modc
         else:
             print('Invalid option selected.')
+
+
+def prism_set_mu():
+    print('What would you like to set mu (probability of pass junction to change the direction)?\n mu should be in [0,1], while mu = 0 meaning no errors')
+    user_input = float(input())
+
+    return user_input
