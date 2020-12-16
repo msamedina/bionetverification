@@ -613,7 +613,7 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
     return out_fn_arr, out_rt_arr
 
 
-def call_pexpect_ec_prism(filename, universe, str_modcheker):
+def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
     """
     Run Prism Model Checker on a given file
     Uses the pexpect library to run the relevant model checker.
@@ -627,11 +627,24 @@ def call_pexpect_ec_prism(filename, universe, str_modcheker):
 
     fn_arr = f'res_{universe}'
     out_fn_arr = []
+    input_fn = []
 
-    # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
-    for spec_num in range(1, 3, 1):
-        input_fn = ['-javastack', '1g', filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-const', f'k={universe}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
-        out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
+    for i in range(0, 2, 1):
+        # check if ExCov exist
+        if i == 0:
+            input_fn = ['-javastack', '1g', filename, 'spec_ec.pctl', '-prop', '1', '-const', f'k={universe}',
+                        '-exportresults', f'{fn_arr}_0.txt:csv']
+            out_fn_arr.append(f'{fn_arr}_0.txt')
+        # calculate the probabilities of the outputs (following user input: 1. only ExCov, 2. all outputs).
+        else:
+            if spec_num == 1:
+                input_fn = ['-javastack', '1g', filename, 'spec_ec.pctl', '-prop', '2', '-const', f'k={universe}',
+                            '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+            elif spec_num == 2:
+                input_fn = ['-javastack', '1g', filename, 'spec_ec.pctl', '-prop', '2', '-const', f'k=0:1:{universe}',
+                            '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+            out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
+
         logging.info('Opening process: ' + str_modcheker)
         child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
         try:

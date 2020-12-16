@@ -237,6 +237,11 @@ while problem_type != 4:    # While not quit
         # Pick a model checker (NuSMV or nuXmv)
         str_modc = misc.modcheck_select()
 
+        # Setup worksheet for data recording
+        ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+        ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
+        ec_wb.save(ec_xl_fn)
+
         if str_modc == "NuSMV" or str_modc == "nuXmv":
             """
             Generate smv files
@@ -248,11 +253,6 @@ while problem_type != 4:    # While not quit
             Single spec for exact cover output
             ------------------
             """
-            # Setup worksheet for data recording
-            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
-            ec_wb.save(ec_xl_fn)
-
             # Add another worksheet based on the template
             source = ec_wb['EC_Template']
             ec_ws = ec_wb.copy_worksheet(source)
@@ -267,26 +267,27 @@ while problem_type != 4:    # While not quit
             """
             Generate prism files
             """
-            ec_smv_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, bit_mapping=True)
 
-            """
-            Run prism
-            Single spec for exact cover output
-            ------------------
-            """
-            # Setup worksheet for data recording
-            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
-            ec_wb.save(ec_xl_fn)
+            # choose type of check
+            ec_opt = ec.ec_prism_menu()
 
-            # Add another worksheet based on the template
-            source = ec_wb['EC_Prism_Template']
-            ec_ws = ec_wb.copy_worksheet(source)
-            ec_ws.title = 'ExCov'
-            ec_wb.save(ec_xl_fn)
+            while ec_opt != 3:
+                ec_prism_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, bit_mapping=True)
 
-            # Run Prism and get outputs for each individual specification
-            ec.run_prism(universes, subsets_arrays, ec_outputs, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn)
+                """
+                Run prism
+                Single spec for exact cover output
+                ------------------
+                """
+                # Add another worksheet based on the template
+                source = ec_wb['EC_Prism_Template']
+                ec_ws = ec_wb.copy_worksheet(source)
+                ec_ws.title = 'ExCov'
+                ec_wb.save(ec_xl_fn)
+
+                # Run Prism and get outputs for each individual specification
+                ec.run_prism(universes, subsets_arrays, ec_outputs, ec_prism_nt, ec_wb, ec_ws, ec_xl_fn, ec_opt)
+                ec_opt = ec.ec_prism_menu()
 
         """
         Finished running ExCov
