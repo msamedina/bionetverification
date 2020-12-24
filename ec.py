@@ -809,7 +809,7 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
     f.write('row != maxrow & !reach_maxcol & !ExCov_force;\n')
 
     # fill 'next is maxrow', start and maxcol
-    f.write('formula next_is_maxrow = row = maxrow;\n')
+    f.write('formula row_is_maxrow = row = maxrow;\n')
     f.write('formula start = row = -1;\n')
     f.write(f'formula reach_maxcol = column = {uni_bin_int + 1};\n')
 
@@ -838,7 +838,7 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
     f.write(f'\tsum: [-1..maxcol] init -1;\n')
 
     # transition relation
-    str_temp = "[] (start | next_is_maxrow) -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) & (sum' = column) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0) & (sum' = column);"
+    str_temp = "[] (start | row_is_maxrow) -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) & (sum' = column) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0) & (sum' = column);"
     f.write('\n\t' + str_temp + '\n')
     str_temp = "	[] next_is_split -> 0.5 : (junction' = split) & (dir' = diag) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1)) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = mod(column + dir, maxcol_1)) & (row' = mod(row + 1, maxrow_1));"
     f.write(str_temp + '\n')
@@ -874,8 +874,8 @@ def print_prism_ec_nt_spec(filename):
     # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [F sum = k]\n')
-    f.write('P=? [F=maxrow+2 sum = k]\n')
+    f.write('P>0 [ F = maxrow+1 row=maxrow & column = k]\n')
+    f.write('P=? [ F = maxrow+1 row=maxrow & column = k]\n')
     f.close()
 
 
