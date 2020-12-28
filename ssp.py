@@ -883,7 +883,7 @@ def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu, bug_cell=Non
     f.write('row != maxrow & !force_dir;\n')
 
     # fill next is maxrow or start
-    f.write('formula next_is_maxrow = row = maxrow;\n')
+    f.write('formula row_is_maxrow = row = maxrow;\n')
     f.write('formula start = row = -1;\n')
 
     # fill error cell
@@ -900,10 +900,9 @@ def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu, bug_cell=Non
     f.write('\tcolumn: [-1..maxrow] init -1;\n')
     f.write('\tjunction: [pass..split];\n')
     f.write('\tdir: [dwn..diag] init dwn;\n')
-    f.write('\tsum: [-1..maxrow] init -1;\n')
 
     # transition relation
-    str_temp = "[] (start | next_is_maxrow) & !force_dir -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) & (sum' = column) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0) & (sum' = column);"
+    str_temp = "[] (start | row_is_maxrow) & !force_dir -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0);"
     f.write('\n\t' + str_temp + '\n')
     str_temp = "	[] next_is_split -> 0.5 : (junction' = split) & (dir' = diag) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1));"
     f.write(str_temp + '\n')
@@ -941,8 +940,8 @@ def print_prism_ssp_nt_spec(filename):
     # Open file and write header into file
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [F = maxrow + 2 sum = k]\n')
-    f.write('P=? [F = maxrow + 2 sum = k]\n')
+    f.write('P>0 [ F = maxrow+1 row=maxrow & column = k ]\n')
+    f.write('P=? [ F = maxrow+1 row=maxrow & column = k ]\n')
     f.close()
 
 
