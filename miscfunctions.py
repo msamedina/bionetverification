@@ -157,3 +157,15 @@ def prism_set_mu():
     user_input = float(input())
 
     return user_input
+
+
+def cmd_parsing_index(index):
+    index_list = ['None', 'SSP', 'ExCov', 'SAT']
+    return index_list.index(index)
+
+
+def cmd_parsing_prism_spec(spec):
+    spec_list = ['None', 'reachability', 'probability']
+    return spec_list.index(spec)
+
+

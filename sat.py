@@ -690,7 +690,7 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         logging.info('prism file name is:  ' + file_name)
         print_prism(file_name, cnf, num_clause, num_var_new)
         prism_fns.append(file_name)
-        print_prism_spec('spec_ec.pctl')
+        print_prism_spec('spec_sat.pctl')
 
         # Enter NoClau filename into Excel file
         __ = xl_ws.cell(column=7, row=(i + 6), value=file_name)
@@ -711,8 +711,8 @@ def print_prism_spec(filename):
     # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [ F sum=numOfClauses & start ]\n')
-    f.write('P=? [ F sum=numOfClauses & start ]\n')
+    f.write('P>0 [ F sum=numOfClauses ]\n')
+    f.write('P=? [ F sum=numOfClauses ]\n')
     f.close()
 
 

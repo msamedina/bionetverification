@@ -786,7 +786,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         row_id = row_id + 2
 
 
-def prism_gen(ssp_arr):
+def prism_gen(ssp_arr, mu_user_input):
     """
     Loop through array of SSP problems and generate prism file
         Input:
@@ -795,8 +795,6 @@ def prism_gen(ssp_arr):
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
     """
-    # set mu
-    mu_user_input = misc.prism_set_mu()
 
     ssp_prism_nt = []
     for ssp in ssp_arr:
@@ -820,7 +818,7 @@ def prism_gen(ssp_arr):
     return ssp_prism_nt
 
 
-def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu, bug_cell=None):
+def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu=0, bug_cell=None):
     """
     Print out the SSP network description to the prism file
         Input:
@@ -955,6 +953,9 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
+            str_modcheker: PRISM
+            spec_number: type of spec - reachability or	probability
+
     """
     row_id = 0
     out_fn_nt = []
@@ -968,9 +969,10 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
     for index, ssp in enumerate(ssp_arr):
         # Run Prism on no tags
 
-        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
+        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'): # if mu = 0 -> skip
             out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp), spec_number)
         else:
+            row_id += 1
             continue
 
         # Parse the results from txt file
