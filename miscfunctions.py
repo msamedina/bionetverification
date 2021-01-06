@@ -130,3 +130,42 @@ def input_exists(in_path, p_str):
         else:
             print('File does not exist in Inputs directory. Please re-enter filename.')
     return in_path + f_name
+
+
+def modcheck_select():
+    """
+    Select a model checker
+    Output:
+        str_modc: string for model checker name
+    """
+    mod_c_opt = ['NuSMV', 'nuXmv', 'prism']
+    menu = 'Please select a model checker:\n\t[1] NuSMV\n\t[2] nuXmv\n\t[3] Prism\n'
+    val = -1
+    while val == -1:
+        mod_c = int_input(out_str=menu)
+        if mod_c in range(1, 4):
+            val = 1
+            str_modc = mod_c_opt[mod_c - 1]
+            print('Selected ' + str_modc)
+            return str_modc
+        else:
+            print('Invalid option selected.')
+
+
+def prism_set_mu():
+    print('What would you like to set mu (probability of pass junction to change the direction)?\n mu should be in [0,1], while mu = 0 meaning no errors')
+    user_input = float(input())
+
+    return user_input
+
+
+def cmd_parsing_index(index):
+    index_list = ['None', 'SSP', 'ExCov', 'SAT']
+    return index_list.index(index)
+
+
+def cmd_parsing_prism_spec(spec):
+    spec_list = ['None', 'reachability', 'probability']
+    return spec_list.index(spec)
+
+
