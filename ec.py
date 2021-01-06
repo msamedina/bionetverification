@@ -655,7 +655,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         wbook.save(xl_fn)
 
 
-def prism_gen(universes, subsets, bit_mapping=True):
+def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True):
     """
     Loop through array of ExCov problems and generate prism file for each (with and without tags)
         Input:
@@ -670,9 +670,6 @@ def prism_gen(universes, subsets, bit_mapping=True):
     ec_outputs = list()
     max_sums = list()
     j = 0
-
-    # set mu
-    mu_user_input = misc.prism_set_mu()
 
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
