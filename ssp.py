@@ -461,6 +461,8 @@ def smv_gen(ssp_arr, with_tags='both'):
     """
     ssp_smv = []
     ssp_smv_nt = []
+    ssp_smv_name = ''
+
     for ssp in ssp_arr:
         # Create SSP NuSMV File
         max_tag_id = []
@@ -511,6 +513,8 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
         # Run NuSMV on with tags
         if with_tags in ['with', 'both']:
             __ = wsheet.cell(column=4, row=(index + 4), value=smv_t_arr[index])
+            wbook.save(xl_fn)
+
             out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
                                                                 str_modcheker)
             __ = wsheet.cell(column=6, row=(index + 4), value=out_fn[0])
@@ -522,6 +526,8 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
         # Run NuSMV on no tags
         if with_tags in ['without', 'both']:
             __ = wsheet.cell(column=5, row=(index + 4), value=smv_nt_arr[index])
+            wbook.save(xl_fn)
+
             out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
                                                                 str_modcheker)
             __ = wsheet.cell(column=10, row=(index + 4), value=out_fn[0])
@@ -565,6 +571,8 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             # Run NuSMV on with tags
             if with_tags in ['with', 'both']:
                 __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
+                wbook.save(xl_fn)
+
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker)
 
                 # Parse output files:
@@ -585,6 +593,8 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             # Run NuSMV on no tags
             if with_tags in ['without', 'both']:
                 __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
+                wbook.save(xl_fn)
+
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker)
 
                 # Parse output files:
@@ -731,6 +741,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         if with_tags in ['with', 'both']:
             __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
             __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
+            wbook.save(xl_fn)
 
             out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker)
 
@@ -770,6 +781,8 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         if with_tags in ['without', 'both']:
             __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
             __ = wsheet.cell(column=5, row=(row_id + 5), value=smv_nt_arr[index])
+            wbook.save(xl_fn)
+
             out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker)
 
             # Parse output files if runtime not = "Killed":

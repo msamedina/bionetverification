@@ -109,13 +109,14 @@ def read_ec(filename):
     return uni_list, subsets_list, num_prob
 
 
-def smv_gen(universes, subsets, bit_mapping=True):
+def smv_gen(universes, subsets, bit_mapping=True, with_tags='both'):
     """
     Loop through array of ExCov problems and generate two smv files for each (with and without tags)
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
             num_probs: The number of problems (number of universes and subset sets)
+            with_tags: Flag for using networks with tags
         Output:
             ec_smv: list of smv file names with tags
             ec_smv_nt: list of smv file names without tags
@@ -160,20 +161,22 @@ def smv_gen(universes, subsets, bit_mapping=True):
         max_sums.append(sum(sets_bin_int))
 
         # Create EC NuSMV File
-        # With tags
-        logging.info('Generating NuSMV file with tags...')
         ec_smv_name = file_name(uni, len(uni), 'smv')
-        max_tag_id = list()
-        print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id)
-        logging.info('Generated NuSMV file with tags')
-        ec_smv.append(ec_smv_name)
+        # With tags
+        if with_tags in ['with', 'both']:
+            logging.info('Generating NuSMV file with tags...')
+            max_tag_id = list()
+            print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id)
+            logging.info('Generated NuSMV file with tags')
+            ec_smv.append(ec_smv_name)
 
         # Without tags
-        logging.info('Generating NuSMV file without tags...')
-        ec_smv_name_nt = 'NT_' + ec_smv_name
-        print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s)
-        logging.info('Generated NuSMV file without tags')
-        ec_smv_nt.append(ec_smv_name_nt)
+        if with_tags in ['without', 'both']:
+            logging.info('Generating NuSMV file without tags...')
+            ec_smv_name_nt = 'NT_' + ec_smv_name
+            print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s)
+            logging.info('Generated NuSMV file without tags')
+            ec_smv_nt.append(ec_smv_name_nt)
 
     return ec_smv, ec_smv_nt, ec_outputs, max_sums
 
@@ -539,7 +542,7 @@ def bin_rep(subset, universe):
     return bin_rep
 
 
-def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both'):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -552,6 +555,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             wsheet: the excel worksheet
             xl_fn: excel file name
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            with_tags: Flag for using networks with tags
     """
     for index, (uni, sets) in enumerate(zip(universe, subsets)):
         # Save index, universe, num subsets, subsets, and filenames in excel
@@ -560,18 +564,54 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         __ = wsheet.cell(column=2, row=(index + 4), value=repr(uni))
         __ = wsheet.cell(column=3, row=(index + 4), value=len(sets))
         __ = wsheet.cell(column=4, row=(index + 4), value=repr(sets))
-        __ = wsheet.cell(column=5, row=(index + 4), value=smv_t_arr[index])
-        __ = wsheet.cell(column=6, row=(index + 4), value=smv_nt_arr[index])
         wbook.save(xl_fn)
 
-        # Run NuSMV on with tags
-        out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
+        ltl_res = ''
+        ctl_res = ''
 
-        # Parse output files:
-        ltl_res = modcheck.get_spec_res(out_fn[0])
-        logging.info('LTL Result: ' + ltl_res)
-        ctl_res = modcheck.get_spec_res(out_fn[1])
-        logging.info('CTL Result: ' + ctl_res)
+        # Run NuSMV on with tags
+        if with_tags in ['with', 'both']:
+            __ = wsheet.cell(column=5, row=(index + 4), value=smv_t_arr[index])
+            wbook.save(xl_fn)
+
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
+
+            # Parse output files:
+            ltl_res = modcheck.get_spec_res(out_fn[0])
+            logging.info('LTL Result: ' + ltl_res)
+            ctl_res = modcheck.get_spec_res(out_fn[1])
+            logging.info('CTL Result: ' + ctl_res)
+
+            logging.info('Saving Tags data in Excel')
+            __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[0])
+            __ = wsheet.cell(column=9, row=(index + 4), value=ltl_res)
+            __ = wsheet.cell(column=10, row=(index + 4), value=out_rt[0])
+            __ = wsheet.cell(column=11, row=(index + 4), value=out_fn[1])
+            __ = wsheet.cell(column=12, row=(index + 4), value=ctl_res)
+            __ = wsheet.cell(column=13, row=(index + 4), value=out_rt[1])
+            wbook.save(xl_fn)
+
+        # Run NuSMV on no tags
+        if with_tags in ['without', 'both']:
+            __ = wsheet.cell(column=6, row=(index + 4), value=smv_nt_arr[index])
+            wbook.save(xl_fn)
+
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
+
+            # Parse output files:
+            ltl_res = modcheck.get_spec_res(out_fn[0])
+            logging.info('LTL Result: ' + ltl_res)
+            ctl_res = modcheck.get_spec_res(out_fn[1])
+            logging.info('CTL Result: ' + ctl_res)
+
+            logging.info('Saving Tags data in Excel')
+            __ = wsheet.cell(column=14, row=(index + 4), value=out_fn[0])
+            __ = wsheet.cell(column=15, row=(index + 4), value=ltl_res)
+            __ = wsheet.cell(column=16, row=(index + 4), value=out_rt[0])
+            __ = wsheet.cell(column=17, row=(index + 4), value=out_fn[1])
+            __ = wsheet.cell(column=18, row=(index + 4), value=ctl_res)
+            __ = wsheet.cell(column=19, row=(index + 4), value=out_rt[1])
+            wbook.save(xl_fn)
 
         if ltl_res == 'false' and ctl_res == 'true':
             __ = wsheet.cell(column=7, row=(index + 4), value='YES')
@@ -579,32 +619,6 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             __ = wsheet.cell(column=7, row=(index + 4), value='NO')
         else:
             __ = wsheet.cell(column=7, row=(index + 4), value='INVALID RESULT')
-
-        logging.info('Saving Tags data in Excel')
-        __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[0])
-        __ = wsheet.cell(column=9, row=(index + 4), value=ltl_res)
-        __ = wsheet.cell(column=10, row=(index + 4), value=out_rt[0])
-        __ = wsheet.cell(column=11, row=(index + 4), value=out_fn[1])
-        __ = wsheet.cell(column=12, row=(index + 4), value=ctl_res)
-        __ = wsheet.cell(column=13, row=(index + 4), value=out_rt[1])
-        wbook.save(xl_fn)
-
-        # Run NuSMV on no tags
-        out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
-
-        # Parse output files:
-        ltl_res = modcheck.get_spec_res(out_fn[0])
-        logging.info('LTL Result: ' + ltl_res)
-        ctl_res = modcheck.get_spec_res(out_fn[1])
-        logging.info('CTL Result: ' + ctl_res)
-
-        logging.info('Saving Tags data in Excel')
-        __ = wsheet.cell(column=14, row=(index + 4), value=out_fn[0])
-        __ = wsheet.cell(column=15, row=(index + 4), value=ltl_res)
-        __ = wsheet.cell(column=16, row=(index + 4), value=out_rt[0])
-        __ = wsheet.cell(column=17, row=(index + 4), value=out_fn[1])
-        __ = wsheet.cell(column=18, row=(index + 4), value=ctl_res)
-        __ = wsheet.cell(column=19, row=(index + 4), value=out_rt[1])
         wbook.save(xl_fn)
 
 
