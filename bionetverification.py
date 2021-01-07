@@ -456,7 +456,7 @@ def cmd_menu(args):
     problem_type = misc.cmd_parsing_problem(args.problem)
     ssp_opt = args.opt
     with_tags = args.tags
-    str_modc = args.modecheck
+    str_modc = misc.cmd_parsing_mc(args.modecheck)
     mu = args.error
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
