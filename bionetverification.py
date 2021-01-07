@@ -715,10 +715,10 @@ def cmd_menu(args):
         xl_ws.title = ('Run_' + f'{str_modc}')
         run_count += 1
 
-        '''
-        misc.cmd_filename_to_dimacs_fns(filaname) -> receive filename and return list of dimacs fns
-        sample size = len(dimacs_fns)
-        '''
+        # Read list file of dimacs file names
+        sat_fn = input_dir + filename
+        dimacs_fns = sat.cmd_fn_to_dimacs_fns(input_dir, sat_fn)
+        sample_size = len(dimacs_fns)
 
         # Run DIMACS samples in MiniSat Solver to check satisfiability
         logging.info('Check satisfiability using MiniSat')

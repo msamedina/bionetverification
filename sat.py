@@ -900,3 +900,21 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
     f.close()            
 
     return var_order_fn
+
+
+def cmd_fn_to_dimacs_fns(input_dir, filename):
+    """
+    Read input file that contains a list of dimacs file names for SAT parsing
+        Inputs:
+            input_dir: input file directory for opening dimacs files
+            filename: name of file containing list of dimacs file names to be looked at (all in Input directory)
+        Output:
+            dimacs_fns: list of dimacs file names to be parsed
+    """
+    dimacs_fns = []
+    f = open(filename, 'r')
+    for line in f:
+        dimacs_fns.append(input_dir + line.rstrip())
+    f.close()
+    
+    return dimacs_fns
