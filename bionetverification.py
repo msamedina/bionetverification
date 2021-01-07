@@ -453,8 +453,9 @@ def manual_menu():
 def cmd_menu(args):
 
     # parsing the arguments from command line
-    problem_type = misc.cmd_parsing_index(args.index)
+    problem_type = misc.cmd_parsing_problem(args.problem)
     ssp_opt = args.sspopt
+    with_tags = args.tags
     str_modc = args.modecheck
     mu = args.error
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
@@ -519,11 +520,18 @@ def cmd_menu(args):
             """
             Generate smv files
             """
-            # Use specification per output
-            ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr)
 
+            ssp_smv = []
+            ssp_smv_nt = []
+            ssp_smv_new = []
+            ssp_smv_nt_new = []
+
+            # Use specification per output
+            if ssp_opt == 1 or ssp_opt == 2:
+                ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr, with_tags=with_tags)
             # Use new specifications (csum and nsum for whole network)
-            ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr)
+            if ssp_opt == 3:
+                ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr, with_tags=with_tags)
 
             # If selected bulk run
             if ssp_opt == 1:
@@ -539,7 +547,7 @@ def cmd_menu(args):
                 ssp_wb.save(ssp_xl_fn)
 
                 # Run NuSMV and get output filename for specification
-                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc)
+                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
 
             # If selected individual out run
             elif ssp_opt == 2:
@@ -555,7 +563,7 @@ def cmd_menu(args):
                 ssp_wb.save(ssp_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
+                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
 
             # If selected general specifications
             elif ssp_opt == 3:
@@ -571,7 +579,7 @@ def cmd_menu(args):
                 ssp_wb.save(ssp_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc)
+                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
 
         elif str_modc == "prism":
 
