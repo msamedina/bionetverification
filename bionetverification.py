@@ -454,12 +454,13 @@ def cmd_menu(args):
 
     # parsing the arguments from command line
     problem_type = misc.cmd_parsing_problem(args.problem)
-    ssp_opt = args.sspopt
+    ssp_opt = args.opt
     with_tags = args.tags
     str_modc = args.modecheck
     mu = args.error
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
+    vro = args.vro
 
     """
     MAIN
@@ -706,124 +707,67 @@ def cmd_menu(args):
         # Start output
         print('3-CNF SAT Network Verification')
         logging.info('3-CNF SAT Network Verification')
-        main_opt = ''
-        while main_opt != 2:  # While not Quit
-            logging.info('Printing SAT menu')
-            sat.print_sat_menu()
-            logging.info('Printed SAT menu.')
-            # Get user input for menu selection
-            valid_opt = -1
-            while valid_opt == -1:
-                main_opt = misc.int_input()
-                if main_opt in [1, 2]:
-                    valid_opt = 1
-                    print('Selected option ', str(main_opt))
-                    logging.info('Selected option: ' + str(main_opt))
-                else:
-                    print('Invalid option selected. '
-                          'Please select option 1 or 2.')
-                    logging.info('Invalid option selected.')
+        xl_wb.save(xl_fn)
 
-            # If selected sample size:
-            if main_opt == 1:
-                xl_wb.save(xl_fn)
-                prompt_samp_size = ('What sample size would you like to'
-                                    ' generate?\nINPUT SHOULD BE INTEGER,'
-                                    ' i.e. [50]\n')
-                sample_size = misc.int_input(out_str=prompt_samp_size)
-                logging.info('Sample size is: ' + str(sample_size))
-                for row in range(6, sample_size + 6):
-                    __ = xl_ws.cell(column=1, row=row, value=(row - 6))
+        # Add another worksheet based on the template
+        source = xl_wb['Template']
+        xl_ws = xl_wb.copy_worksheet(source)
+        xl_ws.title = ('Run_' + f'{str_modc}')
+        run_count += 1
 
-                # Get max allowed number of variable to randomly generate
-                maxv_p = ('Please enter max number of variables allowed.\n')
-                max_vars = misc.int_input(out_str=maxv_p)
+        '''
+        misc.cmd_filename_to_dimacs_fns(filaname) -> receive filename and return list of dimacs fns
+        sample size = len(dimacs_fns)
+        '''
 
-                if str_modc == "NuSMV" or str_modc == "nuXmv":
-                    # Add another worksheet based on the template
-                    source = xl_wb['Template']
-                    xl_ws = xl_wb.copy_worksheet(source)
-                    xl_ws.title = ('Run_' + str(run_count) + '_MaxVars_'
-                                   + str(max_vars))
-                    run_count += 1
+        # Run DIMACS samples in MiniSat Solver to check satisfiability
+        logging.info('Check satisfiability using MiniSat')
+        minisat_results = sat.mini_sat_solver(dimacs_fns,
+                                              sample_size, xl_ws,
+                                              xl_wb, xl_fn)
+        logging.info('Satisfiability checked')
+        xl_wb.save(xl_fn)
 
-                    # Generate DIMACS samples
-                    dimacs_fns, nm_tuples = sat.cnf_gen(sample_size, max_vars,
-                                                        xl_ws, xl_wb, xl_fn)
+        if str_modc == "NuSMV" or str_modc == "nuXmv":
 
-                    logging.info('DIMACS file names are: ' + str(dimacs_fns))
-                    logging.info('(Var, Clause) Tuples are: ' + str(nm_tuples))
-                    xl_wb.save(xl_fn)
+            # Read each DIMACS, generate two network descriptions
+            # Get list of file names for each
+            logging.info('Generate network descriptions')
+            smv_nc_fns, smv_c_fns = sat.dimacs_to_smv(dimacs_fns,
+                                                      sample_size, xl_ws,
+                                                      xl_wb, xl_fn)
+            logging.info('Network descriptions generated')
+            xl_wb.save(xl_fn)
 
-                    # Run DIMACS samples in MiniSat Solver to check satisfiability
-                    logging.info('Check satisfiability using MiniSat')
-                    minisat_results = sat.mini_sat_solver(dimacs_fns,
-                                                          sample_size, xl_ws,
-                                                          xl_wb, xl_fn)
-                    logging.info('Satisfiability checked')
-                    xl_wb.save(xl_fn)
-                    # Read each DIMACS, generate two network descriptions
-                    # Get list of file names for each
-                    logging.info('Generate network descriptions')
-                    smv_nc_fns, smv_c_fns = sat.dimacs_to_smv(dimacs_fns,
-                                                              sample_size, xl_ws,
-                                                              xl_wb, xl_fn)
-                    logging.info('Network descriptions generated')
-                    xl_wb.save(xl_fn)
+            # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
+            logging.info('Run NuSMV on both network descriptions')
+            sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
+                              xl_ws, xl_wb, xl_fn, str_modc, vro=vro)
+            logging.info('NuSMV runs complete')
+            xl_wb.save(xl_fn)
 
-                    # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
-                    logging.info('Run NuSMV on both network descriptions')
-                    sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
-                                      xl_ws, xl_wb, xl_fn, str_modc)
-                    logging.info('NuSMV runs complete')
-                    xl_wb.save(xl_fn)
+        elif str_modc == "prism":
 
-                elif str_modc == "prism":
-                    # Add another worksheet based on the template
-                    source = xl_wb['Template_Prism']
-                    xl_ws = xl_wb.copy_worksheet(source)
-                    xl_ws.title = ('Run_' + str(run_count) + '_MaxVars_'
-                                   + str(max_vars))
-                    run_count += 1
+            # Get list of file names for each
+            logging.info('Generate network descriptions')
+            prism_fns = sat.dimacs_to_prism(dimacs_fns,
+                                            sample_size, xl_ws,
+                                            xl_wb, xl_fn)
+            logging.info('Network descriptions generated')
+            xl_wb.save(xl_fn)
 
-                    # Generate DIMACS samples
-                    dimacs_fns, nm_tuples = sat.cnf_gen(sample_size, max_vars,
-                                                        xl_ws, xl_wb, xl_fn)
+            # Run Prism on all samples
+            logging.info('Run prism on network descriptions')
+            sat.prism_run_specs(prism_fns, sample_size,
+                                xl_ws, xl_wb, xl_fn, str_modc)
+            logging.info('prism runs complete')
+            xl_wb.save(xl_fn)
 
-                    logging.info('DIMACS file names are: ' + str(dimacs_fns))
-                    logging.info('(Var, Clause) Tuples are: ' + str(nm_tuples))
-                    xl_wb.save(xl_fn)
-
-                    # Run DIMACS samples in MiniSat Solver to check satisfiability
-                    logging.info('Check satisfiability using MiniSat')
-                    minisat_results = sat.mini_sat_solver(dimacs_fns,
-                                                          sample_size, xl_ws,
-                                                          xl_wb, xl_fn)
-                    logging.info('Satisfiability checked')
-                    xl_wb.save(xl_fn)
-                    # Read each DIMACS, generate two network descriptions
-                    # Get list of file names for each
-                    logging.info('Generate network descriptions')
-                    prism_fns = sat.dimacs_to_prism(dimacs_fns,
-                                                    sample_size, xl_ws,
-                                                    xl_wb, xl_fn)
-                    logging.info('Network descriptions generated')
-                    xl_wb.save(xl_fn)
-
-                    # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
-                    logging.info('Run prism on network descriptions')
-                    sat.prism_run_specs(prism_fns, sample_size,
-                                        xl_ws, xl_wb, xl_fn, str_modc)
-                    logging.info('prism runs complete')
-                    xl_wb.save(xl_fn)
-
-            elif main_opt == 2:
-                if len(xl_wb.sheetnames) > sat_wb_num_of_sheets:
-                    xl_wb.remove(xl_wb['Template'])
-                    xl_wb.remove(xl_wb['Template_Prism'])
-                    xl_wb.save(xl_fn)
-                    logging.info('Output Excel file is: ' + xl_fn)
-                print('Closing Python Script')
+        if len(xl_wb.sheetnames) > sat_wb_num_of_sheets:
+            xl_wb.remove(xl_wb['Template'])
+            xl_wb.remove(xl_wb['Template_Prism'])
+            xl_wb.save(xl_fn)
+            logging.info('Output Excel file is: ' + xl_fn)
 
     # Finished running, close logging
     logging.info('Selected Quit')

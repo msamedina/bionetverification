@@ -578,7 +578,7 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     return smv_nc_fns, smv_c_fns
 
 
-def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
+def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both'):
     """
     Function that runs both Clau and NoClau through NuSMV for:
         LTL specification both with and without variable re-ordering
@@ -590,6 +590,8 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             sample_size: The number of 3-SAT problems created
             xl_ws: Excel worksheet where to save data
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            vro: Flag for using variable re-ordering
+
     """
     for i in range(sample_size):
         """
