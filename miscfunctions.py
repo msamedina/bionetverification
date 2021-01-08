@@ -170,15 +170,13 @@ def cmd_parsing_prism_spec(spec):
 
 
 def cmd_parsing_mc(mc):
-    # in case mc is 'smv' or 'xmv' -> add prefix 'nu'
-    if len(mc) == 3:
-        mc = 'nu' + mc
-    # converts all uppercase characters in mc into lowercase
-    mc = mc.lower()
-    if mc == 'nuxmv':
-        return 'nuXmv'
-    if mc == 'nusmv':
-        return 'NuSMV'
-    if mc == 'prism':
-        return 'prism'
+    # parsing the model checker without case sensitivity
+    if mc.lower() == 'all':
+        return ['NuSMV', 'nuXmv', 'prism']
+    if mc.lower() == 'smv' or mc.lower() == 'nusmv':
+        return ['NuSMV']
+    if mc.lower() == 'xmv' or mc.lower() == 'nuxmv':
+        return ['nuXmv']
+    if mc.lower() == 'prism':
+        return ['prism']
 

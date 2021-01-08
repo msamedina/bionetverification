@@ -456,7 +456,7 @@ def cmd_menu(args):
     problem_type = misc.cmd_parsing_problem(args.problem)
     ssp_opt = args.opt
     with_tags = args.tags
-    str_modc = misc.cmd_parsing_mc(args.modecheck)
+    str_modc_list = misc.cmd_parsing_mc(args.modecheck)
     mu = args.error
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
@@ -504,270 +504,273 @@ def cmd_menu(args):
     SSP SELECTED
     """
     if problem_type == 1:
-        """
-        Get and Parse SSP sets from input file
-        --------------------------------------
-        """
-        ssp_fn = input_dir + filename
-        ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
-
-        # Setup worksheet for data recording
-        ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
-        ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
-        ssp_xl_fn = misc.file_name_cformat('SSP_{0}.xlsx')
-        ssp_wb.save(ssp_xl_fn)
-
-        if str_modc == "NuSMV" or str_modc == "nuXmv":
+        for str_modc in str_modc_list:
             """
-            Generate smv files
+            Get and Parse SSP sets from input file
+            --------------------------------------
             """
+            ssp_fn = input_dir + filename
+            ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
 
-            ssp_smv = []
-            ssp_smv_nt = []
-            ssp_smv_new = []
-            ssp_smv_nt_new = []
-
-            # Use specification per output
-            if ssp_opt == 1 or ssp_opt == 2:
-                ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr, with_tags=with_tags)
-            # Use new specifications (csum and nsum for whole network)
-            if ssp_opt == 3:
-                ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr, with_tags=with_tags)
-
-            # If selected bulk run
-            if ssp_opt == 1:
-                """
-                Run NuSMV
-                Bulk run specs for per output specs
-                ------------------
-                """
-                # Add another worksheet based on the template
-                a_source = ssp_wb['ALL_Template']
-                ssp_a_ws = ssp_wb.copy_worksheet(a_source)
-                ssp_a_ws.title = 'Bulk_OutSpec'
-                ssp_wb.save(ssp_xl_fn)
-
-                # Run NuSMV and get output filename for specification
-                ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
-
-            # If selected individual out run
-            elif ssp_opt == 2:
-                """
-                Run NuSMV
-                Run each per output spec individually
-                ------------------
-                """
-                # Add another worksheet based on the template
-                s_source = ssp_wb['SINGLE_Template']
-                ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-                ssp_s_ws.title = 'Single_OutSpec'
-                ssp_wb.save(ssp_xl_fn)
-
-                # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
-
-            # If selected general specifications
-            elif ssp_opt == 3:
-                """
-                Run NuSMV
-                Run new specs (csum and nsum for whole network)
-                ------------------
-                """
-                # Add another worksheet based on the template
-                s_source = ssp_wb['NewSpec_Template']
-                ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-                ssp_s_ws.title = 'SSP_GenSpec'
-                ssp_wb.save(ssp_xl_fn)
-
-                # Run NuSMV and get outputs for each individual specification
-                ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
-
-        elif str_modc == "prism":
-
-            """
-            Generate prism files
-            """
-            # Use specification per output
-            ssp_prism_nt = ssp.prism_gen(ssp_arr, mu)
-
-            """
-            Run Prism
-            ------------------
-            """
-            # Add another worksheet based on the template
-            s_source = ssp_wb['Prism_Template']
-            ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-            ssp_s_ws.title = 'SSP_Prism_Results'
+            # Setup worksheet for data recording
+            ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+            ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
+            ssp_xl_fn = misc.file_name_cformat('SSP_{0}.xlsx')
             ssp_wb.save(ssp_xl_fn)
 
-            # Run Prism and get outputs for each individual specification
-            ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, prism_spec)
+            if str_modc == "NuSMV" or str_modc == "nuXmv" or str_modc == 'all':
+                """
+                Generate smv files
+                """
 
-        # If selected return to main
-        """
-        Finished running SSP problems
-        Remove template sheets and close file
-        In case there was no action - delete the file
-        """
-        if len(ssp_wb.sheetnames) > ssp_wb_num_of_sheets:
-            ssp_wb.remove(ssp_wb['ALL_Template'])
-            ssp_wb.remove(ssp_wb['SINGLE_Template'])
-            ssp_wb.remove(ssp_wb['NewSpec_Template'])
-            ssp_wb.remove(ssp_wb['Prism_Template'])
-            ssp_wb.save(ssp_xl_fn)
-            logging.info('Output Excel file is: ' + ssp_xl_fn)
-        else:
-            logging.info('There was no action in file: ' + ssp_xl_fn)
-            logging.info('delete file: ' + ssp_xl_fn)
-            os.remove(ssp_xl_fn)
-        logging.info('Closing workbook')
-        ssp_wb.close()
+                ssp_smv = []
+                ssp_smv_nt = []
+                ssp_smv_new = []
+                ssp_smv_nt_new = []
+
+                # Use specification per output
+                if ssp_opt == 1 or ssp_opt == 2:
+                    ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr, with_tags=with_tags)
+                # Use new specifications (csum and nsum for whole network)
+                if ssp_opt == 3:
+                    ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr, with_tags=with_tags)
+
+                # If selected bulk run
+                if ssp_opt == 1:
+                    """
+                    Run NuSMV
+                    Bulk run specs for per output specs
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    a_source = ssp_wb['ALL_Template']
+                    ssp_a_ws = ssp_wb.copy_worksheet(a_source)
+                    ssp_a_ws.title = 'Bulk_OutSpec'
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get output filename for specification
+                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+
+                # If selected individual out run
+                elif ssp_opt == 2:
+                    """
+                    Run NuSMV
+                    Run each per output spec individually
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['SINGLE_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = 'Single_OutSpec'
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get outputs for each individual specification
+                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+
+                # If selected general specifications
+                elif ssp_opt == 3:
+                    """
+                    Run NuSMV
+                    Run new specs (csum and nsum for whole network)
+                    ------------------
+                    """
+                    # Add another worksheet based on the template
+                    s_source = ssp_wb['NewSpec_Template']
+                    ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                    ssp_s_ws.title = 'SSP_GenSpec'
+                    ssp_wb.save(ssp_xl_fn)
+
+                    # Run NuSMV and get outputs for each individual specification
+                    ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+
+            elif str_modc == "prism":
+
+                """
+                Generate prism files
+                """
+                # Use specification per output
+                ssp_prism_nt = ssp.prism_gen(ssp_arr, mu)
+
+                """
+                Run Prism
+                ------------------
+                """
+                # Add another worksheet based on the template
+                s_source = ssp_wb['Prism_Template']
+                ssp_s_ws = ssp_wb.copy_worksheet(s_source)
+                ssp_s_ws.title = 'SSP_Prism_Results'
+                ssp_wb.save(ssp_xl_fn)
+
+                # Run Prism and get outputs for each individual specification
+                ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, prism_spec)
+
+            # If selected return to main
+            """
+            Finished running SSP problems
+            Remove template sheets and close file
+            In case there was no action - delete the file
+            """
+            if len(ssp_wb.sheetnames) > ssp_wb_num_of_sheets:
+                ssp_wb.remove(ssp_wb['ALL_Template'])
+                ssp_wb.remove(ssp_wb['SINGLE_Template'])
+                ssp_wb.remove(ssp_wb['NewSpec_Template'])
+                ssp_wb.remove(ssp_wb['Prism_Template'])
+                ssp_wb.save(ssp_xl_fn)
+                logging.info('Output Excel file is: ' + ssp_xl_fn)
+            else:
+                logging.info('There was no action in file: ' + ssp_xl_fn)
+                logging.info('delete file: ' + ssp_xl_fn)
+                os.remove(ssp_xl_fn)
+            logging.info('Closing workbook')
+            ssp_wb.close()
 
     """
     ExCov SELECTED
     """
     if problem_type == 2:
-        """
-        Get and Parse ExCov universes and sets from input file
-        --------------------------------------
-        """
-        excov_fn = input_dir + filename
-        universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
+        for str_modc in str_modc_list:
+            """
+            Get and Parse ExCov universes and sets from input file
+            --------------------------------------
+            """
+            excov_fn = input_dir + filename
+            universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
 
-        # Setup worksheet for data recording
-        ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-        ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
-        ec_wb.save(ec_xl_fn)
-
-        if str_modc == "NuSMV" or str_modc == "nuXmv":
-            """
-            Generate smv files
-            """
-            ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, bit_mapping=True, with_tags=with_tags)
-
-            """
-            Run NuSMV
-            Single spec for exact cover output
-            ------------------
-            """
-            # Add another worksheet based on the template
-            source = ec_wb['EC_Template']
-            ec_ws = ec_wb.copy_worksheet(source)
-            ec_ws.title = 'ExCov'
+            # Setup worksheet for data recording
+            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
             ec_wb.save(ec_xl_fn)
 
-            # Run NuSMV and get outputs for each individual specification
-            ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags)
+            if str_modc == "NuSMV" or str_modc == "nuXmv":
+                """
+                Generate smv files
+                """
+                ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, bit_mapping=True, with_tags=with_tags)
 
-        elif str_modc == "prism":
+                """
+                Run NuSMV
+                Single spec for exact cover output
+                ------------------
+                """
+                # Add another worksheet based on the template
+                source = ec_wb['EC_Template']
+                ec_ws = ec_wb.copy_worksheet(source)
+                ec_ws.title = 'ExCov'
+                ec_wb.save(ec_xl_fn)
+
+                # Run NuSMV and get outputs for each individual specification
+                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags)
+
+            elif str_modc == "prism":
+
+                """
+                Generate prism files
+                """
+
+                ec_prism_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=True)
+
+                """
+                Run prism
+                Single spec for exact cover output
+                ------------------
+                """
+                # Add another worksheet based on the template
+                source = ec_wb['EC_Prism_Template']
+                ec_ws = ec_wb.copy_worksheet(source)
+                ec_ws.title = 'ExCov'
+                ec_wb.save(ec_xl_fn)
+
+                # Run Prism and get outputs for each individual specification
+                ec.run_prism(universes, subsets_arrays, ec_outputs, ec_prism_nt, ec_wb, ec_ws, ec_xl_fn, prism_spec)
 
             """
-            Generate prism files
+            Finished running ExCov
             """
-
-            ec_prism_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=True)
-
-            """
-            Run prism
-            Single spec for exact cover output
-            ------------------
-            """
-            # Add another worksheet based on the template
-            source = ec_wb['EC_Prism_Template']
-            ec_ws = ec_wb.copy_worksheet(source)
-            ec_ws.title = 'ExCov'
+            ec_wb.remove(ec_wb['EC_Template'])
+            ec_wb.remove(ec_wb['EC_Prism_Template'])
             ec_wb.save(ec_xl_fn)
-
-            # Run Prism and get outputs for each individual specification
-            ec.run_prism(universes, subsets_arrays, ec_outputs, ec_prism_nt, ec_wb, ec_ws, ec_xl_fn, prism_spec)
-
-        """
-        Finished running ExCov
-        """
-        ec_wb.remove(ec_wb['EC_Template'])
-        ec_wb.remove(ec_wb['EC_Prism_Template'])
-        ec_wb.save(ec_xl_fn)
-        logging.info('Output Excel file is: ' + ec_xl_fn)
-        logging.info('Closing workbook')
-        ec_wb.close()
+            logging.info('Output Excel file is: ' + ec_xl_fn)
+            logging.info('Closing workbook')
+            ec_wb.close()
 
     """
     SAT SELECTED
     """
     if problem_type == 3:
-        # Prep for excel output
-        run_count = 0
-        # Setup workbook for data recording
-        xl_wb = loadwb(template_dir + 'SAT_Template.xlsx')
-        sat_wb_num_of_sheets = len(xl_wb.sheetnames)
-        xl_fn = misc.file_name_cformat('SAT_{0}.xlsx')
-        # Grab the active worksheet
-        xl_ws = xl_wb.active
+        for str_modc in str_modc_list:
+            # Prep for excel output
+            run_count = 0
+            # Setup workbook for data recording
+            xl_wb = loadwb(template_dir + 'SAT_Template.xlsx')
+            sat_wb_num_of_sheets = len(xl_wb.sheetnames)
+            xl_fn = misc.file_name_cformat('SAT_{0}.xlsx')
+            # Grab the active worksheet
+            xl_ws = xl_wb.active
 
-        # Start output
-        print('3-CNF SAT Network Verification')
-        logging.info('3-CNF SAT Network Verification')
-        xl_wb.save(xl_fn)
-
-        # Add another worksheet based on the template
-        source = xl_wb['Template']
-        xl_ws = xl_wb.copy_worksheet(source)
-        xl_ws.title = ('Run_' + f'{str_modc}')
-        run_count += 1
-
-        # Read list file of dimacs file names
-        sat_fn = input_dir + filename
-        dimacs_fns = sat.cmd_fn_to_dimacs_fns(input_dir, sat_fn)
-        sample_size = len(dimacs_fns)
-
-        # Run DIMACS samples in MiniSat Solver to check satisfiability
-        logging.info('Check satisfiability using MiniSat')
-        minisat_results = sat.mini_sat_solver(dimacs_fns,
-                                              sample_size, xl_ws,
-                                              xl_wb, xl_fn)
-        logging.info('Satisfiability checked')
-        xl_wb.save(xl_fn)
-
-        if str_modc == "NuSMV" or str_modc == "nuXmv":
-
-            # Read each DIMACS, generate two network descriptions
-            # Get list of file names for each
-            logging.info('Generate network descriptions')
-            smv_nc_fns, smv_c_fns = sat.dimacs_to_smv(dimacs_fns,
-                                                      sample_size, xl_ws,
-                                                      xl_wb, xl_fn)
-            logging.info('Network descriptions generated')
+            # Start output
+            print('3-CNF SAT Network Verification')
+            logging.info('3-CNF SAT Network Verification')
             xl_wb.save(xl_fn)
 
-            # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
-            logging.info('Run NuSMV on both network descriptions')
-            sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
-                              xl_ws, xl_wb, xl_fn, str_modc, vro=vro)
-            logging.info('NuSMV runs complete')
+            # Add another worksheet based on the template
+            source = xl_wb['Template']
+            xl_ws = xl_wb.copy_worksheet(source)
+            xl_ws.title = ('Run_' + f'{str_modc}')
+            run_count += 1
+
+            # Read list file of dimacs file names
+            sat_fn = input_dir + filename
+            dimacs_fns = sat.cmd_fn_to_dimacs_fns(input_dir, sat_fn)
+            sample_size = len(dimacs_fns)
+
+            # Run DIMACS samples in MiniSat Solver to check satisfiability
+            logging.info('Check satisfiability using MiniSat')
+            minisat_results = sat.mini_sat_solver(dimacs_fns,
+                                                  sample_size, xl_ws,
+                                                  xl_wb, xl_fn)
+            logging.info('Satisfiability checked')
             xl_wb.save(xl_fn)
 
-        elif str_modc == "prism":
+            if str_modc == "NuSMV" or str_modc == "nuXmv":
 
-            # Get list of file names for each
-            logging.info('Generate network descriptions')
-            prism_fns = sat.dimacs_to_prism(dimacs_fns,
-                                            sample_size, xl_ws,
-                                            xl_wb, xl_fn)
-            logging.info('Network descriptions generated')
-            xl_wb.save(xl_fn)
+                # Read each DIMACS, generate two network descriptions
+                # Get list of file names for each
+                logging.info('Generate network descriptions')
+                smv_nc_fns, smv_c_fns = sat.dimacs_to_smv(dimacs_fns,
+                                                          sample_size, xl_ws,
+                                                          xl_wb, xl_fn)
+                logging.info('Network descriptions generated')
+                xl_wb.save(xl_fn)
 
-            # Run Prism on all samples
-            logging.info('Run prism on network descriptions')
-            sat.prism_run_specs(prism_fns, sample_size,
-                                xl_ws, xl_wb, xl_fn, str_modc)
-            logging.info('prism runs complete')
-            xl_wb.save(xl_fn)
+                # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
+                logging.info('Run NuSMV on both network descriptions')
+                sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
+                                  xl_ws, xl_wb, xl_fn, str_modc, vro=vro)
+                logging.info('NuSMV runs complete')
+                xl_wb.save(xl_fn)
 
-        if len(xl_wb.sheetnames) > sat_wb_num_of_sheets:
-            xl_wb.remove(xl_wb['Template'])
-            xl_wb.remove(xl_wb['Template_Prism'])
-            xl_wb.save(xl_fn)
-            logging.info('Output Excel file is: ' + xl_fn)
+            elif str_modc == "prism":
+
+                # Get list of file names for each
+                logging.info('Generate network descriptions')
+                prism_fns = sat.dimacs_to_prism(dimacs_fns,
+                                                sample_size, xl_ws,
+                                                xl_wb, xl_fn)
+                logging.info('Network descriptions generated')
+                xl_wb.save(xl_fn)
+
+                # Run Prism on all samples
+                logging.info('Run prism on network descriptions')
+                sat.prism_run_specs(prism_fns, sample_size,
+                                    xl_ws, xl_wb, xl_fn, str_modc)
+                logging.info('prism runs complete')
+                xl_wb.save(xl_fn)
+
+            if len(xl_wb.sheetnames) > sat_wb_num_of_sheets:
+                xl_wb.remove(xl_wb['Template'])
+                xl_wb.remove(xl_wb['Template_Prism'])
+                xl_wb.save(xl_fn)
+                logging.info('Output Excel file is: ' + xl_fn)
 
     # Finished running, close logging
     logging.info('Selected Quit')
