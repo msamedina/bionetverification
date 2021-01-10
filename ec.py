@@ -291,24 +291,11 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
         else:
             f.write(str(split_j_loc[i]))
     f.write(' and forceDwn junctions at (r,c): ')
-    rc_f_dwn = []
 
     # Find all frcDwn junctions
-    for i in range(0, len(ss_array)):
-        for j in range(i + 1, len(ss_array)):
-            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
-                c = int_ss[i]
-                r = sum(int_ss[0:j])
-                rc_f_dwn.append([r, c])
-                f.write('(' + str(r) + ',' + str(c) + ') ')
-                for k in range(i + 1, j):
-                    c = int_ss[i] + int_ss[k]
-                    rc_f_dwn.append([r, c])
-                    f.write('(' + str(r) + ',' + str(c) + ') ')
-                    ctemp = sum(int_ss[i:k + 1])
-                    if ctemp > c:
-                        rc_f_dwn.append([r, ctemp])
-                        f.write('(' + str(r) + ',' + str(ctemp) + ') ')
+    rc_f_dwn = f_down_finder(int_ss, universe)
+    for rc in rc_f_dwn:
+        f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
     f.write('\n\n\tnext(junction) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t(')
     for i in range(0, len(rc_f_dwn)):
@@ -438,24 +425,11 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
         else:
             f.write(str(split_j_loc[i]))
     f.write(' and forceDwn junctions at (r,c): ')
-    rc_f_dwn = []
 
     # Find all frcDwn junctions
-    for i in range(0, len(ss_array)):
-        for j in range(i + 1, len(ss_array)):
-            if not (set(ss_array[i]).isdisjoint(set(ss_array[j]))):
-                c = int_ss[i]
-                r = sum(int_ss[0:j])
-                rc_f_dwn.append([r, c])
-                f.write('(' + str(r) + ',' + str(c) + ') ')
-                for k in range(i + 1, j):
-                    c = int_ss[i] + int_ss[k]
-                    rc_f_dwn.append([r, c])
-                    f.write('(' + str(r) + ',' + str(c) + ') ')
-                    ctemp = sum(int_ss[i:k + 1])
-                    if ctemp > c:
-                        rc_f_dwn.append([r, ctemp])
-                        f.write('(' + str(r) + ',' + str(ctemp) + ') ')
+    rc_f_dwn = f_down_finder(int_ss, universe)
+    for rc in rc_f_dwn:
+        f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
     f.write('\n\n\tnext(junction) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t(')
     for i in range(0, len(rc_f_dwn)):
