@@ -25,10 +25,3 @@ if __name__ == '__main__':
         manual_menu()
     else:
         cmd_menu(args=opts)
-    opts.problem = 'SSP'
-    opts.opt = 3
-    opts.modecheck = 'xmv'
-    opts.filename = 'S'
-    opts.spec = 'reachability'
-    opts.tags = 'with'
-    opts.error = 0

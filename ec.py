@@ -901,7 +901,7 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
 
         # Run Prism on no tags
         if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
-            out_fn = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
+            out_fn, out_rt = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
         else:
             continue
 

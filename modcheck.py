@@ -596,11 +596,12 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
     """
 
     # run specifications: 1. check the profile of output.
-    out_fn_arr = f'res_{maxrow}.txt'
-    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn_arr}:csv']
+    out_fn = f'res_{maxrow}.txt'
     out_rt_arr = []
+    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn}:csv']
 
     logging.info('Opening process: ' + str_modcheker)
+    start = datetime.datetime.now()
     child = pexpect.spawn(str_modcheker, args=input_fn,
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
@@ -609,8 +610,11 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
     except pexpect.EOF:
         print('')
     child.close()
-
-    return out_fn_arr, out_rt_arr
+    stop = datetime.datetime.now()
+    # Milliseconds
+    out_rt_arr.append(int((stop - start).total_seconds() * 1000))
+    
+    return out_fn, out_rt_arr
 
 
 def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
@@ -627,6 +631,7 @@ def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
 
     fn_arr = f'res_{universe}'
     out_fn_arr = []
+    out_rt_arr = []
     input_fn = []
 
     for i in range(0, 2, 1):
@@ -646,14 +651,17 @@ def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
             out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
 
         logging.info('Opening process: ' + str_modcheker)
+        start = datetime.datetime.now()
         child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
         try:
             child.expect('\n' + str_modcheker)
         except pexpect.EOF:
             print('')
         child.close()
-
-    return out_fn_arr
+        stop = datetime.datetime.now()
+        # Milliseconds
+        out_rt_arr.append(int((stop - start).total_seconds() * 1000))
+    return out_fn_arr, out_rt_arr
 
 
 def get_path(output_filename, output_interest):
