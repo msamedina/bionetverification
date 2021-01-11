@@ -18,7 +18,17 @@ def parse_args():
 
 if __name__ == '__main__':
     opts = parse_args()
+
+
+
     if opts.problem is None:
         manual_menu()
     else:
         cmd_menu(args=opts)
+    opts.problem = 'SSP'
+    opts.opt = 3
+    opts.modecheck = 'xmv'
+    opts.filename = 'S'
+    opts.spec = 'reachability'
+    opts.tags = 'with'
+    opts.error = 0
