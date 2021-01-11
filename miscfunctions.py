@@ -150,33 +150,3 @@ def modcheck_select():
             return str_modc
         else:
             print('Invalid option selected.')
-
-
-def prism_set_mu():
-    print('What would you like to set mu (probability of pass junction to change the direction)?\n mu should be in [0,1], while mu = 0 meaning no errors')
-    user_input = float(input())
-
-    return user_input
-
-
-def cmd_parsing_problem(problem):
-    problem_list = [None, 'SSP', 'ExCov', 'SAT']
-    return problem_list.index(problem)
-
-
-def cmd_parsing_prism_spec(spec):
-    spec_list = [None, 'reachability', 'probability']
-    return spec_list.index(spec)
-
-
-def cmd_parsing_mc(mc):
-    # parsing the model checker without case sensitivity
-    if mc.lower() == 'all':
-        return ['NuSMV', 'nuXmv', 'prism']
-    if mc.lower() == 'smv' or mc.lower() == 'nusmv':
-        return ['NuSMV']
-    if mc.lower() == 'xmv' or mc.lower() == 'nuxmv':
-        return ['nuXmv']
-    if mc.lower() == 'prism':
-        return ['prism']
-
