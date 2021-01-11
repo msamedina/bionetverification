@@ -35,7 +35,7 @@ def file_name_gen(set_array, arr_length, str_mc='NuSMV'):
         Output:
             filename: smv file name for the SSP network with formatting
     """
-    if str_mc == 'NuSMV' or str_mc == 'NuSMV':
+    if str_mc == 'NuSMV' or str_mc == 'nuXmv':
         filename = 'autoSSP_'
         for i in range(arr_length):
             filename += str(set_array[i]) + '_'
