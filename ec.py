@@ -293,7 +293,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write(' and forceDwn junctions at (r,c): ')
 
     # Find all frcDwn junctions
-    rc_f_dwn = f_down_finder(int_ss, universe)
+    rc_f_dwn = f_down_finder(int_ss, int_uni)
     for rc in rc_f_dwn:
         f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
@@ -427,7 +427,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write(' and forceDwn junctions at (r,c): ')
 
     # Find all frcDwn junctions
-    rc_f_dwn = f_down_finder(int_ss, universe)
+    rc_f_dwn = f_down_finder(int_ss, int_uni)
     for rc in rc_f_dwn:
         f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
