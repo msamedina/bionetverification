@@ -1034,13 +1034,15 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
             __ = wsheet.cell(column=4, row=(row_id + 4), value=prism_nt_arr[index])
             __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
             __ = wsheet.cell(column=8, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=10, row=(row_id + 4), value=str(out_rt_nt))
             if spec_number == 2:
                 __ = wsheet.cell(column=9, row=(row_id + 4), value=str(prob_col))
         else:
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=str(reachable_col))
-            __ = wsheet.cell(column=11, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=11, row=(row_id + 4), value=str(reachable_col))
+            __ = wsheet.cell(column=12, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=14, row=(row_id + 4), value=str(out_rt_nt))
             if spec_number == 2:
-                __ = wsheet.cell(column=12, row=(row_id + 4), value=str(prob_col))
+                __ = wsheet.cell(column=13, row=(row_id + 4), value=str(prob_col))
         wbook.save(xl_fn)
 
         # Prepare for next input

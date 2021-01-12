@@ -165,6 +165,10 @@ def cmd_parsing_problem(problem):
 
 
 def cmd_parsing_prism_spec(spec):
+    if spec == 'p' or spec == 'prob':
+        spec = 'probability'
+    if spec == 'r' or spec == 'reach':
+        spec = 'reachability'
     spec_list = [None, 'reachability', 'probability']
     return spec_list.index(spec)
 

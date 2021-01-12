@@ -901,7 +901,7 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
 
         # Run Prism on no tags
         if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
-            out_fn, out_rt = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
+            out_fn, out_rt_arr = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
         else:
             continue
 
@@ -919,12 +919,16 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
             logging.info('Prob Result: ' + str(prob_res))
 
         logging.info('Saving data in Excel')
+        out_rt = str(f'{out_rt_arr[0]} / {out_rt_arr[1]}')
         if index % 2 == 0:
             __ = wsheet.cell(column=6, row=(int(index / 2) + 4), value=exist_res)
             __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=str(prob_res))
+            __ = wsheet.cell(column=8, row=(int(index / 2) + 4), value=out_rt)
         else:
-            __ = wsheet.cell(column=8, row=(int(index / 2) + 4), value=exist_res)
-            __ = wsheet.cell(column=9, row=(int(index / 2) + 4), value=str(prob_res))
+            __ = wsheet.cell(column=9, row=(int(index / 2) + 4), value=exist_res)
+            __ = wsheet.cell(column=10, row=(int(index / 2) + 4), value=str(prob_res))
+            __ = wsheet.cell(column=11, row=(int(index / 2) + 4), value=out_rt)
+
         wbook.save(xl_fn)
 
 

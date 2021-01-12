@@ -515,7 +515,7 @@ def cmd_menu(args):
             # Setup worksheet for data recording
             ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
             ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
-            ssp_xl_fn = misc.file_name_cformat('SSP_{0}.xlsx')
+            ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx')
             ssp_wb.save(ssp_xl_fn)
 
             if str_modc == "NuSMV" or str_modc == "nuXmv" or str_modc == 'all':

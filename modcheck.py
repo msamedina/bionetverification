@@ -597,7 +597,7 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
 
     # run specifications: 1. check the profile of output.
     out_fn = f'res_{maxrow}.txt'
-    out_rt_arr = []
+
     input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn}:csv']
 
     logging.info('Opening process: ' + str_modcheker)
@@ -612,9 +612,9 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
     child.close()
     stop = datetime.datetime.now()
     # Milliseconds
-    out_rt_arr.append(int((stop - start).total_seconds() * 1000))
+    out_rt = int((stop - start).total_seconds() * 1000)
     
-    return out_fn, out_rt_arr
+    return out_fn, out_rt
 
 
 def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
