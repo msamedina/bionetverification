@@ -11,7 +11,7 @@ import miscfunctions as misc
 
 
 def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
-                           xl_fn, str_modcheker):
+                           xl_fn, str_modcheker, vro='both'):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -26,38 +26,45 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
     """
 
-    out_fn_arr = [misc.file_name_cformat('output_SAT_LTL_{0}'),
-                  misc.file_name_cformat('output_SAT_CTL_{0}'),
-                  misc.file_name_cformat('output_SAT_LTL_vro_{0}'),
-                  misc.file_name_cformat('output_SAT_CTL_vro_{0}')]
+    out_fn_arr = []
     out_rt_arr = []
+    inval = []
+
 
     # NuSMV inputs without re-ordering variables
-    inval_nvro = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                  'build_model\n', 'check_ltlspec -o ' + out_fn_arr[0] + '\n',
-                  'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
+    if vro in ['without', 'both']:
+        ltl_spec = misc.file_name_cformat('output_SAT_LTL_{0}')
+        ctl_spec = misc.file_name_cformat('output_SAT_CTL_{0}')
+        inval_nvro = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
+                  'build_model\n', 'check_ltlspec -o ' + ltl_spec + '\n',
+                  'check_ctlspec -o ' + ctl_spec + '\n', 'quit\n']
+        inval.append(inval_nvro)
+        out_fn_arr.extend([ltl_spec, ctl_spec])
                 
-                
-    # NuSMV inputs with re-ordering variables            
-    inval_vro = ['read_model\n', 'flatten_hierarchy\n',
+    # NuSMV inputs with re-ordering variables
+    if vro in ['with', 'both']:
+        ltl_spec = misc.file_name_cformat('output_SAT_LTL_vro_{0}')
+        ctl_spec = misc.file_name_cformat('output_SAT_CTL_vro_{0}')
+        inval_vro = ['read_model\n', 'flatten_hierarchy\n',
                  'encode_variables -i ' + var_ord_fn + '\n', 'build_model\n',
-                 'check_ltlspec -o ' + out_fn_arr[2] + '\n',
-                 'check_ctlspec -o ' + out_fn_arr[3] + '\n', 'quit\n']
-    
-    inval = [inval_nvro, inval_vro]
-    
+                 'check_ltlspec -o ' + ltl_spec + '\n',
+                 'check_ctlspec -o ' + ctl_spec + '\n', 'quit\n']
+        inval.append(inval_vro)
+        out_fn_arr.extend([ltl_spec, ctl_spec])
+
     check_spec = [4, 5]
     out_count = 0
     
-    for indx in range(2):
+    for inputval in inval:
         # prepare to catch runtimes
         start = 0
         stop = 0
         runtime = 0
         err_flag = 0
-                
-        inputval = inval[indx]
-        
+        indx = inval.index(inputval)
+        if vro == 'with':
+            indx = 1
+
         logging.info('Opening process: ' + str_modcheker)
         child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
                               logfile=sys.stdout, encoding='utf-8',

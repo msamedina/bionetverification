@@ -12,7 +12,9 @@ def parse_args():
     p.add_argument('-v', '--vro', required=False, type=str, help='Flag for using variable reordering (only relevant for SAT)')  # with, without or both
     p.add_argument('-s', '--spec', required=False, type=str, help='Spec type to be looked at')  # LTL (smv/xmv), CTL (smv/xmv), reachability (PRISM) or	probability (PRISM)
     p.add_argument('-e', '--error', required=False, type=float, help='error rate for Prism')  # number in range [0,1] - 0 for no errors
-    # case sensitivity
+    p.add_argument('-c', '--cut_in_u', required=False, type=float, help='An option to cut the network after universe in ExCov problems')  # True or False
+    p.add_argument('-b', '--bit_mapping', required=False, type=float, help='An option to use bit mapping optimization')  # True or False
+
     return p.parse_args()
 
 
@@ -22,3 +24,10 @@ if __name__ == '__main__':
         manual_menu()
     else:
         cmd_menu(args=opts)
+    opts.problem = 'SSP'
+    opts.opt = 3
+    opts.modecheck = 'prism'
+    opts.filename = 'S'
+    opts.spec = 'reachability'
+    opts.tags = 'with'
+    opts.error = 0

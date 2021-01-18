@@ -942,7 +942,7 @@ def ec_prism_menu():
     return user_input
 
 
-def f_down_finder(int_ss, universe, cut=False):
+def f_down_finder(int_ss, universe, cut=True):
     """
     Find all force-down junctions, and return their (r, c) coordinates
         Input:

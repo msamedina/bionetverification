@@ -487,14 +487,7 @@ def cnf_gen(sample_size, n_max, xl_ws, xl_wb, xl_fn):
         max_num_clauses = scipy.special.comb(n, 3) * 8
         m = random.randint(1, min(20, max_num_clauses))
         n_m.append((n, m))
-        
-        # Enter number of clauses for sample i into Excel
-        __ = xl_ws.cell(column=2, row=(i + 6), value=m)
-        xl_wb.save(xl_fn)
-        # Enter number of variables for sample i into Excel
-        __ = xl_ws.cell(column=3, row=(i + 6), value=n)
-        xl_wb.save(xl_fn)
-        
+
         # Generate random 3-CNF for the i-th tuple in n_m
         logging.info('Generating random 3-CNF sample ' + str(i) + ' with '
                      + str(n) + ' variables and ' + str(m) + ' clauses')
@@ -539,10 +532,12 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         # Read the i-th DIMACS file
         cnf, num_clause, num_var = dimacs_reader(dimacs_file_list[i])
         num_var_new, cnf = cnf_preprocessing(num_var, num_clause, cnf)
-        if num_var != num_var_new:
-            # Enter new num_var value into excel file
-            __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
-            xl_wb.save(xl_fn)
+        # Enter new num_var value into excel file
+        # Enter number of clauses for sample i into Excel
+        __ = xl_ws.cell(column=2, row=(i + 6), value=num_clause)
+        xl_wb.save(xl_fn)
+        __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
+        xl_wb.save(xl_fn)
         
         # Enter cnf into Excel file            
         __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
@@ -604,18 +599,21 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
         
         # Create Variable Re-Ordering file for sample i noClau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
+        if vro in ['with', 'both']:
+            var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
 
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
                                                      var_ord_fn, [8, 14], i,
-                                                     xl_ws, xl_wb, xl_fn, str_modcheker)
+                                                     xl_ws, xl_wb, xl_fn, str_modcheker, vro)
         # Input collected data to Excel Sheet
         nc_spec_res_col = [9, 12, 15, 18]
+        if vro == 'with':
+            nc_spec_res_col = [15, 18]
         result = ''
-        for j in range(0, 4):
+        for j in range(len(output_fn)):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
@@ -634,7 +632,9 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         Clau
         """
         # Create Variable Re-Ordering file for sample i Clau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'Clau')
+        var_ord_fn = None
+        if vro in ['with', 'both']:
+            var_ord_fn = var_order(cnf, i, num_v, num_c, 'Clau')
 
         # Run Clau
         print('Running Clau of sample ' + str(i) + '...')
@@ -642,11 +642,13 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_c_fns[i],
                                                            var_ord_fn, [21,27],
                                                            i, xl_ws, xl_wb,
-                                                           xl_fn, str_modcheker)
+                                                           xl_fn, str_modcheker, vro)
 
         # Input collected data to Excel Sheet
         c_spec_res_col = [22, 25, 28, 31]
-        for j in range(0, 4):
+        if vro == 'with':
+            c_spec_res_col = [28, 31]
+        for j in range(len(output_fn)):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')

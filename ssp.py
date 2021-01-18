@@ -1002,8 +1002,9 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
     for index, ssp in enumerate(ssp_arr):
         # Run Prism on no tags
 
-        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'): # if mu = 0 -> skip
-            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp), spec_number)
+        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):  # if mu = 0 -> skip
+            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp),
+                                                                   spec_number)
         else:
             row_id += 1
             continue
@@ -1034,13 +1035,13 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
             __ = wsheet.cell(column=4, row=(row_id + 4), value=prism_nt_arr[index])
             __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
             __ = wsheet.cell(column=8, row=(row_id + 4), value=str(unreachable_col))
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=str(out_rt_nt))
+            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_rt_nt)
             if spec_number == 2:
                 __ = wsheet.cell(column=9, row=(row_id + 4), value=str(prob_col))
         else:
             __ = wsheet.cell(column=11, row=(row_id + 4), value=str(reachable_col))
             __ = wsheet.cell(column=12, row=(row_id + 4), value=str(unreachable_col))
-            __ = wsheet.cell(column=14, row=(row_id + 4), value=str(out_rt_nt))
+            __ = wsheet.cell(column=14, row=(row_id + 4), value=out_rt_nt)
             if spec_number == 2:
                 __ = wsheet.cell(column=13, row=(row_id + 4), value=str(prob_col))
         wbook.save(xl_fn)

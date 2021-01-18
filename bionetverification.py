@@ -638,7 +638,7 @@ def cmd_menu(args):
 
             # Setup worksheet for data recording
             ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
+            ec_xl_fn = misc.file_name_cformat(f'ExCov_{str_modc}.xlsx')
             ec_wb.save(ec_xl_fn)
 
             if str_modc == "NuSMV" or str_modc == "nuXmv":
@@ -703,7 +703,7 @@ def cmd_menu(args):
             # Setup workbook for data recording
             xl_wb = loadwb(template_dir + 'SAT_Template.xlsx')
             sat_wb_num_of_sheets = len(xl_wb.sheetnames)
-            xl_fn = misc.file_name_cformat('SAT_{0}.xlsx')
+            xl_fn = misc.file_name_cformat(f'SAT_{str_modc}.xlsx')
             # Grab the active worksheet
             xl_ws = xl_wb.active
 
@@ -728,6 +728,7 @@ def cmd_menu(args):
             minisat_results = sat.mini_sat_solver(dimacs_fns,
                                                   sample_size, xl_ws,
                                                   xl_wb, xl_fn)
+
             logging.info('Satisfiability checked')
             xl_wb.save(xl_fn)
 
@@ -743,10 +744,10 @@ def cmd_menu(args):
                 xl_wb.save(xl_fn)
 
                 # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
-                logging.info('Run NuSMV on both network descriptions')
+                logging.info(f'Run {str_modc} on both network descriptions')
                 sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
                                   xl_ws, xl_wb, xl_fn, str_modc, vro=vro)
-                logging.info('NuSMV runs complete')
+                logging.info(f'{str_modc} runs complete')
                 xl_wb.save(xl_fn)
 
             elif str_modc == "prism":
