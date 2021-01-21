@@ -10,6 +10,7 @@ import logging
 import miscfunctions as misc
 
 
+#IN PROGRESS
 def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
                            xl_fn, str_modcheker, vro='both'):
     """
@@ -29,7 +30,6 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
     out_fn_arr = []
     out_rt_arr = []
     inval = []
-
 
     # NuSMV inputs without re-ordering variables
     if vro in ['without', 'both']:
@@ -142,6 +142,8 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
     return out_fn_arr
 
 
+#DONE
+#MISSING RUNTIME FOR PEXPECT
 def call_prism_pexpect_sat(filename, str_modcheker):
     """
     Run Prism Model Checker on a given file
@@ -155,23 +157,37 @@ def call_prism_pexpect_sat(filename, str_modcheker):
 
     fn_arr = f'res_sat'
     out_fn_arr = []
-
+    out_rt_arr = []
+    runtime = 0
     # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     for spec_num in range(1, 3, 1):
         input_fn = ['-cuddmaxmem', '4g', filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
         out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
         logging.info('Opening process: ' + str_modcheker)
-        child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
-        try:
-            child.expect('\n' + str_modcheker)
-        except pexpect.EOF:
-            print('')
-        child.close()
+        
+        if sys.platform.startswith('linux'):
+            child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
+            try:
+                child.expect('\n' + str_modcheker)
+            except pexpect.EOF:
+                print('')
+            child.close()
+        elif sys.platform.startswith('win32'):
+            inputval_win = [str_modcheker]
+            inputval_win.extend(input_fn)
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=inputval_win, timeout=None, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime)
 
     return out_fn_arr
 
 
-
+#OBSOLETE
 def call_nusmv_out_all(filename, spectype, str_modcheker):
     """
     OBSOLETE
@@ -209,6 +225,7 @@ def call_nusmv_out_all(filename, spectype, str_modcheker):
     return outputfilename
 
 
+#OBSOLETE
 def call_nusmv_out_single(filename, probtype, spectype, outputvalue, str_modcheker):
     """
     OBSOLETE
@@ -264,7 +281,7 @@ def call_nusmv_out_single(filename, probtype, spectype, outputvalue, str_modchek
                  + str(runtime) + ' milliseconds')
     return outputfilename
 
-
+#DONE
 def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modcheker):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
@@ -282,12 +299,6 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchek
                   misc.file_name_cformat('output_SSP_CTL_{0}')]
     out_rt_arr = []
 
-    # NuSMV inputs without re-ordering variables
-    inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                  'build_model\n', 'check_ltlspec -o ' + out_fn_arr[0] + '\n',
-                  'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
-    check_spec = [4, 5]
-
     # Prepare to catch runtimes
     start = 0
     stop = 0
@@ -295,54 +306,73 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchek
     err_flag = 0
                     
     logging.info('Opening process: ' + str_modcheker)
-    child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
-                          logfile=sys.stdout, encoding='utf-8',
-                          timeout=None)
-    logging.info('Process opened')
-    for i in range(0, len(inputval)):
-        while True:
-            try:
-                # Expect pattern to identify model checker waiting for input
-                child.expect('\n' + str_modcheker)
-                # If previous input was a spec check do:
-                if (i - 1) in check_spec:
-                    stop = datetime.datetime.now()
-                    runtime = int((stop - start).total_seconds() * 1000)
-                    out_rt_arr.append(runtime)
+    
+    if sys.platform.startswith('linux'):
+        # NuSMV inputs without re-ordering variables
+        inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
+                    'build_model\n', 'check_ltlspec -o ' + out_fn_arr[0] + '\n',
+                    'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
+        check_spec = [4, 5]
+        child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
+                            logfile=sys.stdout, encoding='utf-8',
+                            timeout=None)
+        logging.info('Process opened')
+        for i in range(0, len(inputval)):
+            while True:
+                try:
+                    # Expect pattern to identify model checker waiting for input
+                    child.expect('\n' + str_modcheker)
+                    # If previous input was a spec check do:
+                    if (i - 1) in check_spec:
+                        stop = datetime.datetime.now()
+                        runtime = int((stop - start).total_seconds() * 1000)
+                        out_rt_arr.append(runtime)
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                        print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+                        logging.info('Spec Run-time: ' + str(runtime) +
+                                    ' milliseconds')
+                    else:
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                    break
+                except pexpect.EOF:
+                    err_flag = 1
                     prev_rec = child.before
                     logging.info(prev_rec)
-                    print('Spec Run-time: ' + str(runtime) + ' milliseconds')
-                    logging.info('Spec Run-time: ' + str(runtime) +
-                                 ' milliseconds')
-                else:
-                    prev_rec = child.before
-                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modcheker + " was killed."
+                    logging.exception(msg=ermsg)
+                    break
+            
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    start = datetime.datetime.now()
+            
+                logging.info(str_modcheker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                while len(out_rt_arr) < 2:
+                    out_rt_arr.append('Killed')
                 break
-            except pexpect.EOF:
-                err_flag = 1
-                prev_rec = child.before
-                logging.info(prev_rec)
-                ermsg = "Process " + str_modcheker + " was killed."
-                logging.exception(msg=ermsg)
-                break
-        
-        if err_flag == 0:
-            if i in check_spec:
-                print('Running Specs...')
-                start = datetime.datetime.now()
-        
-            logging.info(str_modcheker + ' command: ' + inputval[i])
-            child.send(inputval[i])
-        elif err_flag == 1:
-            while len(out_rt_arr) < 2:
-                out_rt_arr.append('Killed')
-            break
 
-    child.close()
+        child.close()
+    elif sys.platform.startswith('win32'):
+        inputval_win = ['go\ncheck_ltlspec -o ' + out_fn_arr[0] + '\nquit\n', 'go\ncheck_ctlspec -o ' + out_fn_arr[1] + '\nquit\n']
+        for inputval in inputval_win:
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=[modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime)
     
     return out_fn_arr, out_rt_arr
 
 
+#DONE
 def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
@@ -369,68 +399,86 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modcheker):
                   misc.file_name_cformat('output_' + pt + '_CTL_k_' + str(outval) + '_{0}')]
     out_rt_arr = []
 
-    # NuSMV inputs
-    inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                  'build_model\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\n',
-                  'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
-    check_spec = [4, 5]
-
     # Prepare to catch runtimes
     start = 0
     stop = 0
     runtime = 0
     err_flag = 0
-                    
-    logging.info('Opening process: ' + str_modcheker)
-    child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
-                          logfile=sys.stdout, encoding='utf-8',
-                          timeout=None)
-    logging.info('Process opened')
-    for i in range(0, len(inputval)):
-        while True:
-            try:
-                # Expect pattern to identify model checker waiting for input
-                child.expect('\n' + str_modcheker)
-                # If previous input was a spec check do:
-                if (i - 1) in check_spec:
-                    stop = datetime.datetime.now()
-                    runtime = int((stop - start).total_seconds() * 1000)
-                    out_rt_arr.append(runtime)
-                    prev_rec = child.before
-                    logging.info(prev_rec)
-                    print('Spec Run-time: ' + str(runtime) + ' milliseconds')
-                    logging.info('Spec Run-time: ' + str(runtime) +
-                                 ' milliseconds')
-                else:
-                    prev_rec = child.before
-                    logging.info(prev_rec)
-                break
-            except pexpect.EOF:
-                err_flag = 1
-                prev_rec = child.before
-                logging.info(prev_rec)
-                ermsg = "Process " + str_modcheker + " was killed."
-                logging.exception(msg=ermsg)
-                break
-        
-        if err_flag == 0:
-            if i in check_spec:
-                print('Running Specs...')
-                logging.info('Running specs...')
-                start = datetime.datetime.now()
-            
-            logging.info(str_modcheker + ' command: ' + inputval[i])
-            child.send(inputval[i])
-        elif err_flag == 1:
-             while len(out_rt_arr) < 2:
-                out_rt_arr.append('Killed')
-             break
 
-    child.close()
+    logging.info('Opening process: ' + str_modcheker)
+
+    if sys.platform.startswith('linux'):
+        # NuSMV inputs
+        inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
+                    'build_model\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\n',
+                    'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
+        check_spec = [4, 5]
+
+            
+        child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
+                            logfile=sys.stdout, encoding='utf-8',
+                            timeout=None)
+        logging.info('Process opened')
+        for i in range(0, len(inputval)):
+            while True:
+                try:
+                    # Expect pattern to identify model checker waiting for input
+                    child.expect('\n' + str_modcheker)
+                    # If previous input was a spec check do:
+                    if (i - 1) in check_spec:
+                        stop = datetime.datetime.now()
+                        runtime = int((stop - start).total_seconds() * 1000)
+                        out_rt_arr.append(runtime)
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                        print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+                        logging.info('Spec Run-time: ' + str(runtime) +
+                                    ' milliseconds')
+                    else:
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                    break
+                except pexpect.EOF:
+                    err_flag = 1
+                    prev_rec = child.before
+                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modcheker + " was killed."
+                    logging.exception(msg=ermsg)
+                    break
+            
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    logging.info('Running specs...')
+                    start = datetime.datetime.now()
+                
+                logging.info(str_modcheker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                while len(out_rt_arr) < 2:
+                    out_rt_arr.append('Killed')
+                break
+
+        child.close()
+
+    elif sys.platform.startswith('win32'):
+        # NuSMV inputs
+        inputval_win = ['go\ncheck_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\nquit\n', 'go\ncheck_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\nquit\n']
+
+        for inputval in inputval_win:
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=[modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime)
 
     return out_fn_arr, out_rt_arr
 
 
+#UNDER CONSTRUCTION
 def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file using bounded model checking
@@ -514,6 +562,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modcheker):
     return output, runtime
 
 
+#DONE
 def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
@@ -528,11 +577,6 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
                   misc.file_name_cformat('output_SSP_CTL_nsum_{0}')]
     out_rt_arr = []
 
-    # NuSMV inputs
-    inputval = ['go\n', 'check_ctlspec -o ' + out_fn_arr[0] + ' -P "csum"\n',
-                'check_ctlspec -o ' + out_fn_arr[1] + ' -P "nsum"\n', 'quit\n']
-    check_spec = [1, 2]
-
     # Prepare to catch runtimes
     start = 0
     stop = 0
@@ -540,55 +584,72 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modcheker):
     err_flag = 0
 
     logging.info('Opening process: ' + str_modcheker)
-    child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
+    if sys.platform.startswith('linux'):
+        # NuSMV inputs
+        inputval = ['go\n', 'check_ctlspec -o ' + out_fn_arr[0] + ' -P "csum"\n', 'check_ctlspec -o ' + out_fn_arr[1] + ' -P "nsum"\n', 'quit\n']
+        check_spec = [1, 2]
+        child = pexpect.spawn(str_modcheker, args=['-v', '4', '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
-    logging.info('Process opened')
-    for i in range(0, len(inputval)):
-        while True:
+        logging.info('Process opened')
+        for i in range(0, len(inputval)):
+            while True:
+                try:
+                    # Expect pattern to identify model checker waiting for input
+                    child.expect('\n' + str_modcheker)
+                    # If previous input was a spec check do:
+                    if (i - 1) in check_spec:
+                        stop = datetime.datetime.now()
+                        runtime = int((stop - start).total_seconds() * 1000)
+                        out_rt_arr.append(runtime)
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                        print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+                        logging.info('Spec Run-time: ' + str(runtime) +
+                                    ' milliseconds')
+                    else:
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                    break
+                except pexpect.EOF:
+                    err_flag = 1
+                    prev_rec = child.before
+                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modcheker + " was killed."
+                    logging.exception(msg=ermsg)
+                    break
+
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    logging.info('Running specs...')
+                    start = datetime.datetime.now()
+
+                logging.info(str_modcheker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                while len(out_rt_arr) < 2:
+                    out_rt_arr.append('Killed')
+                break
+
+        child.close()
+    
+    elif sys.platform.startswith('win32'):
+        inputval_win = ['go\ncheck_ctlspec -o ' + out_fn_arr[0] + ' -P "csum"\nquit\n', 'go\ncheck_ctlspec -o ' + out_fn_arr[1] + ' -P "nsum"\nquit\n']
+        for inputval in inputval_win:
+            start = datetime.datetime.now()
             try:
-                # Expect pattern to identify model checker waiting for input
-                child.expect('\n' + str_modcheker)
-                # If previous input was a spec check do:
-                if (i - 1) in check_spec:
-                    stop = datetime.datetime.now()
-                    runtime = int((stop - start).total_seconds() * 1000)
-                    out_rt_arr.append(runtime)
-                    prev_rec = child.before
-                    logging.info(prev_rec)
-                    print('Spec Run-time: ' + str(runtime) + ' milliseconds')
-                    logging.info('Spec Run-time: ' + str(runtime) +
-                                 ' milliseconds')
-                else:
-                    prev_rec = child.before
-                    logging.info(prev_rec)
-                break
-            except pexpect.EOF:
-                err_flag = 1
-                prev_rec = child.before
-                logging.info(prev_rec)
-                ermsg = "Process " + str_modcheker + " was killed."
-                logging.exception(msg=ermsg)
-                break
-
-        if err_flag == 0:
-            if i in check_spec:
-                print('Running Specs...')
-                logging.info('Running specs...')
-                start = datetime.datetime.now()
-
-            logging.info(str_modcheker + ' command: ' + inputval[i])
-            child.send(inputval[i])
-        elif err_flag == 1:
-            while len(out_rt_arr) < 2:
-                out_rt_arr.append('Killed')
-            break
-
-    child.close()
+                child = subprocess.run(args=[modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime)
 
     return out_fn_arr, out_rt_arr
 
 
+#DONE
 def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
     """
     Run Prism Model Checker on a given file
@@ -604,26 +665,37 @@ def call_pexpect_ssp_prism(filename, str_modcheker, maxrow, spec_num):
 
     # run specifications: 1. check the profile of output.
     out_fn = f'res_{maxrow}.txt'
-
     input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn}:csv']
 
     logging.info('Opening process: ' + str_modcheker)
-    start = datetime.datetime.now()
-    child = pexpect.spawn(str_modcheker, args=input_fn,
-                          logfile=sys.stdout, encoding='utf-8',
-                          timeout=None)
-    try:
-        child.expect('\n' + str_modcheker)
-    except pexpect.EOF:
-        print('')
-    child.close()
-    stop = datetime.datetime.now()
-    # Milliseconds
-    out_rt = int((stop - start).total_seconds() * 1000)
+    if sys.platform.startswith('linux'):
+        start = datetime.datetime.now()
+        child = pexpect.spawn(str_modcheker, args=input_fn,
+                            logfile=sys.stdout, encoding='utf-8',
+                            timeout=None)
+        try:
+            child.expect('\n' + str_modcheker)
+        except pexpect.EOF:
+            print('')
+        child.close()
+        stop = datetime.datetime.now()
+        # Milliseconds
+        out_rt = int((stop - start).total_seconds() * 1000)
+    elif sys.platform.startswith('win32'):
+        inputval_win = [str_modcheker]
+        inputval_win.extend(input_fn)
+        start = datetime.datetime.now()
+        try:
+            child = subprocess.run(args=inputval_win, timeout=None, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+            stop = datetime.datetime.now()
+            out_rt = int((stop - start).total_seconds() * 1000)
+        except subprocess.CalledProcessError:
+            out_rt = 'Killed'
     
     return out_fn, out_rt
 
 
+#DONE
 def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
     """
     Run Prism Model Checker on a given file
@@ -640,6 +712,7 @@ def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
     out_fn_arr = []
     out_rt_arr = []
     input_fn = []
+    runtime = 0
 
     for i in range(0, 2, 1):
         # check if ExCov exist
@@ -658,16 +731,29 @@ def call_pexpect_ec_prism(filename, universe, spec_num, str_modcheker):
             out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
 
         logging.info('Opening process: ' + str_modcheker)
-        start = datetime.datetime.now()
-        child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
-        try:
-            child.expect('\n' + str_modcheker)
-        except pexpect.EOF:
-            print('')
-        child.close()
-        stop = datetime.datetime.now()
-        # Milliseconds
-        out_rt_arr.append(int((stop - start).total_seconds() * 1000))
+        if sys.platform.startswith('linux'):
+            start = datetime.datetime.now()
+            child = pexpect.spawn(str_modcheker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
+            try:
+                child.expect('\n' + str_modcheker)
+            except pexpect.EOF:
+                print('')
+            child.close()
+            stop = datetime.datetime.now()
+            # Milliseconds
+            out_rt_arr.append(int((stop - start).total_seconds() * 1000))
+        elif sys.platform.startswith('win32'):
+            inputval_win = [str_modcheker]
+            inputval_win.extend(input_fn)
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=inputval_win, timeout=None, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime)
+
     return out_fn_arr, out_rt_arr
 
 
