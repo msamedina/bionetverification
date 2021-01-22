@@ -731,14 +731,6 @@ def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
     """
     for i in range(sample_size):
 
-        # Get cnf num_v and num_c from excel for variable re-ordering
-        num_c = xl_ws.cell(row=(i + 6), column=2).value
-        num_v = xl_ws.cell(row=(i + 6), column=3).value
-        cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
-
-        # Create Variable Re-Ordering file for sample i noClau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
-
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
