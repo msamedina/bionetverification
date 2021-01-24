@@ -2,7 +2,8 @@
 NuSMV and nuXmv Functions for running and parsing model checking results
 """
 import sys
-import pexpect
+if sys.platform.startswith("linux"):
+    import pexpect
 import subprocess
 import re
 import datetime
