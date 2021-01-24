@@ -202,7 +202,7 @@ def call_prism_pexpect_sat(filename, str_modchecker):
     runtime = 0
     # run 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     for spec_num in range(1, 3, 1):
-        input_fn = ['-cuddmaxmem', '4g', filename, 'spec_ec.pctl', '-prop', f'{spec_num}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
+        input_fn = ['-cuddmaxmem', '4g', filename, 'spec_sat.pctl', '-prop', f'{spec_num}', '-exportresults', f'{fn_arr}_{spec_num}.txt:csv']
         out_fn_arr.append(f'{fn_arr}_{spec_num}.txt')
         logging.info('Opening process: ' + str_modchecker)
         
