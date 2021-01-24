@@ -574,7 +574,7 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     return smv_nc_fns, smv_c_fns
 
 
-def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both'):
+def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both', verbosity=0):
     """
     Function that runs both Clau and NoClau through NuSMV for:
         LTL specification both with and without variable re-ordering
@@ -608,7 +608,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         logging.info('Running NoClau of sample ' + str(i) + '...')
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
                                                      var_ord_fn, [8, 14], i,
-                                                     xl_ws, xl_wb, xl_fn, str_modcheker, vro)
+                                                     xl_ws, xl_wb, xl_fn, str_modcheker, vro, verbosity=verbosity)
         # Input collected data to Excel Sheet
         nc_spec_res_col = [9, 12, 15, 18]
         if vro == 'with':
@@ -643,7 +643,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_c_fns[i],
                                                            var_ord_fn, [21,27],
                                                            i, xl_ws, xl_wb,
-                                                           xl_fn, str_modcheker, vro)
+                                                           xl_fn, str_modcheker, vro, verbosity=verbosity)
 
         # Input collected data to Excel Sheet
         c_spec_res_col = [22, 25, 28, 31]

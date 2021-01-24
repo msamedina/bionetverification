@@ -184,3 +184,9 @@ def cmd_parsing_mc(mc):
     if mc.lower() == 'prism':
         return ['prism']
 
+
+def cmd_parsing_verbosity(ver):
+    if ver is None:
+        return '0'
+    return ver
+

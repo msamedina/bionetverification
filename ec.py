@@ -173,7 +173,7 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both'):
         # Without tags
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
-            ec_smv_name_nt = 'NT_' + ec_smv_name
+            ec_smv_name_nt = misc.file_name_cformat('NT_' + ec_smv_name +'_{0}')
             print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s)
             logging.info('Generated NuSMV file without tags')
             ec_smv_nt.append(ec_smv_name_nt)
@@ -516,7 +516,7 @@ def bin_rep(subset, universe):
     return bin_rep
 
 
-def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both'):
+def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -548,7 +548,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             __ = wsheet.cell(column=5, row=(index + 4), value=smv_t_arr[index])
             wbook.save(xl_fn)
 
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modcheker, verbosity)
 
             # Parse output files:
             ltl_res = modcheck.get_spec_res(out_fn[0])
@@ -570,7 +570,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             __ = wsheet.cell(column=6, row=(index + 4), value=smv_nt_arr[index])
             wbook.save(xl_fn)
 
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modcheker,verbosity)
 
             # Parse output files:
             ltl_res = modcheck.get_spec_res(out_fn[0])
@@ -597,7 +597,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
 
 
 def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn,
-                  str_modcheker):
+                  str_modcheker, verbosity=0):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -626,7 +626,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
 
         # Run NuSMV on with tags
         out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 2, out_interest[index], max_sums[index],
-                                                          str_modcheker)
+                                                          str_modcheker, verbosity)
 
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=8, row=(index + 4), value=out_res)
@@ -635,7 +635,7 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
 
         # Run NuSMV on no tags
         out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 2, out_interest[index], max_sums[index],
-                                                          str_modcheker)
+                                                          str_modcheker, verbosity)
 
         logging.info('Saving Tags data in Excel')
         __ = wsheet.cell(column=10, row=(index + 4), value=out_res)
@@ -703,7 +703,7 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True):
         logging.info('Generated Prism file with mu = 0')
         ec_prism_nt.append(ec_prism_name_nt)
         j = j + 1
-        ec_prism_name_nt = f'NT_mu_{mu_user_input}_' + str(j) + '_' + ec_prism_name
+        ec_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + str(j) + '_' + ec_prism_name + '_{0}')
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=True)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)

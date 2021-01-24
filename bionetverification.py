@@ -461,6 +461,7 @@ def cmd_menu(args):
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
     vro = args.vro
+    verbosity = misc.cmd_parsing_verbosity(args.verbosity)
 
     """
     MAIN
@@ -549,7 +550,7 @@ def cmd_menu(args):
                     ssp_wb.save(ssp_xl_fn)
 
                     # Run NuSMV and get output filename for specification
-                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
 
                 # If selected individual out run
                 elif ssp_opt == 2:
@@ -565,7 +566,7 @@ def cmd_menu(args):
                     ssp_wb.save(ssp_xl_fn)
 
                     # Run NuSMV and get outputs for each individual specification
-                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
 
                 # If selected general specifications
                 elif ssp_opt == 3:
@@ -581,7 +582,7 @@ def cmd_menu(args):
                     ssp_wb.save(ssp_xl_fn)
 
                     # Run NuSMV and get outputs for each individual specification
-                    ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags)
+                    ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
 
             elif str_modc == "prism":
 
@@ -659,7 +660,7 @@ def cmd_menu(args):
                 ec_wb.save(ec_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags)
+                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
 
             elif str_modc == "prism":
 
@@ -746,7 +747,7 @@ def cmd_menu(args):
                 # Run NuSMV on all samples (LTL, CTL, variable re-ordering)
                 logging.info(f'Run {str_modc} on both network descriptions')
                 sat.smv_run_specs(smv_nc_fns, smv_c_fns, sample_size,
-                                  xl_ws, xl_wb, xl_fn, str_modc, vro=vro)
+                                  xl_ws, xl_wb, xl_fn, str_modc, vro=vro, verbosity=verbosity)
                 logging.info(f'{str_modc} runs complete')
                 xl_wb.save(xl_fn)
 
