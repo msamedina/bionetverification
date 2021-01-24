@@ -14,7 +14,7 @@ from operator import itemgetter
 
 #DONE
 def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
-                           xl_fn, str_modchecker, vro='both'):
+                           xl_fn, str_modchecker, vro='both', verbosity=0):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -69,7 +69,7 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
 
         logging.info('Opening process: ' + str_modchecker)
         if sys.platform.startswith('linux'):
-            child = pexpect.spawn(str_modchecker, args=['-v', '4', '-int', filename],
+            child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
                               logfile=sys.stdout, encoding='utf-8',
                               timeout=None)
             logging.info('Process opened')
@@ -147,7 +147,7 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
             for inputval in inputval_win:
                     start = datetime.datetime.now()
                     try:
-                        child = subprocess.run(args=[str_modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                        child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                         stop = datetime.datetime.now()
                         runtime = int((stop - start).total_seconds() * 1000)
                     except subprocess.CalledProcessError:
@@ -323,7 +323,7 @@ def call_nusmv_out_single(filename, probtype, spectype, outputvalue, str_modchec
     return outputfilename
 
 #DONE - fix
-def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchecker):
+def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchecker, verbosity=0):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -353,7 +353,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
     logging.info('Opening process: ' + str_modchecker)
     
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', '4', '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -402,7 +402,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
@@ -413,7 +413,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
 
 
 #DONE
-def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker):
+def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, verbosity=0):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -453,7 +453,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker):
     logging.info('Opening process: ' + str_modchecker)
 
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', '4', '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -506,7 +506,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker):
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
@@ -517,7 +517,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker):
 
 
 #UNDER CONSTRUCTION
-def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker):
+def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker, verbosity=0):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file using bounded model checking
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -550,7 +550,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker):
     out_rt_arr = []
                     
     logging.info('Opening process: ' + str_modchecker)
-    child = pexpect.spawn(str_modchecker, args=['-v', '4', '-int', filename],
+    child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
     logging.info('Process opened')
@@ -602,7 +602,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker):
 
 
 #DONE
-def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker):
+def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
     """
     Run NuSMV or nuXmv Model Checker on a given SMV file
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -628,7 +628,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker):
     logging.info('Opening process: ' + str_modchecker)
     if sys.platform.startswith('linux'):
         check_spec = [1, 2]
-        child = pexpect.spawn(str_modchecker, args=['-v', '4', '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
         logging.info('Process opened')
@@ -679,7 +679,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker):
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', '4', '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:

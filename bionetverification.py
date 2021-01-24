@@ -462,6 +462,8 @@ def cmd_menu(args):
     filename = args.filename
     vro = args.vro
     verbosity = misc.cmd_parsing_verbosity(args.verbosity)
+    bit_mapping = args.bit_mapping
+    cut = args.cut_in_u
 
     """
     MAIN
@@ -646,7 +648,7 @@ def cmd_menu(args):
                 """
                 Generate smv files
                 """
-                ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, bit_mapping=True, with_tags=with_tags)
+                ec_smv, ec_smv_nt, ec_outputs, max_sums = ec.smv_gen(universes, subsets_arrays, bit_mapping=bit_mapping, with_tags=with_tags, cut_in_u=cut)
 
                 """
                 Run NuSMV
@@ -668,7 +670,7 @@ def cmd_menu(args):
                 Generate prism files
                 """
 
-                ec_prism_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=True)
+                ec_prism_nt, ec_outputs, max_sums = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=bit_mapping)
 
                 """
                 Run prism

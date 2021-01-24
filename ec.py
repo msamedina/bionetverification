@@ -109,14 +109,17 @@ def read_ec(filename):
     return uni_list, subsets_list, num_prob
 
 
-def smv_gen(universes, subsets, bit_mapping=True, with_tags='both'):
+def smv_gen(universes, subsets, bit_mapping=True, with_tags='both', cut_in_u=True):
     """
     Loop through array of ExCov problems and generate two smv files for each (with and without tags)
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
             num_probs: The number of problems (number of universes and subset sets)
+            bit_mapping: An option to rearrange the mapping for optimization
             with_tags: Flag for using networks with tags
+            cut_in_u: option to ignore all (r, c) which c > universe
+
         Output:
             ec_smv: list of smv file names with tags
             ec_smv_nt: list of smv file names without tags
@@ -166,7 +169,7 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both'):
         if with_tags in ['with', 'both']:
             logging.info('Generating NuSMV file with tags...')
             max_tag_id = list()
-            print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id)
+            print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id, cut_in_u=cut_in_u)
             logging.info('Generated NuSMV file with tags')
             ec_smv.append(ec_smv_name)
 
@@ -174,7 +177,7 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both'):
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
             ec_smv_name_nt = misc.file_name_cformat('NT_' + ec_smv_name +'_{0}')
-            print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s)
+            print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=cut_in_u)
             logging.info('Generated NuSMV file without tags')
             ec_smv_nt.append(ec_smv_name_nt)
 
@@ -212,7 +215,7 @@ def file_name(universe_array, arr_length, str_modc):
 
 
 def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
-                 bin_uni, max_tag_id):
+                 bin_uni, max_tag_id, cut_in_u=True):
     """
     Print out the ExCov network description to the smv file
         Input:
@@ -224,6 +227,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
             int_uni: integer universe array
             bin_uni: binary universe array
             max_tag_id: empty array containing the last tag element
+            cut_in_u: option to ignore all (r, c) which c > universe
     """
 
     # ----------------
@@ -253,7 +257,10 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write('MODULE main\n' + 'DEFINE\n' + '\tk := ' + str(int_uni)
             + ';\n\nVAR\n')
     f.write('\trow: 0..' + str(sum_total) + ';\n')
-    f.write('\tcolumn: 0..' + str(sum_total) + ';\n')
+    if cut_in_u:
+        f.write('\tcolumn: 0..' + str(int_uni) + ';\n')
+    else:
+        f.write('\tcolumn: 0..' + str(sum_total) + ';\n')
     f.write('\tjunction: {pass, split, forceDwn};\n')
     f.write('\tdir: {dwn, diag};\n')
     f.write('\tflag: boolean;\n\n')
@@ -293,7 +300,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write(' and forceDwn junctions at (r,c): ')
 
     # Find all frcDwn junctions
-    rc_f_dwn = f_down_finder(int_ss, int_uni)
+    rc_f_dwn = f_down_finder(int_ss, int_uni, cut_in_u)
     for rc in rc_f_dwn:
         f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
@@ -325,8 +332,12 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write('\t--If diag, increase column, otherwise dwn, same column\n')
     f.write('\tnext(column) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
     f.write('(next(row) = 0): 0;\n\t\t\t\t\t\t')
-    f.write('(next(dir) = diag): (column + 1) mod ' + str(sum_total)
-            + ';\n\t\t\t\t\t\t')
+    if cut_in_u:
+        f.write('(next(dir) = diag): (column + 1) mod ' + str(int_uni + 1)
+                + ';\n\t\t\t\t\t\t')
+    else:
+        f.write('(next(dir) = diag): (column + 1) mod ' + str(sum_total)
+                + ';\n\t\t\t\t\t\t')
     f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
     f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
 
@@ -356,7 +367,7 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
 
 
 def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
-                    bin_uni):
+                    bin_uni, cut_in_u=True):
     """
     Print out the ExCov network description to the smv file
         Input:
@@ -367,6 +378,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
             int_ss: array of integer subsets
             int_uni: integer universe array
             bin_uni: binary universe array
+            cut_in_u: option to ignore all (r, c) which c > universe
     """
 
     # ----------------
@@ -393,7 +405,10 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write('MODULE main\n' + 'DEFINE\n' + '\tk := ' + str(int_uni)
             + ';\n\nVAR\n')
     f.write('\trow: 0..' + str(sum_total) + ';\n')
-    f.write('\tcolumn: 0..' + str(sum_total) + ';\n')
+    if cut_in_u:
+        f.write('\tcolumn: 0..' + str(int_uni) + ';\n')
+    else:
+        f.write('\tcolumn: 0..' + str(sum_total) + ';\n')
     f.write('\tjunction: {pass, split, forceDwn};\n')
     f.write('\tdir: {dwn, diag};\n')
     f.write('\tflag: boolean;\n\n')
@@ -427,7 +442,7 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write(' and forceDwn junctions at (r,c): ')
 
     # Find all frcDwn junctions
-    rc_f_dwn = f_down_finder(int_ss, int_uni)
+    rc_f_dwn = f_down_finder(int_ss, int_uni, cut=cut_in_u)
     for rc in rc_f_dwn:
         f.write('(' + str(rc[0]) + ',' + str(rc[1]) + ') ')
 
@@ -459,8 +474,12 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     f.write('\t--If diag, increase column, otherwise dwn, same column\n')
     f.write('\tnext(column) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
     f.write('(next(row) = 0): 0;\n\t\t\t\t\t\t')
-    f.write('(next(dir) = diag): (column + 1) mod ' + str(sum_total)
-            + ';\n\t\t\t\t\t\t')
+    if cut_in_u:
+        f.write('(next(dir) = diag): (column + 1) mod ' + str(int_uni + 1)
+                + ';\n\t\t\t\t\t\t')
+    else:
+        f.write('(next(dir) = diag): (column + 1) mod ' + str(sum_total)
+                + ';\n\t\t\t\t\t\t')
     f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
     f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
 
@@ -643,12 +662,15 @@ def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_a
         wbook.save(xl_fn)
 
 
-def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True):
+def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True, cut_in_u=True):
     """
     Loop through array of ExCov problems and generate prism file for each (with and without tags)
         Input:
             universes: the list of universes
             subsets: The list of sets of subsets
+            mu_user_input: error rate
+            bit_mapping: An option to rearrange the mapping for optimization
+            cut_in_u: option to ignore all (r, c) which c > universe
         Output:
             ec_prism_nt: list of prism file names without tags
             ec_outputs: list of outputs of interest (ExCov output) for each problem
@@ -699,12 +721,12 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True):
         logging.info('Generating Prism file without tags...')
         ec_prism_name = file_name(uni, len(uni), 'prism')
         ec_prism_name_nt = 'NT_mu_0_' + str(j) + '_' + ec_prism_name
-        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=True)
+        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=cut_in_u)
         logging.info('Generated Prism file with mu = 0')
         ec_prism_nt.append(ec_prism_name_nt)
         j = j + 1
         ec_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + str(j) + '_' + ec_prism_name + '_{0}')
-        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=True)
+        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=cut_in_u)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
         j = j + 1
