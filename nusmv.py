@@ -3,7 +3,8 @@ NuSMV Functions for running and parsing
 Michelle Aluf Medina
 """
 import sys
-import pexpect
+if sys.platform.startswith("linux"):
+    import pexpect
 import subprocess
 import re
 import datetime
