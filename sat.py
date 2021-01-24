@@ -7,8 +7,9 @@ import random
 import re
 import datetime
 import logging
-import pexpect
 import sys
+if sys.platform.startswith("linux"):
+    import pexpect
 from cnfgen.families import randomformulas as randform
 import scipy.special
 import miscfunctions as misc
