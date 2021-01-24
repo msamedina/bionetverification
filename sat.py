@@ -678,10 +678,9 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         # Read the i-th DIMACS file
         cnf, num_clause, num_var = dimacs_reader(dimacs_file_list[i])
         num_var_new, cnf = cnf_preprocessing(num_var, num_clause, cnf)
-        if num_var != num_var_new:
-            # Enter new num_var value into excel file
-            __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
-            xl_wb.save(xl_fn)
+        # Enter new num_var value into excel file
+        __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
+        xl_wb.save(xl_fn)
 
         # Enter cnf into Excel file
         __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
