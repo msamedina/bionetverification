@@ -705,7 +705,9 @@ def call_pexpect_ssp_prism(filename, str_modchecker, maxrow, spec_num):
 
     # run specifications: 1. check the profile of output.
     out_fn = f'res_{maxrow}.txt'
-    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-exportresults', f'{out_fn}:csv']
+    max_cudd = '{:.2e}'.format(0.5**(filename.count('_') - 3))
+    cudd_epsilon = '1' + max_cudd[max_cudd.index('e'):]
+    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-cuddepsilon', f'{cudd_epsilon}', '-exportresults', f'{out_fn}:csv']
 
     logging.info('Opening process: ' + str_modchecker)
     if sys.platform.startswith('linux'):
