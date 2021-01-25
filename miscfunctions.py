@@ -190,3 +190,15 @@ def cmd_parsing_verbosity(ver):
         return '0'
     return ver
 
+
+def cmd_parsing_bit_mapping(bit_m):
+    if bit_m is None:
+        return True
+    return bit_m
+
+
+def cmd_parsing_cut(cut):
+    if cut is None:
+        return True
+    return cut
+

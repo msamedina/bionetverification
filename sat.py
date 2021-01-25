@@ -847,8 +847,8 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
         Output:
             var_order_fn: name of the file hollding the new variable ordering
     """
-    var_order_fn = misc.file_name_cformat('var_ord_sample_' + str(sample_id)
-                                          + '_' + net_type + '_{0}')
+    var_order_fn = misc.file_name_cformat('var_ord_sample_' + '_{0}' + str(sample_id)
+                                          + '_' + net_type)
     
     # Find index of MSB for defining vari and clau (binary value)
     max_v_bit = math.floor(math.log2(num_v))

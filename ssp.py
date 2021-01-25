@@ -476,7 +476,7 @@ def smv_gen(ssp_arr, str_modc, with_tags='both'):
         # Without tags
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
-            ssp_smv_name_nt = misc.file_name_cformat('NT_' + ssp_smv_name + '_{0}')
+            ssp_smv_name_nt = misc.file_name_cformat('NT_' + '_{0}' + ssp_smv_name)
             print_smv_ssp_nt(ssp_smv_name_nt, ssp, sum(ssp), len(ssp))
             logging.info('Generated NuSMV file without tags')
             ssp_smv_nt.append(ssp_smv_name_nt)
@@ -836,12 +836,12 @@ def prism_gen(ssp_arr, mu_user_input):
         ssp_prism_name = file_name_gen(ssp, len(ssp), 'prism')
         # Without tags
         logging.info('Generating Prism file without tags...')
-        ssp_prism_name_nt = misc.file_name_cformat('NT_mu_0_' + ssp_prism_name + '_{0}')
+        ssp_prism_name_nt = 'NT_mu_0_' + ssp_prism_name
         print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=0, bug_cell=None)
         logging.info('Generated Prism file with mu = 0')
         ssp_prism_nt.append(ssp_prism_name_nt)
 
-        ssp_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + ssp_prism_name + '_{0}')
+        ssp_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + '_{0}' + ssp_prism_name)
         print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=mu_user_input, bug_cell=None)
         logging.info('Generated Prism file without tags')
         ssp_prism_nt.append(ssp_prism_name_nt)

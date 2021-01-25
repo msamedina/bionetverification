@@ -462,8 +462,8 @@ def cmd_menu(args):
     filename = args.filename
     vro = args.vro
     verbosity = misc.cmd_parsing_verbosity(args.verbosity)
-    bit_mapping = args.bit_mapping
-    cut = args.cut_in_u
+    bit_mapping = misc.cmd_parsing_bit_mapping(args.bit_mapping)
+    cut = misc.cmd_parsing_cut(args.cut_in_u)
 
     """
     MAIN

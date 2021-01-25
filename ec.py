@@ -176,7 +176,7 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both', cut_in_u=Tru
         # Without tags
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
-            ec_smv_name_nt = misc.file_name_cformat('NT_' + ec_smv_name +'_{0}')
+            ec_smv_name_nt = misc.file_name_cformat('NT_'  + '_{0}' + ec_smv_name)
             print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=cut_in_u)
             logging.info('Generated NuSMV file without tags')
             ec_smv_nt.append(ec_smv_name_nt)
@@ -725,7 +725,7 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True, cut_in_u=Tr
         logging.info('Generated Prism file with mu = 0')
         ec_prism_nt.append(ec_prism_name_nt)
         j = j + 1
-        ec_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + str(j) + '_' + ec_prism_name + '_{0}')
+        ec_prism_name_nt = misc.file_name_cformat(f'NT_mu_' + '{0}_' + f'{mu_user_input}_' + str(j) + '_' + ec_prism_name)
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=cut_in_u)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
@@ -923,7 +923,7 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
 
         # Run Prism on no tags
         if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
-            out_fn, out_rt_arr = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modcheker='prism')
+            out_fn, out_rt_arr = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modchecker='prism')
         else:
             continue
 
