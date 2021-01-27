@@ -716,7 +716,11 @@ def cmd_menu(args):
             xl_wb.save(xl_fn)
 
             # Add another worksheet based on the template
-            source = xl_wb['Template']
+            source = None
+            if str_modc == 'prism':
+                source = xl_wb['Template_Prism']
+            else:
+                source = xl_wb['Template']
             xl_ws = xl_wb.copy_worksheet(source)
             xl_ws.title = ('Run_' + f'{str_modc}')
             run_count += 1

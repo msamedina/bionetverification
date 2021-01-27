@@ -194,7 +194,7 @@ def print_ec_menu():
     print('\t[3] Return to Main Menu')
 
 
-def file_name(universe_array, arr_length, str_modc):
+def file_name(universe_array, arr_length, str_modc, mu=0.0):
     """
     Generate smv file name for given ExCov problem using universe.
         Inputs:
@@ -210,7 +210,7 @@ def file_name(universe_array, arr_length, str_modc):
     if str_modc == 'smv':
         filename += 'Universe_{0}.smv'
     elif str_modc == 'prism':
-        filename += 'Universe_{0}.pm'
+        filename += 'mu_' + str(mu) + '_Universe_{0}.pm'
     return misc.file_name_cformat(filename)
 
 
@@ -717,15 +717,15 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True, cut_in_u=Tr
 
         # Create EC Prism File
 
-        # Without tags
+        # Without error
         logging.info('Generating Prism file without tags...')
-        ec_prism_name = file_name(uni, len(uni), 'prism')
-        ec_prism_name_nt = 'NT_mu_0_' + str(j) + '_' + ec_prism_name
+        ec_prism_name_nt = file_name(uni, len(uni), 'prism', 0.0)
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=cut_in_u)
         logging.info('Generated Prism file with mu = 0')
         ec_prism_nt.append(ec_prism_name_nt)
-        j = j + 1
-        ec_prism_name_nt = misc.file_name_cformat(f'NT_mu_' + '{0}_' + f'{mu_user_input}_' + str(j) + '_' + ec_prism_name)
+
+        # With error (if mu > 0)
+        ec_prism_name_nt = file_name(uni, len(uni), 'prism', mu_user_input)
         print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=cut_in_u)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
@@ -922,7 +922,7 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
         wbook.save(xl_fn)
 
         # Run Prism on no tags
-        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):
+        if index % 2 == 0 or (index % 2 == 1 and 'mu_0.0_' not in prism_nt_arr[index]):
             out_fn, out_rt_arr = modcheck.call_pexpect_ec_prism(prism_nt_arr[index], out_interest[int(index / 2)], spec_num, str_modchecker='prism')
         else:
             continue
@@ -944,11 +944,11 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
         out_rt = str(f'{out_rt_arr[0]} / {out_rt_arr[1]}')
         if index % 2 == 0:
             __ = wsheet.cell(column=6, row=(int(index / 2) + 4), value=exist_res)
-            __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=str(prob_res))
+            __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=float(prob_res))
             __ = wsheet.cell(column=8, row=(int(index / 2) + 4), value=out_rt)
         else:
             __ = wsheet.cell(column=9, row=(int(index / 2) + 4), value=exist_res)
-            __ = wsheet.cell(column=10, row=(int(index / 2) + 4), value=str(prob_res))
+            __ = wsheet.cell(column=10, row=(int(index / 2) + 4), value=float(prob_res))
             __ = wsheet.cell(column=11, row=(int(index / 2) + 4), value=out_rt)
 
         wbook.save(xl_fn)

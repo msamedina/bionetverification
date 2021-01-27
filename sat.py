@@ -734,18 +734,20 @@ def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
-        output_fn = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
+        output_fn, output_rt = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
         # Input collected data to Excel Sheet
 
         # Parse output files:
-        exist_res = open(f'{output_fn[0]}', "r").readlines()[1][:-1]
-        logging.info('Exist Result: ' + exist_res)
-        prob_res = open(f'{output_fn[1]}', "r").readlines()[1][:-1]
-        logging.info('Prob Result: ' + prob_res)
+        if output_rt[0] != 'Out of memory':
+            exist_res = open(f'{output_fn[0]}', "r").readlines()[1][:-1]
+            logging.info('Exist Result: ' + exist_res)
+            prob_res = open(f'{output_fn[1]}', "r").readlines()[1][:-1]
+            logging.info('Prob Result: ' + prob_res)
 
-        logging.info('Saving data in Excel')
-        __ = xl_ws.cell(column=9, row=(i + 6), value=exist_res)
-        __ = xl_ws.cell(column=10, row=(i + 6), value=prob_res)
+            logging.info('Saving data in Excel')
+            __ = xl_ws.cell(column=9, row=(i + 6), value=exist_res)
+            __ = xl_ws.cell(column=10, row=(i + 6), value=prob_res)
+        __ = xl_ws.cell(column=11, row=(i + 6), value=output_rt[0])
         xl_wb.save(xl_fn)
 
 

@@ -207,11 +207,20 @@ def call_prism_pexpect_sat(filename, str_modchecker):
         logging.info('Opening process: ' + str_modchecker)
         
         if sys.platform.startswith('linux'):
+            start = datetime.datetime.now()
+            stop = 0
+            runtime = 0
             child = pexpect.spawn(str_modchecker, args=input_fn, logfile=sys.stdout, encoding='utf-8', timeout=None)
             try:
                 child.expect('\n' + str_modchecker)
             except pexpect.EOF:
                 print('')
+                if 'Out of memory' in child.before:
+                    runtime = 'Out of memory'
+                else:
+                    stop = datetime.datetime.now()
+                    runtime = int((stop - start).total_seconds() * 1000)
+            out_rt_arr.append(runtime)
             child.close()
         elif sys.platform.startswith('win32'):
             inputval_win = [str_modchecker]
@@ -225,7 +234,7 @@ def call_prism_pexpect_sat(filename, str_modchecker):
                 runtime = 'Killed'
             out_rt_arr.append(runtime)
 
-    return out_fn_arr
+    return out_fn_arr, out_rt_arr
 
 
 #OBSOLETE
