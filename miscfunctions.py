@@ -159,13 +159,46 @@ def prism_set_mu():
     return user_input
 
 
-def cmd_parsing_index(index):
-    index_list = ['None', 'SSP', 'ExCov', 'SAT']
-    return index_list.index(index)
+def cmd_parsing_problem(problem):
+    problem_list = [None, 'SSP', 'ExCov', 'SAT']
+    return problem_list.index(problem)
 
 
 def cmd_parsing_prism_spec(spec):
-    spec_list = ['None', 'reachability', 'probability']
+    if spec == 'p' or spec == 'prob':
+        spec = 'probability'
+    if spec == 'r' or spec == 'reach':
+        spec = 'reachability'
+    spec_list = [None, 'reachability', 'probability']
     return spec_list.index(spec)
 
+
+def cmd_parsing_mc(mc):
+    # parsing the model checker without case sensitivity
+    if mc.lower() == 'all':
+        return ['NuSMV', 'nuXmv', 'prism']
+    if mc.lower() == 'smv' or mc.lower() == 'nusmv':
+        return ['NuSMV']
+    if mc.lower() == 'xmv' or mc.lower() == 'nuxmv':
+        return ['nuXmv']
+    if mc.lower() == 'prism':
+        return ['prism']
+
+
+def cmd_parsing_verbosity(ver):
+    if ver is None:
+        return '0'
+    return ver
+
+
+def cmd_parsing_bit_mapping(bit_m):
+    if bit_m is None:
+        return True
+    return bit_m
+
+
+def cmd_parsing_cut(cut):
+    if cut is None:
+        return True
+    return cut
 

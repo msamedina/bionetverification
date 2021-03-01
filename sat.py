@@ -7,8 +7,9 @@ import random
 import re
 import datetime
 import logging
-import pexpect
 import sys
+if sys.platform.startswith("linux"):
+    import pexpect
 from cnfgen.families import randomformulas as randform
 import scipy.special
 import miscfunctions as misc
@@ -487,14 +488,7 @@ def cnf_gen(sample_size, n_max, xl_ws, xl_wb, xl_fn):
         max_num_clauses = scipy.special.comb(n, 3) * 8
         m = random.randint(1, min(20, max_num_clauses))
         n_m.append((n, m))
-        
-        # Enter number of clauses for sample i into Excel
-        __ = xl_ws.cell(column=2, row=(i + 6), value=m)
-        xl_wb.save(xl_fn)
-        # Enter number of variables for sample i into Excel
-        __ = xl_ws.cell(column=3, row=(i + 6), value=n)
-        xl_wb.save(xl_fn)
-        
+
         # Generate random 3-CNF for the i-th tuple in n_m
         logging.info('Generating random 3-CNF sample ' + str(i) + ' with '
                      + str(n) + ' variables and ' + str(m) + ' clauses')
@@ -539,10 +533,12 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         # Read the i-th DIMACS file
         cnf, num_clause, num_var = dimacs_reader(dimacs_file_list[i])
         num_var_new, cnf = cnf_preprocessing(num_var, num_clause, cnf)
-        if num_var != num_var_new:
-            # Enter new num_var value into excel file
-            __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
-            xl_wb.save(xl_fn)
+        # Enter new num_var value into excel file
+        # Enter number of clauses for sample i into Excel
+        __ = xl_ws.cell(column=2, row=(i + 6), value=num_clause)
+        xl_wb.save(xl_fn)
+        __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
+        xl_wb.save(xl_fn)
         
         # Enter cnf into Excel file            
         __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
@@ -578,7 +574,7 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     return smv_nc_fns, smv_c_fns
 
 
-def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
+def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both', verbosity=0):
     """
     Function that runs both Clau and NoClau through NuSMV for:
         LTL specification both with and without variable re-ordering
@@ -590,6 +586,8 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             sample_size: The number of 3-SAT problems created
             xl_ws: Excel worksheet where to save data
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            vro: Flag for using variable re-ordering
+
     """
     for i in range(sample_size):
         """
@@ -602,18 +600,21 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
         
         # Create Variable Re-Ordering file for sample i noClau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
+        if vro in ['with', 'both']:
+            var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
 
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
                                                      var_ord_fn, [8, 14], i,
-                                                     xl_ws, xl_wb, xl_fn, str_modcheker)
+                                                     xl_ws, xl_wb, xl_fn, str_modcheker, vro, verbosity=verbosity)
         # Input collected data to Excel Sheet
         nc_spec_res_col = [9, 12, 15, 18]
+        if vro == 'with':
+            nc_spec_res_col = [15, 18]
         result = ''
-        for j in range(0, 4):
+        for j in range(len(output_fn)):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
@@ -632,7 +633,9 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         Clau
         """
         # Create Variable Re-Ordering file for sample i Clau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'Clau')
+        var_ord_fn = None
+        if vro in ['with', 'both']:
+            var_ord_fn = var_order(cnf, i, num_v, num_c, 'Clau')
 
         # Run Clau
         print('Running Clau of sample ' + str(i) + '...')
@@ -640,11 +643,13 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_c_fns[i],
                                                            var_ord_fn, [21,27],
                                                            i, xl_ws, xl_wb,
-                                                           xl_fn, str_modcheker)
+                                                           xl_fn, str_modcheker, vro, verbosity=verbosity)
 
         # Input collected data to Excel Sheet
         c_spec_res_col = [22, 25, 28, 31]
-        for j in range(0, 4):
+        if vro == 'with':
+            c_spec_res_col = [28, 31]
+        for j in range(len(output_fn)):
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
@@ -673,10 +678,9 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         # Read the i-th DIMACS file
         cnf, num_clause, num_var = dimacs_reader(dimacs_file_list[i])
         num_var_new, cnf = cnf_preprocessing(num_var, num_clause, cnf)
-        if num_var != num_var_new:
-            # Enter new num_var value into excel file
-            __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
-            xl_wb.save(xl_fn)
+        # Enter new num_var value into excel file
+        __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
+        xl_wb.save(xl_fn)
 
         # Enter cnf into Excel file
         __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
@@ -727,29 +731,23 @@ def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
     """
     for i in range(sample_size):
 
-        # Get cnf num_v and num_c from excel for variable re-ordering
-        num_c = xl_ws.cell(row=(i + 6), column=2).value
-        num_v = xl_ws.cell(row=(i + 6), column=3).value
-        cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
-
-        # Create Variable Re-Ordering file for sample i noClau
-        var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
-
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
-        output_fn = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
+        output_fn, output_rt = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
         # Input collected data to Excel Sheet
 
         # Parse output files:
-        exist_res = open(f'{output_fn[0]}', "r").readlines()[1][:-1]
-        logging.info('Exist Result: ' + exist_res)
-        prob_res = open(f'{output_fn[1]}', "r").readlines()[1][:-1]
-        logging.info('Prob Result: ' + prob_res)
+        if output_rt[0] != 'Out of memory':
+            exist_res = open(f'{output_fn[0]}', "r").readlines()[1][:-1]
+            logging.info('Exist Result: ' + exist_res)
+            prob_res = open(f'{output_fn[1]}', "r").readlines()[1][:-1]
+            logging.info('Prob Result: ' + prob_res)
 
-        logging.info('Saving data in Excel')
-        __ = xl_ws.cell(column=9, row=(i + 6), value=exist_res)
-        __ = xl_ws.cell(column=10, row=(i + 6), value=prob_res)
+            logging.info('Saving data in Excel')
+            __ = xl_ws.cell(column=9, row=(i + 6), value=exist_res)
+            __ = xl_ws.cell(column=10, row=(i + 6), value=prob_res)
+        __ = xl_ws.cell(column=11, row=(i + 6), value=output_rt[0])
         xl_wb.save(xl_fn)
 
 
@@ -851,8 +849,8 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
         Output:
             var_order_fn: name of the file hollding the new variable ordering
     """
-    var_order_fn = misc.file_name_cformat('var_ord_sample_' + str(sample_id)
-                                          + '_' + net_type + '_{0}')
+    var_order_fn = misc.file_name_cformat('var_ord_sample_' + '_{0}' + str(sample_id)
+                                          + '_' + net_type)
     
     # Find index of MSB for defining vari and clau (binary value)
     max_v_bit = math.floor(math.log2(num_v))
@@ -898,3 +896,21 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
     f.close()            
 
     return var_order_fn
+
+
+def cmd_fn_to_dimacs_fns(input_dir, filename):
+    """
+    Read input file that contains a list of dimacs file names for SAT parsing
+        Inputs:
+            input_dir: input file directory for opening dimacs files
+            filename: name of file containing list of dimacs file names to be looked at (all in Input directory)
+        Output:
+            dimacs_fns: list of dimacs file names to be parsed
+    """
+    dimacs_fns = []
+    f = open(filename, 'r')
+    for line in f:
+        dimacs_fns.append(input_dir + line.rstrip())
+    f.close()
+    
+    return dimacs_fns

@@ -35,7 +35,7 @@ def file_name_gen(set_array, arr_length, str_mc='NuSMV'):
         Output:
             filename: smv file name for the SSP network with formatting
     """
-    if str_mc == 'NuSMV' or str_mc == 'NuSMV':
+    if str_mc == 'NuSMV' or str_mc == 'nuXmv':
         filename = 'autoSSP_'
         for i in range(arr_length):
             filename += str(set_array[i]) + '_'
@@ -449,38 +449,42 @@ def read_ssp(filename):
     return ssp_list, set_id
 
 
-def smv_gen(ssp_arr):
+def smv_gen(ssp_arr, str_modc, with_tags='both'):
     """
     Loop through array of SSP problems and generate two smv files for each (with and without tags)
         Input:
             filename: NuSMV output file name
+            with_tags: Flag for using networks with tags
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
     """
     ssp_smv = []
     ssp_smv_nt = []
+
     for ssp in ssp_arr:
         # Create SSP NuSMV File
         max_tag_id = []
         # With tags
-        logging.info('Generating NuSMV file with tags...')
-        ssp_smv_name = file_name_gen(ssp, len(ssp), 'NuSMV')
-        print_smv_ssp(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id)
-        logging.info('Generated NuSMV file with tags')
-        ssp_smv.append(ssp_smv_name)
+        ssp_smv_name = file_name_gen(ssp, len(ssp), str_modc)
+        if with_tags in ['with', 'both']:
+            logging.info('Generating NuSMV file with tags...')
+            print_smv_ssp(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id)
+            logging.info('Generated NuSMV file with tags')
+            ssp_smv.append(ssp_smv_name)
 
         # Without tags
-        logging.info('Generating NuSMV file without tags...')
-        ssp_smv_name_nt = 'NT_' + ssp_smv_name
-        print_smv_ssp_nt(ssp_smv_name_nt, ssp, sum(ssp), len(ssp))
-        logging.info('Generated NuSMV file without tags')
-        ssp_smv_nt.append(ssp_smv_name_nt)
+        if with_tags in ['without', 'both']:
+            logging.info('Generating NuSMV file without tags...')
+            ssp_smv_name_nt = misc.file_name_cformat('NT_' + '_{0}' + ssp_smv_name)
+            print_smv_ssp_nt(ssp_smv_name_nt, ssp, sum(ssp), len(ssp))
+            logging.info('Generated NuSMV file without tags')
+            ssp_smv_nt.append(ssp_smv_name_nt)
 
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -491,6 +495,8 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wsheet: the excel worksheet
             xl_fn: excel file name
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            with_tags: Flag for using networks with tags
+
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -501,30 +507,36 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
         __ = wsheet.cell(column=1, row=(index + 4), value=index)
         __ = wsheet.cell(column=2, row=(index + 4), value=len(ssp))
         __ = wsheet.cell(column=3, row=(index + 4), value=repr(ssp))
-        __ = wsheet.cell(column=4, row=(index + 4), value=smv_t_arr[index])
-        __ = wsheet.cell(column=5, row=(index + 4), value=smv_nt_arr[index])
         wbook.save(xl_fn)
 
         # Run NuSMV on with tags
-        out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
-                                                            str_modcheker)
-        __ = wsheet.cell(column=6, row=(index + 4), value=out_fn[0])
-        __ = wsheet.cell(column=7, row=(index + 4), value=out_rt[0])
-        __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[1])
-        __ = wsheet.cell(column=9, row=(index + 4), value=out_rt[1])
-        wbook.save(xl_fn)
+        if with_tags in ['with', 'both']:
+            __ = wsheet.cell(column=4, row=(index + 4), value=smv_t_arr[index])
+            wbook.save(xl_fn)
+
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
+                                                                str_modcheker, verbosity)
+            __ = wsheet.cell(column=6, row=(index + 4), value=out_fn[0])
+            __ = wsheet.cell(column=7, row=(index + 4), value=out_rt[0])
+            __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[1])
+            __ = wsheet.cell(column=9, row=(index + 4), value=out_rt[1])
+            wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
-                                                            str_modcheker)
-        __ = wsheet.cell(column=10, row=(index + 4), value=out_fn[0])
-        __ = wsheet.cell(column=11, row=(index + 4), value=out_rt[0])
-        __ = wsheet.cell(column=12, row=(index + 4), value=out_fn[1])
-        __ = wsheet.cell(column=13, row=(index + 4), value=out_rt[1])
-        wbook.save(xl_fn)
+        if with_tags in ['without', 'both']:
+            __ = wsheet.cell(column=5, row=(index + 4), value=smv_nt_arr[index])
+            wbook.save(xl_fn)
+
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
+                                                                str_modcheker, verbosity)
+            __ = wsheet.cell(column=10, row=(index + 4), value=out_fn[0])
+            __ = wsheet.cell(column=11, row=(index + 4), value=out_rt[0])
+            __ = wsheet.cell(column=12, row=(index + 4), value=out_fn[1])
+            __ = wsheet.cell(column=13, row=(index + 4), value=out_rt[1])
+            wbook.save(xl_fn)
 
 
-def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both',verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -535,6 +547,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             wsheet: the excel worksheet
             xl_fn: excel file name
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            with_tags: Flag for using networks with tags
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -548,19 +561,54 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
             __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
             __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
-            __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
-            __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
             __ = wsheet.cell(column=6, row=(row_id + 4), value=output)
             wbook.save(xl_fn)
 
-            # Run NuSMV on with tags
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker)
+            ltl_res = ''
+            ctl_res = ''
 
-            # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
-            logging.info('LTL Result: ' + ltl_res)
-            ctl_res = modcheck.get_spec_res(out_fn[1])
-            logging.info('CTL Result: ' + ctl_res)
+            # Run NuSMV on with tags
+            if with_tags in ['with', 'both']:
+                __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
+                wbook.save(xl_fn)
+
+                out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker, verbosity)
+
+                # Parse output files:
+                ltl_res = modcheck.get_spec_res(out_fn[0])
+                logging.info('LTL Result: ' + ltl_res)
+                ctl_res = modcheck.get_spec_res(out_fn[1])
+                logging.info('CTL Result: ' + ctl_res)
+
+                logging.info('Saving Tags data in Excel')
+                __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
+                __ = wsheet.cell(column=9, row=(row_id + 4), value=ltl_res)
+                __ = wsheet.cell(column=10, row=(row_id + 4), value=out_rt[0])
+                __ = wsheet.cell(column=11, row=(row_id + 4), value=out_fn[1])
+                __ = wsheet.cell(column=12, row=(row_id + 4), value=ctl_res)
+                __ = wsheet.cell(column=13, row=(row_id + 4), value=out_rt[1])
+                wbook.save(xl_fn)
+
+            # Run NuSMV on no tags
+            if with_tags in ['without', 'both']:
+                __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
+                wbook.save(xl_fn)
+
+                out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker, verbosity)
+
+                # Parse output files:
+                ltl_res = modcheck.get_spec_res(out_fn[0])
+                logging.info('LTL Result: ' + ltl_res)
+                ctl_res = modcheck.get_spec_res(out_fn[1])
+                logging.info('CTL Result: ' + ctl_res)
+                logging.info('Saving Tags data in Excel')
+                __ = wsheet.cell(column=14, row=(row_id + 4), value=out_fn[0])
+                __ = wsheet.cell(column=15, row=(row_id + 4), value=ltl_res)
+                __ = wsheet.cell(column=16, row=(row_id + 4), value=out_rt[0])
+                __ = wsheet.cell(column=17, row=(row_id + 4), value=out_fn[1])
+                __ = wsheet.cell(column=18, row=(row_id + 4), value=ctl_res)
+                __ = wsheet.cell(column=19, row=(row_id + 4), value=out_rt[1])
+                wbook.save(xl_fn)
 
             if ltl_res == 'false' and ctl_res == 'true':
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='YES')
@@ -568,38 +616,13 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='NO')
             else:
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID RESULT')
-
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
-            __ = wsheet.cell(column=9, row=(row_id + 4), value=ltl_res)
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_rt[0])
-            __ = wsheet.cell(column=11, row=(row_id + 4), value=out_fn[1])
-            __ = wsheet.cell(column=12, row=(row_id + 4), value=ctl_res)
-            __ = wsheet.cell(column=13, row=(row_id + 4), value=out_rt[1])
-            wbook.save(xl_fn)
-
-            # Run NuSMV on no tags
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker)
-
-            # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
-            logging.info('LTL Result: ' + ltl_res)
-            ctl_res = modcheck.get_spec_res(out_fn[1])
-            logging.info('CTL Result: ' + ctl_res)
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=14, row=(row_id + 4), value=out_fn[0])
-            __ = wsheet.cell(column=15, row=(row_id + 4), value=ltl_res)
-            __ = wsheet.cell(column=16, row=(row_id + 4), value=out_rt[0])
-            __ = wsheet.cell(column=17, row=(row_id + 4), value=out_fn[1])
-            __ = wsheet.cell(column=18, row=(row_id + 4), value=ctl_res)
-            __ = wsheet.cell(column=19, row=(row_id + 4), value=out_rt[1])
             wbook.save(xl_fn)
 
             # Prepare for next input
             row_id = row_id + 1
 
 
-def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -630,7 +653,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
             # Run NuSMV on with tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modcheker)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modcheker, verbosity)
 
             logging.info('Saving Tags data in Excel')
             __ = wsheet.cell(column=8, row=(row_id + 4), value=out_res)
@@ -638,7 +661,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
             # Run NuSMV on no tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modcheker)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modcheker, verbosity)
 
             logging.info('Saving No Tags data in Excel')
             __ = wsheet.cell(column=10, row=(row_id + 4), value=out_res)
@@ -649,12 +672,13 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             row_id = row_id + 1
 
 
-def smv_gen_newspec(ssp_arr):
+def smv_gen_newspec(ssp_arr, str_modc, with_tags='both'):
     """
     Loop through array of SSP problems and generate two smv files for each (with and without tags)
     Using the new specification setup
         Input:
             filename: NuSMV output file name
+            with_tags: Flag for using networks with tags
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -664,24 +688,26 @@ def smv_gen_newspec(ssp_arr):
     for ssp in ssp_arr:
         # Create SSP NuSMV File
         max_tag_id = []
+        ssp_smv_name = file_name_gen(ssp, len(ssp), str_modc)
         # With tags
-        logging.info('Generating NuSMV file with tags...')
-        ssp_smv_name = file_name_gen(ssp, len(ssp), 'NuSMV')
-        print_smv_ssp_newspec(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id, True)
-        logging.info('Generated NuSMV file with tags')
-        ssp_smv.append(ssp_smv_name)
+        if with_tags in ['with', 'both']:
+            logging.info('Generating NuSMV file with tags...')
+            print_smv_ssp_newspec(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id, True)
+            logging.info('Generated NuSMV file with tags')
+            ssp_smv.append(ssp_smv_name)
 
         # Without tags
-        logging.info('Generating NuSMV file without tags...')
-        ssp_smv_name_nt = 'NT_' + ssp_smv_name
-        print_smv_ssp_newspec(ssp_smv_name_nt, ssp, sum(ssp), len(ssp), max_tag_id, False)
-        logging.info('Generated NuSMV file without tags')
-        ssp_smv_nt.append(ssp_smv_name_nt)
+        if with_tags in ['without', 'both']:
+            logging.info('Generating NuSMV file without tags...')
+            ssp_smv_name_nt = 'NT_' + ssp_smv_name
+            print_smv_ssp_newspec(ssp_smv_name_nt, ssp, sum(ssp), len(ssp), max_tag_id, False)
+            logging.info('Generated NuSMV file without tags')
+            ssp_smv_nt.append(ssp_smv_name_nt)
 
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker):
+def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -693,6 +719,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
             wsheet: the excel worksheet
             xl_fn: excel file name
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            with_tags: Flag for using networks with tags
     """
     row_id = 0
     for index, ssp in enumerate(ssp_arr):
@@ -704,83 +731,89 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
         __ = wsheet.cell(column=2, row=(row_id + 5), value=len(ssp))
         __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
         __ = wsheet.cell(column=3, row=(row_id + 5), value=repr(ssp))
-        __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
-        __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
-        __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
-        __ = wsheet.cell(column=5, row=(row_id + 5), value=smv_nt_arr[index])
         __ = wsheet.cell(column=6, row=(row_id + 4), value='csum')
         __ = wsheet.cell(column=6, row=(row_id + 5), value='nsum')
         wbook.save(xl_fn)
 
         # Run NuSMV new spec on with tags
-        out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker)
+        if with_tags in ['with', 'both']:
+            __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
+            __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
+            wbook.save(xl_fn)
 
-        # Parse output files if runtime not = "Killed":
-        if out_rt[0] != 'Killed':
-            csum = modcheck.get_spec_res(out_fn[0])
-        else:
-            csum = 'Killed'
-        if out_rt[1] != 'Killed':
-            nsum = modcheck.get_spec_res(out_fn[1])
-        else:
-            nsum = 'Killed'
-        logging.info('csum Result: ' + csum)
-        logging.info('nsum Result: ' + nsum)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker, verbosity)
 
-        if csum == 'false':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
-        elif csum == 'true':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-        elif csum == 'Killed':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
-        if nsum == 'false':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
-        elif nsum == 'true':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
-        elif nsum == 'Killed':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
+            # Parse output files if runtime not = "Killed":
+            if out_rt[0] != 'Killed':
+                csum = modcheck.get_spec_res(out_fn[0])
+            else:
+                csum = 'Killed'
+            if out_rt[1] != 'Killed':
+                nsum = modcheck.get_spec_res(out_fn[1])
+            else:
+                nsum = 'Killed'
+            logging.info('csum Result: ' + csum)
+            logging.info('nsum Result: ' + nsum)
 
-        logging.info('Saving Tags data in Excel')
-        __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
-        __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[0])
-        __ = wsheet.cell(column=8, row=(row_id + 5), value=out_fn[1])
-        __ = wsheet.cell(column=9, row=(row_id + 5), value=out_rt[1])
-        wbook.save(xl_fn)
+            if csum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
+            elif csum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
+            elif csum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
+            if nsum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
+            elif nsum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
+            elif nsum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
+
+            logging.info('Saving Tags data in Excel')
+            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
+            __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[0])
+            __ = wsheet.cell(column=8, row=(row_id + 5), value=out_fn[1])
+            __ = wsheet.cell(column=9, row=(row_id + 5), value=out_rt[1])
+            wbook.save(xl_fn)
 
         # Run NuSMV on no tags
-        out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker)
+        if with_tags in ['without', 'both']:
+            __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
+            __ = wsheet.cell(column=5, row=(row_id + 5), value=smv_nt_arr[index])
+            wbook.save(xl_fn)
 
-        # Parse output files if runtime not = "Killed":
-        if out_rt_nt[0] != 'Killed':
-            csum = modcheck.get_spec_res(out_fn_nt[0])
-        else:
-            csum = 'Killed'
-        if out_rt_nt[1] != 'Killed':
-            nsum = modcheck.get_spec_res(out_fn_nt[1])
-        else:
-            nsum = 'Killed'
-        logging.info('csum Result: ' + csum)
-        logging.info('nsum Result: ' + nsum)
+            out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker, verbosity)
 
-        if csum == 'false':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
-        elif csum == 'true':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-        elif csum == 'Killed':
-            __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
-        if nsum == 'false':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
-        elif nsum == 'true':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
-        elif nsum == 'Killed':
-            __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
+            # Parse output files if runtime not = "Killed":
+            if out_rt_nt[0] != 'Killed':
+                csum = modcheck.get_spec_res(out_fn_nt[0])
+            else:
+                csum = 'Killed'
+            if out_rt_nt[1] != 'Killed':
+                nsum = modcheck.get_spec_res(out_fn_nt[1])
+            else:
+                nsum = 'Killed'
+            logging.info('csum Result: ' + csum)
+            logging.info('nsum Result: ' + nsum)
 
-        logging.info('Saving Tags data in Excel')
-        __ = wsheet.cell(column=10, row=(row_id + 4), value=out_fn_nt[0])
-        __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt_nt[0])
-        __ = wsheet.cell(column=10, row=(row_id + 5), value=out_fn_nt[1])
-        __ = wsheet.cell(column=11, row=(row_id + 5), value=out_rt_nt[1])
-        wbook.save(xl_fn)
+            if csum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
+            elif csum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
+            elif csum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
+            if nsum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
+            elif nsum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
+            elif nsum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
+
+            logging.info('Saving Tags data in Excel')
+            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_fn_nt[0])
+            __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt_nt[0])
+            __ = wsheet.cell(column=10, row=(row_id + 5), value=out_fn_nt[1])
+            __ = wsheet.cell(column=11, row=(row_id + 5), value=out_rt_nt[1])
+            wbook.save(xl_fn)
 
         # Prepare for next input
         row_id = row_id + 2
@@ -807,7 +840,8 @@ def prism_gen(ssp_arr, mu_user_input):
         print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=0, bug_cell=None)
         logging.info('Generated Prism file with mu = 0')
         ssp_prism_nt.append(ssp_prism_name_nt)
-        ssp_prism_name_nt = f'NT_mu_{mu_user_input}_' + ssp_prism_name
+
+        ssp_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + '_{0}' + ssp_prism_name)
         print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=mu_user_input, bug_cell=None)
         logging.info('Generated Prism file without tags')
         ssp_prism_nt.append(ssp_prism_name_nt)
@@ -969,8 +1003,9 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
     for index, ssp in enumerate(ssp_arr):
         # Run Prism on no tags
 
-        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'): # if mu = 0 -> skip
-            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp), spec_number)
+        if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):  # if mu = 0 -> skip
+            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp),
+                                                                   spec_number)
         else:
             row_id += 1
             continue
@@ -1001,13 +1036,15 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
             __ = wsheet.cell(column=4, row=(row_id + 4), value=prism_nt_arr[index])
             __ = wsheet.cell(column=7, row=(row_id + 4), value=str(reachable_col))
             __ = wsheet.cell(column=8, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_rt_nt)
             if spec_number == 2:
                 __ = wsheet.cell(column=9, row=(row_id + 4), value=str(prob_col))
         else:
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=str(reachable_col))
-            __ = wsheet.cell(column=11, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=11, row=(row_id + 4), value=str(reachable_col))
+            __ = wsheet.cell(column=12, row=(row_id + 4), value=str(unreachable_col))
+            __ = wsheet.cell(column=14, row=(row_id + 4), value=out_rt_nt)
             if spec_number == 2:
-                __ = wsheet.cell(column=12, row=(row_id + 4), value=str(prob_col))
+                __ = wsheet.cell(column=13, row=(row_id + 4), value=str(prob_col))
         wbook.save(xl_fn)
 
         # Prepare for next input
