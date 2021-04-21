@@ -58,7 +58,7 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 To run BNVerify, execute from the repo directory, using the following arguments:
 
 | Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
-|:---------:|:---------------------------:|----------------------------|---------------------------------------|:-------------------:|
+|:---------:|:---------------------------:|----------------------------|---------------------------------------|---------------------|
 | -p        | --prob                      | Problem type               | SSP, ExCov or SAT                     | Yes                 |
 | -f        | --filename                  | Input file name            |                                       | Yes                 |
 | -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
@@ -77,7 +77,10 @@ For example, for testing SSP_Benchmark file with all model checkers, and check t
 ```sh
 python3 main_NBC.py -p SSP -f SSP_Benchmark -m all -e 0.01
 ```
+
 ### Interactive mode
+There is also interactive mode, which starts after running the script.
+
 The user is first supplied with a menu for selecting the problem type to be looked at:
 1. SSP
 2. ExCov
@@ -96,7 +99,14 @@ The input file format is a derivative of DIMACS format. Each row is a new set, m
 2 5 9 0
 ```
 
-The user is then prompted with a menu for which method to use when running NuSMV:
+The user is then prompted with a menu for which model checker to use:
+1. NuSMV
+2. nuXmv
+3. Prism
+
+Enter a number to select the relevant model checker.
+
+If NuSMV/nuXmv has chosen, the user should select which method to use when running SMV file:
 1. Bulk run output specifications
 2. Run individual output specifications
 3. Run general valid-invalid output specifications
@@ -104,42 +114,48 @@ The user is then prompted with a menu for which method to use when running NuSMV
 
 Enter a number to select the relevant method.
 
-Methods 1 and 2 run on specifications from Table 1.
-Method 3 runs on specifications from Table 2.
+<!-- Methods 1 and 2 run on specifications from Table 1.
+Method 3 runs on specifications from Table 2.-->
 
 Each method runs on the full list of input problems and their relevant specifications. Verification results, runtimes and/or relevant output file names are saved in Excel, separate  worksheet per method, as follows:
 1. Bulk_OutSpec
 2. Single_OutSpec
 3. SSP_GenSpec
 
-The NuSMV outputs and Excel files are all saved in the current run's output directory (`bionetverification_out_{0}`).
+If Prism has chosen, the user should select which method to use when running PM file:
+1. Run general valid-invalid output
+2. Calculate the probabilities of outputs
+3. Main Menu
+
+Enter a number to select the relevant method.
+
+The user is then asked for error rate (number between 0 to 1).
+
+The model checker outputs and Excel files are all saved in the current run's output directory (`bionetverification_out_{0}`).
 
 #### Minimal running example
 For a minimal running example, use the supplied input file:
 ```sh
 SSP_Input
 ```
-When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3. This corresponds with Table 7.
-
+When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3. <!--This corresponds with Table 7.
 Approximate runtime: **~1 minute**
-
 Methods 1 and 2, which correspond with Tables 5 and 6 respectively, can be run as part of section 6 (Comprehensive Reproduction of Table Results).
-
-The output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `SSP_0.xlsx`, can be found in the `Examples/SSP` directory.
+The output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `SSP_0.xlsx`, can be found in the `Examples/SSP` directory.-->
 
 ### ExCov
 The script requests an input file name. This file should be saved in the `Inputs` directory.
 
-The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.
+<!--The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.-->
 
-After entering the input file, the script runs NuSMV on all input problems and their specifications, as described in Table 1 for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
+After entering the input file, the script runs model checker on all input problems and their specifications, as described in Table 1 for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
 ```sh
 ExCov_{0}.xlsx
 ```
 Where {0} is the sequential ExCov input index (when using multiple input files).
 
 #### Minimal running example
-For a minimal running example, use the supplied input file:
+For a minimal running example, use NuSMV model checker and the supplied input file:
 ```sh
 ExCov_Input
 ```
@@ -188,7 +204,7 @@ Output files can be accessed from the run's output directory (`bionetverificatio
 ## 5. Additional Files
 
 ### Inputs
-The `Inputs` directory is used for containing the input files for use with the SSP and ExCov problems. Input files for the minimal running examples are preloaded in this folder.
+The `Inputs` directory is used for containing the input files for use with the SSP, ExCov and SAT problems. Input files for the minimal running examples are preloaded in this folder.
 
 ### Template
 The `Template` directory contains the templates for the Excel output files. Do not edit these.
