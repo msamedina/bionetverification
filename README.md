@@ -64,9 +64,9 @@ Command line mode:
 | -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both               |
 | -v        | --vro                       | Variable reordering (SAT)  | with, without, both               |
 | -s        | --spec                      | Spec type (PM)             | reachability, probability         |
-| -e        | --error                     | Error rate, \mu (PM)       | Number in range [0, 1]            |
+| -e        | --error                     | Error rate, $mu$ (PM)      | Number in range [0, 1]            |
 | -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4               |
-| -c        | --cut\_in\_u                | Cut network at $k$ (ExCov) | True, False                       |
+| -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                       |
 | -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                       |
 
 The user is first supplied with a menu for selecting the problem type to be looked at:
