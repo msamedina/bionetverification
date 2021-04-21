@@ -9,11 +9,11 @@ Where {0} is the index of the run of the script.
 
 ## 0. Contents
 * [1. Built With](#1-Built-With)
-2. Setup
-3. System Requirements
-4. Usage
-5. Additional Files
-6. Comprehensive Reproduction of Table Results
+* [2. Setup](#2-Setup)
+* [3. System Requirements](#3-System-Requirements)
+* [4. Usage](#4-Usage)
+* [5. Additional Files](#5-Additional-Files)
+* [6, Comprehensive Reproduction of Table Results](#6-Comprehensive-Reproduction-of-Table-Results)
 
 ## 1. Built With
 For scripts to run properly the following must be installed:
