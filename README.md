@@ -8,7 +8,7 @@ bionetverification_out_{0}
 Where {0} is the index of the run of the script.
 
 ## 0. Contents
-1. Built With 
+* [1. Built With](#1-Built With)
 2. Setup
 3. System Requirements
 4. Usage
@@ -18,6 +18,9 @@ Where {0} is the index of the run of the script.
 ## 1. Built With
 For scripts to run properly the following must be installed:
 * [NuSMV](http://nusmv.fbk.eu/)
+* [nuXmv](https://nuxmv.fbk.eu/)
+* [PRISM](https://www.prismmodelchecker.org/manual/Main/AllOnOnePage)
+* [Storm](https://www.stormchecker.org/)
 * [MiniSat](http://minisat.se/)
 * [CNFgen](https://massimolauria.net/cnfgen/)
 
