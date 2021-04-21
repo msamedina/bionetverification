@@ -37,7 +37,7 @@ All prerequisite installations and setups are located in the `install_additional
 This prompts for sudo access and confirmation (y).
 
 ### Running the scripts
-The scripts are run using Python 3
+The scripts are run using Python 3 (for command line arguments see (#4-Usage))
 ```sh
 python main_NBC.py
 ```
