@@ -58,7 +58,7 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 To run BNVerify, execute from the repo directory, using the following arguments:
 
 | Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
-|-----------|-----------------------------|----------------------------|---------------------------------------|                     |
+|-----------|-----------------------------|----------------------------|---------------------------------------|---------------------|
 | -p        | --prob                      | Problem type               | SSP, ExCov or SAT                     | Yes                 |
 | -f        | --filename                  | Input file name            |                                       | Yes                 |
 | -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
