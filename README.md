@@ -53,6 +53,9 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 * CPU freq: 1.30GHz
 
 ## 4. Usage
+Command line mode:
+![Link](https://ibb.co/NjJJt5S)
+
 The user is first supplied with a menu for selecting the problem type to be looked at:
 1. SSP
 2. ExCov
