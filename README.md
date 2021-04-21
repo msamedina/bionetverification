@@ -55,7 +55,7 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 ## 4. Usage
 Command line mode:
 
-| Short Arg | \multicolumn{1}{c|}{Long Arg} | \multicolumn{1}{c|}{Use}   | \multicolumn{1}{c|}{Input values} |
+| Short Arg | Long Arg                      | Use                        | Input values                      |
 |-----------|-------------------------------|----------------------------|-----------------------------------|
 | -p        | -\--prob                      | Problem type               | SSP, ExCov or SAT                 |
 | -f        | -\--filename                  | Input file name            |                                   |
