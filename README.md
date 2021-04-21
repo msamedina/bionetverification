@@ -55,19 +55,19 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 ## 4. Usage
 Command line mode:
 
-| Short Arg | Long Arg                      | Use                        | Input values                      |
-|-----------|-------------------------------|----------------------------|-----------------------------------|
-| -p        | -\--prob                      | Problem type               | SSP, ExCov or SAT                 |
-| -f        | -\--filename                  | Input file name            |                                   |
-| -m        | -\--modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all          |
-| -o        | -\--opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (Gen) |
-| -t        | -\--tags                      | Tag variable (SSP, ExCov)  | with, without, both               |
-| -v        | -\--vro                       | Variable reordering (SAT)  | with, without, both               |
-| -s        | -\--spec                      | Spec type (PM)             | reachability, probability         |
-| -e        | -\--error                     | Error rate, $\mu$ (PM)     | Number in range [0, 1]            |
-| -ver      | -\--verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4               |
-| -c        | -\--cut\_in\_u                | Cut network at $k$ (ExCov) | True, False                       |
-| -b        | -\--bit\_mapping              | Bit-mapping optimization   | True, False                       |
+| Short Arg | Long Arg                    | Use                        | Input values                      |
+|-----------|-----------------------------|----------------------------|-----------------------------------|
+| -p        | --prob                      | Problem type               | SSP, ExCov or SAT                 |
+| -f        | --filename                  | Input file name            |                                   |
+| -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all          |
+| -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (Gen) |
+| -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both               |
+| -v        | --vro                       | Variable reordering (SAT)  | with, without, both               |
+| -s        | --spec                      | Spec type (PM)             | reachability, probability         |
+| -e        | --error                     | Error rate, \mu (PM)       | Number in range [0, 1]            |
+| -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4               |
+| -c        | --cut\_in\_u                | Cut network at $k$ (ExCov) | True, False                       |
+| -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                       |
 
 The user is first supplied with a menu for selecting the problem type to be looked at:
 1. SSP
