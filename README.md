@@ -8,7 +8,7 @@ bionetverification_out_{0}
 Where {0} is the index of the run of the script.
 
 ## 0. Contents
-* [1. Built With](#1-Built With)
+* [1. Built With](#1-Built-With)
 2. Setup
 3. System Requirements
 4. Usage
