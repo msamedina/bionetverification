@@ -1,7 +1,8 @@
 # BNVerify
-BNVerify is a tool used to model and verify the design of network-based biocomputation circuits for the SSP, ExCov and 3-SAT problems as part of the Bio4Comp project. The tool generates network description files in SMV and then runs them in the NuSMV model checker. Results of verification and their runtimes are saved in Excel files based on the provided template files.
+BNVerify is a formal verification tool that facilitates proof of correctness of network-based biocomputation (NBC) circuits or error identification in design, and the ability to model various types of errors in the networks and study their effect on circuit behavior. This work supports analysis of both nondeterministic and probabilistic models and provides an integrated prototype tool that can generate models for simulation and apply verification using several underlying model checkers including NuSMV, nuXmv, PRISM and Storm. 
+The tool used to model and verify the design of NBC circuits for the SSP, ExCov and 3-SAT problems as part of the [Bio4Comp project](https://bio4comp.org/).
 
-Each run generates a new local directory that holds all generated smv files, output results, and Excel data files. The directory name is of the format:
+Each run generates a new local directory that holds all generated SMV/PM files, output results, and Excel data files. The directory name is of the format:
 ```sh
 bionetverification_out_{0}
 ```
@@ -37,7 +38,7 @@ All prerequisite installations and setups are located in the `install_additional
 This prompts for sudo access and confirmation (y).
 
 ### Running the scripts
-The scripts are run using Python 3 (for command line arguments see [below](#4-Usage))
+The scripts are run using Python 3 (for command line arguments see [below](#4-Usage)):
 ```sh
 python main_NBC.py
 ```
@@ -54,21 +55,28 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 
 ## 4. Usage
 ### Command line mode
+To run BNVerify, execute from the repo directory, using the following arguments:
 
-| Short Arg | Long Arg                    | Use                        | Input values                      |
-|-----------|-----------------------------|----------------------------|-----------------------------------|
-| -p        | --prob                      | Problem type               | SSP, ExCov or SAT                 |
-| -f        | --filename                  | Input file name            |                                   |
-| -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all          |
-| -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (Gen) |
-| -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both               |
-| -v        | --vro                       | Variable reordering (SAT)  | with, without, both               |
-| -s        | --spec                      | Spec type (PM)             | reachability, probability         |
-| -e        | --error                     | Error rate *μ* (PM)        | Number in range [0, 1]            |
-| -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4               |
-| -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                       |
-| -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                       |
+| Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
+|-----------|-----------------------------|----------------------------|---------------------------------------|                     |
+| -p        | --prob                      | Problem type               | SSP, ExCov or SAT                     | Yes                 |
+| -f        | --filename                  | Input file name            |                                       | Yes                 |
+| -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
+| -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (General) | No (1)              |
+| -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both                   | No (without)        |
+| -v        | --vro                       | Variable reordering (SAT)  | with, without, both                   | No (without)        |
+| -s        | --spec                      | Spec type (PM)             | reachability, probability             | No (reachability)   |
+| -e        | --error                     | Error rate *μ* (PM)        | Number in range [0, 1]                | No (0)              |
+| -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4                   | No (0)              |
+| -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                           | No (True)           |
+| -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                           | No (True)           |
 
+It's enough to enter the file name without path\to\folder, and the file will be searched automatically in the local repo.
+
+For example, for testing SSP_Benchmark file with all model checkers, and check the behavior with error rate *μ* = 0.01, run the following:
+```sh
+python3 main_NBC.py -p SSP -f SSP_Benchmark -m all -e 0.01
+```
 ### Interactive mode
 The user is first supplied with a menu for selecting the problem type to be looked at:
 1. SSP
