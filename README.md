@@ -39,11 +39,11 @@ This prompts for sudo access and confirmation (y).
 ### Running the scripts
 The scripts are run using Python 3
 ```sh
-python bionetverification.py
+python main_NBC.py
 ```
 or
 ```sh
-python3 bionetverification.py
+python3 main_NBC.py
 ```
 
 ## 3. System Requirements
