@@ -53,7 +53,7 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 * CPU freq: 1.30GHz
 
 ## 4. Usage
-Command line mode:
+### Command line mode
 
 | Short Arg | Long Arg                    | Use                        | Input values                      |
 |-----------|-----------------------------|----------------------------|-----------------------------------|
@@ -64,11 +64,12 @@ Command line mode:
 | -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both               |
 | -v        | --vro                       | Variable reordering (SAT)  | with, without, both               |
 | -s        | --spec                      | Spec type (PM)             | reachability, probability         |
-| -e        | --error                     | Error rate, *μ* (PM)       | Number in range [0, 1]            |
+| -e        | --error                     | Error rate *μ* (PM)        | Number in range [0, 1]            |
 | -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4               |
 | -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                       |
 | -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                       |
 
+### Interactive mode
 The user is first supplied with a menu for selecting the problem type to be looked at:
 1. SSP
 2. ExCov
