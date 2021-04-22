@@ -484,7 +484,7 @@ def smv_gen(ssp_arr, str_modc, with_tags='both'):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
+def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity='0'):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -536,7 +536,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
 
-def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both',verbosity=0):
+def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both',verbosity='0'):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -622,7 +622,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             row_id = row_id + 1
 
 
-def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, verbosity=0):
+def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, verbosity='0'):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -707,7 +707,7 @@ def smv_gen_newspec(ssp_arr, str_modc, with_tags='both'):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
+def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity='0'):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type

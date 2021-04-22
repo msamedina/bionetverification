@@ -8,6 +8,7 @@ import re
 import datetime
 import logging
 import sys
+
 if sys.platform.startswith("linux"):
     import pexpect
 from cnfgen.families import randomformulas as randform
@@ -115,7 +116,7 @@ def file_name_prism(num_clause, num_var, noclau):
             filename: prism file name for the SAT network with formatting
     """
     filename = ("autoSAT_noClau_" + str(num_clause) + "_Clauses_"
-        + str(num_var) + "_Vars_{0}.pm")
+                + str(num_var) + "_Vars_{0}.pm")
     return misc.file_name_cformat(filename)
 
 
@@ -413,7 +414,7 @@ def print_prism(filename, cnf_list, num_clause, num_var):
                 value_to_assign = 0
             else:
                 value_to_assign = 2
-            f.write(f'c{c+1}_{v+1} : [0..2] init {value_to_assign}; ')
+            f.write(f'c{c + 1}_{v + 1} : [0..2] init {value_to_assign}; ')
 
     f.write("\n\n\t")
     for v in range(num_var):
@@ -421,19 +422,20 @@ def print_prism(filename, cnf_list, num_clause, num_var):
 
     f.write("\n\n\t")
     f.write('start: bool init true;\n\t')
+    f.write('end: bool init false;\n\t')
     f.write('change_L: [0..maxL] init 1;\n\t')
     f.write('clause: [1..numOfClauses] init 1;\n\t')
     f.write('sum: [0..maxsum] init 0;\n')
 
     # Write the choose vec
-    str_temp = "[] start & change_L = 0 -> (sum' = 0) & (change_L' = mod(change_L + 1, maxL + 1));"
-    f.write('\n\t' + str_temp)
+    # str_temp = "[] start & change_L = 0 -> (sum' = 0) & (change_L' = mod(change_L + 1, maxL + 1));"
+    # f.write('\n\t' + str_temp)
 
-    for l in range(1, num_var - 1, 1):
-        str_temp = f"[] start & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1));"
+    for l in range(1, num_var, 1):
+        str_temp = f"[] start & !end & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1));"
         f.write('\n\n\t' + str_temp)
     l = l + 1
-    str_temp = f"[] start & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start);"
+    str_temp = f"[] start & !end & change_L = {l} -> 0.5: (L{l}' = L{l}) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start) + 0.5: (L{l}' = mod(L{l} + 1, 2)) & (change_L' = mod(change_L + 1, maxL + 1)) & (start' = !start);"
     f.write('\n\n\t' + str_temp + '\n')
 
     # Write the tagging process
@@ -447,13 +449,13 @@ def print_prism(filename, cnf_list, num_clause, num_var):
         str_temp = "))?1:0), maxsum)) & (clause' = mod(clause, numOfClauses) + 1);"
         f.write(str_temp + '\n')
     c = c + 1
-    str_temp = f"[] !start & clause = {c} -> (sum' = mod(sum + ((("
+    str_temp = f"[] !start & !end & clause = {c} -> (sum' = mod(sum + ((("
     f.write('\n\t' + str_temp)
     for v in range(1, num_var + 1, 1):
         f.write(f"(c{c}_{v} = L{v})")
         if v != num_var:
             f.write(" | ")
-    str_temp = "))?1:0), maxsum)) & (start' = !start) & (clause' = mod(clause, numOfClauses) + 1);"
+    str_temp = "))?1:0), maxsum)) & (end' = !end);"
     f.write(str_temp + '\n')
 
     f.write("\nendmodule\n")
@@ -503,11 +505,11 @@ def cnf_gen(sample_size, n_max, xl_ws, xl_wb, xl_fn):
         rand3CNF._dimacs_dump_clauses(output=dimacs_file)
         dimacs_file.close()
         dimacs_fn_list.append(dimacs_filename)
-        
+
         # Enter DIMACS filename for sample into Excel
         __ = xl_ws.cell(column=4, row=(i + 6), value=dimacs_filename)
         xl_wb.save(xl_fn)
-        
+
         print('Generated ' + dimacs_filename)
         logging.info('Generated ' + dimacs_filename)
 
@@ -539,11 +541,11 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         xl_wb.save(xl_fn)
         __ = xl_ws.cell(column=3, row=(i + 6), value=num_var_new)
         xl_wb.save(xl_fn)
-        
+
         # Enter cnf into Excel file            
         __ = xl_ws.cell(column=6, row=(i + 6), value=repr(cnf))
         xl_wb.save(xl_fn)
-        
+
         print(dimacs_file_list[i] + ' has been read')
         logging.info(dimacs_file_list[i] + ' has been read')
 
@@ -553,28 +555,28 @@ def dimacs_to_smv(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         logging.info('NoClau smv file name is:  ' + noclau_name)
         print_smv_noClau(noclau_name, cnf, num_clause, num_var_new)
         smv_nc_fns.append(noclau_name)
-        
+
         # Enter NoClau filename into Excel file
         __ = xl_ws.cell(column=7, row=(i + 6), value=noclau_name)
         xl_wb.save(xl_fn)
-        
+
         logging.info('NoClau smv file has been generated')
         # Clau
         clau_name = file_name_smv(num_clause, num_var_new, False)
         logging.info('Clau smv file name is:  ' + clau_name)
         print_smv_clau(clau_name, cnf, num_clause, num_var_new)
         smv_c_fns.append(clau_name)
-        
+
         # Enter Clau filename into Excel file
         __ = xl_ws.cell(column=20, row=(i + 6), value=clau_name)
         xl_wb.save(xl_fn)
-        
+
         logging.info('Clau smv file has been generated')
 
     return smv_nc_fns, smv_c_fns
 
 
-def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both', verbosity=0):
+def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker, vro='both', verbosity='0'):
     """
     Function that runs both Clau and NoClau through NuSMV for:
         LTL specification both with and without variable re-ordering
@@ -593,12 +595,12 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         """
         NoClau
         """
-        
+
         # Get cnf num_v and num_c from excel for variable re-ordering
         num_c = xl_ws.cell(row=(i + 6), column=2).value
         num_v = xl_ws.cell(row=(i + 6), column=3).value
         cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
-        
+
         # Create Variable Re-Ordering file for sample i noClau
         if vro in ['with', 'both']:
             var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
@@ -607,8 +609,8 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_nc_fns[i],
-                                                     var_ord_fn, [8, 14], i,
-                                                     xl_ws, xl_wb, xl_fn, str_modcheker, vro, verbosity=verbosity)
+                                                    var_ord_fn, [8, 14], i,
+                                                    xl_ws, xl_wb, xl_fn, str_modcheker, vro, verbosity=verbosity)
         # Input collected data to Excel Sheet
         nc_spec_res_col = [9, 12, 15, 18]
         if vro == 'with':
@@ -618,8 +620,8 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
-                or ((j % 2 != 0) and
-                    modcheck.get_spec_res(output_fn[j]) == 'false')):
+                    or ((j % 2 != 0) and
+                        modcheck.get_spec_res(output_fn[j]) == 'false')):
                 result = 'UNSATISFIABLE'
             # Otherwise SATISFIABLE
             else:
@@ -627,7 +629,6 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             __ = xl_ws.cell(column=(nc_spec_res_col[j]), row=(i + 6),
                             value=result)
             xl_wb.save(xl_fn)
-            
 
         """
         Clau
@@ -641,9 +642,9 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         print('Running Clau of sample ' + str(i) + '...')
         logging.info('Running Clau of sample ' + str(i) + '...')
         output_fn = modcheck.call_nusmv_pexpect_sat(smv_c_fns[i],
-                                                           var_ord_fn, [21,27],
-                                                           i, xl_ws, xl_wb,
-                                                           xl_fn, str_modcheker, vro, verbosity=verbosity)
+                                                    var_ord_fn, [21, 27],
+                                                    i, xl_ws, xl_wb,
+                                                    xl_fn, str_modcheker, vro, verbosity=verbosity)
 
         # Input collected data to Excel Sheet
         c_spec_res_col = [22, 25, 28, 31]
@@ -653,8 +654,8 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
             # Input spec result
             # UNSATISFIABLE -> LTL true or CTL false
             if (((j % 2 == 0) and modcheck.get_spec_res(output_fn[j]) == 'true')
-                or ((j % 2 != 0) and
-                    modcheck.get_spec_res(output_fn[j]) == 'false')):
+                    or ((j % 2 != 0) and
+                        modcheck.get_spec_res(output_fn[j]) == 'false')):
                 result = 'UNSATISFIABLE'
             # Otherwise SATISFIABLE
             else:
@@ -694,7 +695,7 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
         logging.info('prism file name is:  ' + file_name)
         print_prism(file_name, cnf, num_clause, num_var_new)
         prism_fns.append(file_name)
-        print_prism_spec('spec_sat.pctl')
+        print_prism_spec('spec_sat.pctl', num_clause, num_var)
 
         # Enter NoClau filename into Excel file
         __ = xl_ws.cell(column=7, row=(i + 6), value=file_name)
@@ -705,7 +706,7 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     return prism_fns
 
 
-def print_prism_spec(filename):
+def print_prism_spec(filename, num_c, num_v):
     """
     Print out the ExCov spec for prism file
         Input:
@@ -715,8 +716,9 @@ def print_prism_spec(filename):
     # write 2 specifications: 1. check if exist EC. 2. what is the probability to get the EC.
     f = open(filename, 'w')
     f.write('const int k;\n\n')
-    f.write('P>0 [ F sum=numOfClauses ]\n')
-    f.write('P=? [ F sum=numOfClauses ]\n')
+    max_path = 2 + num_v + num_c
+    f.write(f'P>0 [ F<={max_path} sum=numOfClauses ]\n')
+    f.write(f'P=? [ F<={max_path} sum=numOfClauses ]\n')
     f.close()
 
 
@@ -734,7 +736,7 @@ def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
         # Run NoClau
         print('Running NoClau of sample ' + str(i) + '...')
         logging.info('Running NoClau of sample ' + str(i) + '...')
-        output_fn, output_rt = modcheck.call_prism_pexpect_sat(prism_fns[i],str_modcheker)
+        output_fn, output_rt = modcheck.call_prism_pexpect_sat(prism_fns[i], str_modcheker)
         # Input collected data to Excel Sheet
 
         # Parse output files:
@@ -788,7 +790,7 @@ def copy_range(start_col, start_row, end_col, end_row, sheet):
     for i in range(start_row, end_row + 1, 1):
         # Appends the row to a RowSelected list
         rowSelected = []
-        for j in range(start_col, end_col+1, 1):
+        for j in range(start_col, end_col + 1, 1):
             rowSelected.append(sheet.cell(row=i, column=j).value)
         # Adds the RowSelected List and nests inside the rangeSelected
         rangeSelected.append(rowSelected)
@@ -810,13 +812,13 @@ def cnf_preprocessing(num_v, num_c, cnf):
     # Find all used variables
     used_vars = list()
     for c in cnf:
-        for v  in c:
+        for v in c:
             if abs(v) not in used_vars:
                 used_vars.append(abs(v))
     used_vars.sort()
     # Find all not used variables in order to re-map used ones
     nused_vars = list(set(all_vars).difference(used_vars))
-    
+
     while nused_vars:
         # Get last variable used and first un-used
         first_nused = nused_vars.pop(0)
@@ -825,7 +827,7 @@ def cnf_preprocessing(num_v, num_c, cnf):
         # ONLY WHEN first_nused < last_used
         if first_nused < last_used:
             for i, c in enumerate(cnf):
-                for j, v  in enumerate(c):
+                for j, v in enumerate(c):
                     if abs(v) == last_used:
                         cnf[i][j] = int(math.copysign(first_nused, v))
                         used_vars.pop(-1)
@@ -851,11 +853,11 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
     """
     var_order_fn = misc.file_name_cformat('var_ord_sample_' + '_{0}' + str(sample_id)
                                           + '_' + net_type)
-    
+
     # Find index of MSB for defining vari and clau (binary value)
     max_v_bit = math.floor(math.log2(num_v))
     max_c_bit = math.floor(math.log2(num_c))
-    
+
     # Find order of tags in reference to variables in the cnf
     tag_order = list()
     v = 1
@@ -863,37 +865,37 @@ def var_order(cnf, sample_id, num_v, num_c, net_type):
         for i, c in enumerate(cnf):
             if ((v in c) or ((-1 * v) in c)) and ((i + 1) not in tag_order):
                 tag_order.append(i + 1)
-        v += 1    
-    
+        v += 1
+
     f = open(var_order_fn, 'w')
-    
+
     # Junction
     f.write('junction.0\n')
-    
+
     # Directions
     f.write('dir.1\ndir.0\n')
-    
+
     # Variable bits
     for i in range(0, max_v_bit + 1):
         f.write('vari.' + str(max_v_bit - i) + '\n')
-    
+
     # Clause bits (only in Clau network)
     if net_type == 'Clau':
         for i in range(0, max_c_bit + 1):
             f.write('clau.' + str(max_c_bit - i) + '\n')
-    
+
     # Varval
     f.write('varval\n')
-    
+
     for t in tag_order:
         f.write('tag[' + str(t) + '].1\n')
         f.write('tag[' + str(t) + '].0\n')
-    
+
     # Flag
     f.write('flag')
-    
+
     # Close File
-    f.close()            
+    f.close()
 
     return var_order_fn
 
@@ -912,5 +914,5 @@ def cmd_fn_to_dimacs_fns(input_dir, filename):
     for line in f:
         dimacs_fns.append(input_dir + line.rstrip())
     f.close()
-    
+
     return dimacs_fns
