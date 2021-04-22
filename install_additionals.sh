@@ -65,5 +65,11 @@ echo "export PATH=\$PATH:$dirpath/nuXmv-2.0.0-Linux/bin" >>~/.profile
 # Add permission for nuXmv execution
 chmod u+x $nuxmvpath
 
+# Install prism
+echo "###Installing PRISM from binaries.."
+prismpath="$dirpath/prism-4.6-linux64"
+cd prism-4.6-linux64
+$prismpath/install.sh
+
 # Re-source profile
 source ~/.profile
