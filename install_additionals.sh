@@ -67,9 +67,15 @@ chmod u+x $nuxmvpath
 
 # Install prism
 echo "###Installing PRISM from binaries.."
-prismpath="$dirpath/prism-4.6-linux64"
 cd prism-4.6-linux64
-. $prismpath/install.sh
+./install.sh
+# Add PRISM to PATH variable by adding to .profile
+echo "###Adding PRISM to PATH.."
+prismpath="$dirpath/prism-4.6-linux64/bin/prism"
+echo "# Allow running PRISM from terminal" >>~/.profile
+echo "export PATH=\$PATH:$dirpath/prism-4.6-linux64/bin" >>~/.profile
+# Add permission for nuXmv execution
+chmod u+x $prismpath
 
 # Re-source profile
 source ~/.profile
