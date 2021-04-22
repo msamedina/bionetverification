@@ -69,7 +69,7 @@ chmod u+x $nuxmvpath
 echo "###Installing PRISM from binaries.."
 prismpath="$dirpath/prism-4.6-linux64"
 cd prism-4.6-linux64
-$prismpath/install.sh
+. $prismpath/install.sh
 
 # Re-source profile
 source ~/.profile
