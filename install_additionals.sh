@@ -65,7 +65,7 @@ echo "export PATH=\$PATH:$dirpath/nuXmv-2.0.0-Linux/bin" >>~/.profile
 # Add permission for nuXmv execution
 chmod u+x $nuxmvpath
 
-# Install prism
+# Install PRISM
 echo "###Installing PRISM from binaries.."
 cd prism-4.6-linux64
 . install.sh
@@ -76,6 +76,23 @@ echo "# Allow running PRISM from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/prism-4.6-linux64/bin" >>~/.profile
 # Add permission for nuXmv execution
 chmod u+x $prismpath
+cd ..
+
+# Install Storm
+echo "###Installing Storm from source.."
+stormpath="$dirpath/storm-stable/build/bin/storm"
+cd storm-stable
+mkdir build
+cd build
+cmake ..
+make
+# Add Storm to PATH variable by adding to .profile
+echo "###Adding Storm to PATH.."
+echo "# Allow running Storm from terminal" >>~/.profile
+echo "export PATH=\$PATH:$dirpath/storm-stable/build/bin" >>~/.profile
+make check
+chmod u+x $stormpath
+cd ..
 cd ..
 
 # Re-source profile
