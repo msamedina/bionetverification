@@ -535,7 +535,7 @@ def bin_rep(subset, universe):
     return bin_rep
 
 
-def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
+def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity='0'):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -616,7 +616,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
 
 
 def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn,
-                  str_modcheker, verbosity=0):
+                  str_modcheker, verbosity='0'):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
