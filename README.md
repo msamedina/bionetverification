@@ -71,7 +71,7 @@ To run BNVerify, execute from the repo directory, using the following arguments:
 | -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                           | No (True)           |
 | -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                           | No (True)           |
 
-Input files should be saved in the Inputs directory. Once this is done, it is enough to enter the file name without full path. If the file is saved withing a sub directory, the path from Inputs should be entered.
+Input files should be saved in the Inputs directory. Once this is done, it is enough to enter the file name without full path. If the file is saved within a subdirectory, that part of the path should be entered with the filename.
 
 For example, for testing SSP_Benchmark file with all model checkers, and check the behavior with error rate *μ* = 0.01, run the following:
 ```sh
