@@ -1,6 +1,6 @@
 # BNVerify
-BNVerify is a formal verification tool that facilitates proof of correctness of network-based biocomputation (NBC) circuits or error identification in design, and the ability to model various types of errors in the networks and study their effect on circuit behavior. This work supports analysis of both nondeterministic and probabilistic models and provides an integrated prototype tool that can generate models for simulation and apply verification using several underlying model checkers including NuSMV, nuXmv, PRISM and Storm. 
-The tool used to model and verify the design of NBC circuits for the SSP, ExCov and 3-SAT problems as part of the [Bio4Comp project](https://bio4comp.org/).
+BNVerify is a formal verification tool that facilitates proof of correctness of network-based biocomputation (NBC) circuits or error identification in design, and the ability to model various types of errors in the networks and study their effect on circuit behavior. This work supports analysis of both nondeterministic and probabilistic models and provides an integrated prototype tool that can generate models for simulation and apply verification using several underlying model checkers including NuSMV, nuXmv and PRISM. 
+The tool is used to model and verify the design of NBC circuits for the SSP, ExCov and 3-SAT problems as part of the [Bio4Comp project](https://bio4comp.org/).
 
 Each run generates a new local directory that holds all generated SMV/PM files, output results, and Excel data files. The directory name is of the format:
 ```sh
@@ -21,7 +21,7 @@ For scripts to run properly the following must be installed:
 * [NuSMV](http://nusmv.fbk.eu/)
 * [nuXmv](https://nuxmv.fbk.eu/)
 * [PRISM](https://www.prismmodelchecker.org/manual/Main/AllOnOnePage)
-* [Storm](https://www.stormchecker.org/)
+<!-- In progress: * [Storm](https://www.stormchecker.org/)-->
 * [MiniSat](http://minisat.se/)
 * [CNFgen](https://massimolauria.net/cnfgen/)
 
@@ -71,12 +71,13 @@ To run BNVerify, execute from the repo directory, using the following arguments:
 | -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                           | No (True)           |
 | -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                           | No (True)           |
 
-It's enough to enter the file name without path\to\folder, and the file will be searched automatically in the local repo.
+Input files should be saved in the Inputs directory. Once this is done, it is enough to enter the file name without full path. If the file is saved withing a sub directory, the path from Inputs should be entered.
 
 For example, for testing SSP_Benchmark file with all model checkers, and check the behavior with error rate *μ* = 0.01, run the following:
 ```sh
 python3 main_NBC.py -p SSP -f SSP_Benchmark -m all -e 0.01
 ```
+Input files for SAT problems should be a text file containing the dimacs 3-SAT file names, all of which should be located in the same directory (Inputs).  
 
 ### Interactive mode
 There is also interactive mode, which starts after running the script.
@@ -114,9 +115,6 @@ If NuSMV/nuXmv has chosen, the user should select which method to use when runni
 
 Enter a number to select the relevant method.
 
-<!-- Methods 1 and 2 run on specifications from Table 1.
-Method 3 runs on specifications from Table 2.-->
-
 Each method runs on the full list of input problems and their relevant specifications. Verification results, runtimes and/or relevant output file names are saved in Excel, separate  worksheet per method, as follows:
 1. Bulk_OutSpec
 2. Single_OutSpec
@@ -138,15 +136,13 @@ For a minimal running example, use the supplied input file:
 ```sh
 SSP_Input
 ```
-When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3. <!--This corresponds with Table 7.
+When prompted with the menu for which method to use when running NuSMV (1. Bulk output, 2. Single output, 3. General specs), select method 3.
 Approximate runtime: **~1 minute**
-Methods 1 and 2, which correspond with Tables 5 and 6 respectively, can be run as part of section 6 (Comprehensive Reproduction of Table Results).
-The output files can be accessed from the run's output directory. A preloaded version of the minimal running example's Excel output, by the name of `SSP_0.xlsx`, can be found in the `Examples/SSP` directory.-->
 
 ### ExCov
 The script requests an input file name. This file should be saved in the `Inputs` directory.
 
-<!--The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.-->
+The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.
 
 After entering the input file, the script runs model checker on all input problems and their specifications, as described in Table 1 for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
 ```sh
@@ -212,41 +208,30 @@ The `Template` directory contains the templates for the Excel output files. Do n
 ### Examples
 The `Examples` directory contains example input files, generated SMV files and Excel outputs for each of the minimal running examples for the defined problems.
 
-Columns of the Excel worksheets that correspond with those of the tables in the paper are marked in yellow. The 'csum' and 'nsum' rows from worksheet SSP_GenSpecs in `SSP_0.xlsx` have been have been transposed in Tables 7 and 8, and unified into a single row.
-
 ### SSP and ExCov Bad Networks
 The `SSP_BN` and `ExCov_BN` directories contain SMV network descriptions, for SSP and ExCov respectively, that contain **induced errors**. These network descriptions were manually constructed (inclusion of errors) and individually run in NuSMV.
 
 SSP networks include the error type in their file name `B_errortype_...`.
 
-These examples are used to show correctness of the network descriptions by comparing verification results with those of the valid networks generated by the scripts. This comparision is included in Tables 9 and 11. See paper sections 7.1 and 7.2.
+These examples are used to show correctness of the network descriptions by comparing verification results with those of the valid networks generated by the scripts. This comparision is included in published VMCAI'21 article Tables 9 and 11 (sections 7.1 and 7.2).
 
 ## 6. Comprehensive Reproduction of Table Results
-Additional input files for reproduction of the results in the paper are provided under `Inputs`. A full reproduction can take over 24 hours.
+Additional input files for reproduction of the results in the paper are provided under `Inputs/CMSB21_Inputs`. A full reproduction can take over 24 hours.
 
 ### SSP
-In order to reproduce Tables 5-7 from the paper, methods 1-3 should be run on input file:
+In order to reproduce Tables 5-7 from the paper, method 3 should be run on input file:
 ```sh
-SSP_table5_7
-```
-For Table 8, run method 3 on:
-```sh
-SSP_table8
+SSP_table2
 ```
 
 ### ExCov
-In order to reproduce Table 10, run on input file:
+In order to reproduce Table 3 and Table 5 (Appendix C), run on input file:
 ```sh
-ExCov_table10
+ExCov_table3
 ```
 
 ### SAT
-As each run randomly generates 3-SAT problems, it is not possible to exactly replicate results from Table 12. The input values used to aquire Table 12 were:
-* Number of samples:
+In order to reproduce Table 4, run on input file:
 ```sh
-100
-```
-* Maximum number of literals:
-```sh
-50
+SAT_table4
 ```
