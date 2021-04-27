@@ -2,11 +2,10 @@
 BNVerify is a formal verification tool that facilitates proof of correctness of network-based biocomputation (NBC) circuits or error identification in design, and the ability to model various types of errors in the networks and study their effect on circuit behavior. This work supports analysis of both nondeterministic and probabilistic models and provides an integrated prototype tool that can generate models for simulation and apply verification using several underlying model checkers including NuSMV, nuXmv and PRISM. 
 The tool is used to model and verify the design of NBC circuits for the SSP, ExCov and 3-SAT problems as part of the [Bio4Comp project](https://bio4comp.org/).
 
-Each run generates a new local directory that holds all generated SMV/PM files, output results, and Excel data files. The directory name is of the format:
-```sh
-bionetverification_out_{0}
-```
-Where {0} is the index of the run of the script.
+## People
+* [Michelle Aluf-Medina](https://www.linkedin.com/in/michelle-aluf-medina-ba791b81/)
+* [Avraham Raviv](https://www.linkedin.com/in/avraham-raviv-47b3b5158/)
+* [Dr. Hillel Kugler](https://www.eng.biu.ac.il/hillelk/)
 
 ## 0. Contents
 * [1. Built With](#1-Built-With)
@@ -46,6 +45,12 @@ or
 ```sh
 python3 main_NBC.py
 ```
+
+Each run generates a new local directory that holds all generated SMV/PM files, output results, and Excel data files. The directory name is of the format:
+```sh
+bionetverification_out_{0}
+```
+Where {0} is the index of the run of the script.
 
 ## 3. System Requirements
 Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS, Ubuntu 20.04.1 LTS)
