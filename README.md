@@ -45,7 +45,6 @@ or
 ```sh
 python3 main_NBC.py
 ```
-
 Each run generates a new local directory that holds all generated SMV/PM files, output results, and Excel data files. The directory name is of the format:
 ```sh
 bionetverification_out_{0}
