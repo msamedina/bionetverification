@@ -225,17 +225,17 @@ Additional input files for reproduction of the results in the paper are provided
 ### SSP
 In order to reproduce Tables 5-7 from the paper, method 3 should be run on input file:
 ```sh
-SSP_table2
+/CMSB21_Inputs/SSP_table2
 ```
 
 ### ExCov
 In order to reproduce Table 3 and Table 5 (Appendix C), run on input file:
 ```sh
-ExCov_table3
+/CMSB21_Inputs/ExCov_table3
 ```
 
 ### SAT
 In order to reproduce Table 4, run on input file:
 ```sh
-SAT_table4
+/CMSB21_Inputs/SAT_table4
 ```
