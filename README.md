@@ -223,7 +223,7 @@ These examples are used to show correctness of the network descriptions by compa
 Additional input files for reproduction of the results in the paper are provided under `Inputs/CMSB21_Inputs`. A full reproduction can take over 24 hours.
 
 ### SSP
-In order to reproduce Tables 5-7 from the paper, method 3 should be run on input file:
+In order to reproduce Table 2 from the paper, method 3 should be run on input file:
 ```sh
 /CMSB21_Inputs/SSP_table2
 ```
