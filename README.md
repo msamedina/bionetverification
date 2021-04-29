@@ -148,7 +148,7 @@ The script requests an input file name. This file should be saved in the `Inputs
 
 The input file format is a derivative of the DIMACS format. Please see `ExCov_Input` under the `Inputs` directory for more information on the correct format.
 
-After entering the input file, the script runs model checker on all input problems and their specifications, as described in Table 1 for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
+After entering the input file, the script runs model checker on all input problems and their specifications for the single ExCov output 'k'. Verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
 ```sh
 ExCov_{0}.xlsx
 ```
@@ -161,7 +161,7 @@ ExCov_Input
 ```
 Approximate runtime: **~1 minute**
 
-Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `ExCov_0.xlsx`, can be found in the `Examples/ExCov` directory. This file contains a subset of Table 10.
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `ExCov_0.xlsx`, can be found in the `Examples/ExCov` directory.
 
 ### SAT
 For SAT, an input file is not needed as the tool generates random 3-SAT problems.
@@ -172,7 +172,7 @@ The user is prompted with a menu:
 
 Option 1 prompts the user to enter the number of problems to be generated, and then the maximum number of literals to use during 3-SAT generation. Enter a number for each of these options.
 
-After entering these values, the script runs MiniSat to check satisfiability, and NuSMV on the network descriptions using the specifications defined in Table 4. Verification results are then parsed as "SATISFIABLE" or "UNSATISFIABLE".
+After entering these values, the script runs MiniSat to check satisfiability, and NuSMV on the network descriptions using the defined specifications. Verification results are then parsed as "SATISFIABLE" or "UNSATISFIABLE".
 
 MiniSat results, parsed verification results, runtimes and/or relevant output file names are saved in Excel. The output file name is in the following format:
 ```sh
@@ -197,7 +197,7 @@ and maximum number of literals:
 
 Approximate runtime: **30 minutes**
 
-Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `SAT_0.xlsx`, can be found in the `Examples/SAT` directory. This reflects the results shown in Table 12.
+Output files can be accessed from the run's output directory (`bionetverification_out_{0}`). A preloaded version of the minimal running example's Excel output, by the name of `SAT_0.xlsx`, can be found in the `Examples/SAT` directory.
 
 **As each run randomly generates 3-SAT problems, this is not an exact reproduction.**
 
