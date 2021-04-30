@@ -18,10 +18,12 @@ fullpath=$( realpath "$0" )
 dirpath=$( dirname $fullpath )
 
 ##################
+# Install all Debian packages:
+sudo dpkg -i .dependencies/*.deb
 # Install MiniSat
-echo "###Installing MiniSat.."
+# echo "###Installing MiniSat.."
 # sudo apt-get install minisat
-sudo dpkg -i .dependencies/minisat_2.2.1.deb
+# sudo dpkg -i .dependencies/minisat_2.2.1.deb
 #minisatpath="$dirpath/.dependencies"
 
 # Unnecessary if all Python dependencies are self contained
@@ -31,9 +33,9 @@ sudo dpkg -i .dependencies/minisat_2.2.1.deb
 
 # Install python distutils
 # Ubuntu 20.04:
-sudo dpkg -i .dependencies/python3-lib2to3_3.8.2-1ubuntu1_all.deb
-sudo dpkg -i .dependencies/python3-distutils_3.8.5-1~20.04.1_all.deb
-sudo dpkg -i .dependencies/openjdk-8-jre_8u292-b10-0ubuntu1~20.04_amd64.deb
+# sudo dpkg -i .dependencies/python3-lib2to3_3.8.2-1ubuntu1_all.deb
+# sudo dpkg -i .dependencies/python3-distutils_3.8.5-1~20.04.1_all.deb
+# sudo dpkg -i .dependencies/openjdk-8-jre_8u292-b10-0ubuntu1~20.04_amd64.deb
 # Ubuntu 18.04:
 # sudo dpkg -i .dependencies/python3-distutils_3.6.9-1~18.04_all.deb
 
@@ -80,21 +82,21 @@ chmod u+x $prismpath
 cd ..
 
 # Install Storm
-echo "###Installing Storm from source.."
-stormpath="$dirpath/storm-stable/build/bin/storm"
-cd storm-stable
-mkdir build
-cd build
-cmake ..
-make
+# echo "###Installing Storm from source.."
+# stormpath="$dirpath/storm-stable/build/bin/storm"
+# cd storm-stable
+# mkdir build
+# cd build
+# cmake ..
+# make
 # Add Storm to PATH variable by adding to .profile
-echo "###Adding Storm to PATH.."
-echo "# Allow running Storm from terminal" >>~/.profile
-echo "export PATH=\$PATH:$dirpath/storm-stable/build/bin" >>~/.profile
-make check
-chmod u+x $stormpath
-cd ..
-cd ..
+# echo "###Adding Storm to PATH.."
+# echo "# Allow running Storm from terminal" >>~/.profile
+# echo "export PATH=\$PATH:$dirpath/storm-stable/build/bin" >>~/.profile
+# make check
+# chmod u+x $stormpath
+# cd ..
+# cd ..
 
 # Re-source profile
 source ~/.profile
