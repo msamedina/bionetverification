@@ -79,21 +79,21 @@ chmod u+x $prismpath
 cd ..
 
 # Install Storm
-# echo "###Installing Storm from source.."
-# stormpath="$dirpath/storm-stable/build/bin/storm"
-# cd storm-stable
-# mkdir build
-# cd build
-# cmake ..
-# make
+echo "###Installing Storm from source.."
+stormpath="$dirpath/storm-stable/build/bin/storm"
+cd storm-stable
+mkdir build
+cd build
+cmake ..
+make
 # Add Storm to PATH variable by adding to .profile
-# echo "###Adding Storm to PATH.."
-# echo "# Allow running Storm from terminal" >>~/.profile
-# echo "export PATH=\$PATH:$dirpath/storm-stable/build/bin" >>~/.profile
-# make check
-# chmod u+x $stormpath
-# cd ..
-# cd ..
+echo "###Adding Storm to PATH.."
+echo "# Allow running Storm from terminal" >>~/.profile
+echo "export PATH=\$PATH:$dirpath/storm-stable/build/bin" >>~/.profile
+make check
+chmod u+x $stormpath
+cd ..
+cd ..
 
 # Re-source profile
 source ~/.profile
