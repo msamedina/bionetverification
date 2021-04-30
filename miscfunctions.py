@@ -202,3 +202,28 @@ def cmd_parsing_cut(cut):
         return True
     return cut
 
+
+def cmd_parsing_opt(opt):
+    if opt is None:
+        return 3
+    return opt
+
+
+def cmd_parsing_tags(tags):
+    if tags is None:
+        return True
+    return 'without'
+
+
+def cmd_parsing_error(error):
+    if error is None:
+        return 0
+    return error
+
+
+def cmd_parsing_vro(vro):
+    if vro is None:
+        return 'without'
+    return vro
+
+

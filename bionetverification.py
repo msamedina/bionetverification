@@ -454,13 +454,13 @@ def cmd_menu(args):
 
     # parsing the arguments from command line
     problem_type = misc.cmd_parsing_problem(args.problem)
-    ssp_opt = args.opt
-    with_tags = args.tags
+    ssp_opt = misc.cmd_parsing_opt(args.opt)
+    with_tags = misc.cmd_parsing_tags(args.tags)
     str_modc_list = misc.cmd_parsing_mc(args.modecheck)
-    mu = args.error
+    mu = misc.cmd_parsing_error(args.error)
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
-    vro = args.vro
+    vro = misc.cmd_parsing_vro(args.vro)
     verbosity = misc.cmd_parsing_verbosity(args.verbosity)
     bit_mapping = misc.cmd_parsing_bit_mapping(args.bit_mapping)
     cut = misc.cmd_parsing_cut(args.cut_in_u)
