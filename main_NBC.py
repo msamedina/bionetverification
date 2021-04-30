@@ -40,29 +40,3 @@ if __name__ == '__main__':
         manual_menu()
     else:
         cmd_menu(args=opts)
-
-    opts.problem = 'SSP'
-    opts.opt = 3
-    opts.modecheck = 'all'
-    opts.filename = 'SSP_not_only_Primes'
-    opts.spec = 'p'
-    opts.tags = 'without'
-    opts.cut_in_u = True
-    opts.bit_mapping = True
-    opts.error = 0
-
-    opts.problem = 'SSP'
-    opts.opt = 3
-    opts.modecheck = 'xmv'
-    opts.filename = 'ExCov_Benchmarks'
-    opts.spec = 'reachability'
-    opts.tags = 'without'
-    opts.cut_in_u = True
-    opts.bit_mapping = True
-    opts.error = 0
-
-    opts.problem = 'SAT'
-    opts.modecheck = 'prism'
-    opts.filename = 'dimacs_list'
-    opts.spec = 'r'
-    opts.error = 0
