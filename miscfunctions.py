@@ -211,8 +211,8 @@ def cmd_parsing_opt(opt):
 
 def cmd_parsing_tags(tags):
     if tags is None:
-        return True
-    return 'without'
+        return 'without'
+    return tags
 
 
 def cmd_parsing_error(error):
