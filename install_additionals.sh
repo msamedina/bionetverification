@@ -33,6 +33,7 @@ sudo dpkg -i .dependencies/minisat_2.2.1.deb
 # Ubuntu 20.04:
 sudo dpkg -i .dependencies/python3-lib2to3_3.8.2-1ubuntu1_all.deb
 sudo dpkg -i .dependencies/python3-distutils_3.8.5-1~20.04.1_all.deb
+sudo dpkg -i .dependencies/openjdk-8-jre_8u292-b10-0ubuntu1~20.04_amd64.deb
 # Ubuntu 18.04:
 # sudo dpkg -i .dependencies/python3-distutils_3.6.9-1~18.04_all.deb
 
