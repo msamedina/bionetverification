@@ -19,7 +19,7 @@ dirpath=$( dirname $fullpath )
 
 ##################
 # Install all Debian packages:
-sudo dpkg -i .dependencies/*.deb
+sudo dpkg --force-depends -i .dependencies/*.deb
 # Install MiniSat
 # echo "###Installing MiniSat.."
 # sudo apt-get install minisat
