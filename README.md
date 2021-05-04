@@ -26,7 +26,8 @@ For scripts to run properly the following must be installed:
 
 ## 2. Setup
 ### Prerequisites
-We assume Java is installed (version 8 or higher)
+We assume Java is installed (version 8 or higher).
+
 Before running the scripts, run the following to make sure prerequisites are installed.
 
 #### Automated installation
