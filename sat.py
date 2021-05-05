@@ -600,7 +600,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         num_c = xl_ws.cell(row=(i + 6), column=2).value
         num_v = xl_ws.cell(row=(i + 6), column=3).value
         cnf = ast.literal_eval(xl_ws.cell(row=(i + 6), column=6).value)
-
+        var_ord_fn = []
         # Create Variable Re-Ordering file for sample i noClau
         if vro in ['with', 'both']:
             var_ord_fn = var_order(cnf, i, num_v, num_c, 'noClau')
