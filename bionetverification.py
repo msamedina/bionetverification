@@ -464,6 +464,7 @@ def cmd_menu(args):
     verbosity = misc.cmd_parsing_verbosity(args.verbosity)
     bit_mapping = misc.cmd_parsing_bit_mapping(args.bit_mapping)
     cut = misc.cmd_parsing_cut(args.cut_in_u)
+    ic3 = misc.cmd_parsing_ic3(args.ic3)
 
     """
     MAIN
@@ -552,7 +553,7 @@ def cmd_menu(args):
                     ssp_wb.save(ssp_xl_fn)
 
                     # Run NuSMV and get output filename for specification
-                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
+                    ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
                 # If selected individual out run
                 elif ssp_opt == 2:
@@ -568,7 +569,7 @@ def cmd_menu(args):
                     ssp_wb.save(ssp_xl_fn)
 
                     # Run NuSMV and get outputs for each individual specification
-                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
+                    ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
                 # If selected general specifications
                 elif ssp_opt == 3:
@@ -662,7 +663,7 @@ def cmd_menu(args):
                 ec_wb.save(ec_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags, verbosity=verbosity)
+                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
             elif str_modc == "prism":
 

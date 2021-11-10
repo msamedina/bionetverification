@@ -29,6 +29,8 @@ def parse_args():
                    help='An option to cut the network after universe in ExCov problems')  # True or False
     p.add_argument('-b', '--bit_mapping', required=False, type=bool,
                    help='An option to use bit mapping optimization')  # True or False
+    p.add_argument('-i', '--ic3', required=False, type=str,
+                   help='Flag for using IC3 engine on LTL specifications (only relevant for nuXmv)')
 
     return p.parse_args()
 

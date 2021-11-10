@@ -202,3 +202,9 @@ def cmd_parsing_cut(cut):
         return True
     return cut
 
+def cmd_parsing_ic3(ic3):
+    if ic3.lower() == 'y' or ic3.lower() == 'yes':
+        return True
+    elif ic3.lower() == 'n' or ic3.lower() == 'no':
+        return False
+

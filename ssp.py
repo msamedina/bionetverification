@@ -484,7 +484,7 @@ def smv_gen(ssp_arr, str_modc, with_tags='both'):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
+def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False, verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -494,8 +494,9 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
-            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
             with_tags: Flag for using networks with tags
+            ic3: Use IC3 engine for ltlspec rather than default
 
         Output:
             ssp_list: List of all SSP problems
@@ -514,8 +515,12 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             __ = wsheet.cell(column=4, row=(index + 4), value=smv_t_arr[index])
             wbook.save(xl_fn)
 
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
-                                                                str_modcheker, verbosity)
+            if ic3 and str_modchecker == "nuXmv":
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_t_arr[index], str_modchecker, verbosity)
+            else:
+                out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
+                                                                    str_modchecker, verbosity)
+
             __ = wsheet.cell(column=6, row=(index + 4), value=out_fn[0])
             __ = wsheet.cell(column=7, row=(index + 4), value=out_rt[0])
             __ = wsheet.cell(column=8, row=(index + 4), value=out_fn[1])
@@ -526,9 +531,13 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
         if with_tags in ['without', 'both']:
             __ = wsheet.cell(column=5, row=(index + 4), value=smv_nt_arr[index])
             wbook.save(xl_fn)
+            
+            if ic3 and str_modchecker == "nuXmv":
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_nt_arr[index], str_modchecker, verbosity)
+            else:
+                out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
+                                                                    str_modchecker, verbosity)
 
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
-                                                                str_modcheker, verbosity)
             __ = wsheet.cell(column=10, row=(index + 4), value=out_fn[0])
             __ = wsheet.cell(column=11, row=(index + 4), value=out_rt[0])
             __ = wsheet.cell(column=12, row=(index + 4), value=out_fn[1])
@@ -536,7 +545,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
 
-def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both',verbosity=0):
+def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False, verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -546,7 +555,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
-            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
             with_tags: Flag for using networks with tags
         Output:
             ssp_list: List of all SSP problems
@@ -572,7 +581,10 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
                 wbook.save(xl_fn)
 
-                out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modcheker, verbosity)
+                if ic3 and str_modchecker == "nuXmv":
+                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_t_arr[index], 1, output, str_modchecker, verbosity)
+                else:
+                    out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modchecker, verbosity)
 
                 # Parse output files:
                 ltl_res = modcheck.get_spec_res(out_fn[0])
@@ -593,8 +605,11 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             if with_tags in ['without', 'both']:
                 __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
                 wbook.save(xl_fn)
-
-                out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modcheker, verbosity)
+                
+                if ic3 and str_modchecker == "nuXmv":   
+                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 1, output, str_modchecker, verbosity)
+                else:
+                    out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modchecker, verbosity)
 
                 # Parse output files:
                 ltl_res = modcheck.get_spec_res(out_fn[0])
@@ -622,7 +637,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             row_id = row_id + 1
 
 
-def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, verbosity=0):
+def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
         Input:
@@ -632,7 +647,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
-            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
         Output:
             ssp_list: List of all SSP problems
             set_id: Max set ID (starts from 0)
@@ -653,7 +668,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
             # Run NuSMV on with tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modcheker, verbosity)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modchecker, verbosity)
 
             logging.info('Saving Tags data in Excel')
             __ = wsheet.cell(column=8, row=(row_id + 4), value=out_res)
@@ -661,7 +676,7 @@ def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
             # Run NuSMV on no tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modcheker, verbosity)
+            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modchecker, verbosity)
 
             logging.info('Saving No Tags data in Excel')
             __ = wsheet.cell(column=10, row=(row_id + 4), value=out_res)
@@ -707,7 +722,7 @@ def smv_gen_newspec(ssp_arr, str_modc, with_tags='both'):
     return ssp_smv, ssp_smv_nt
 
 
-def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modcheker, with_tags='both', verbosity=0):
+def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -718,7 +733,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
-            str_modcheker: string containing name of model checker (NuSMV or nuXmv)
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
             with_tags: Flag for using networks with tags
     """
     row_id = 0
@@ -741,7 +756,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
             __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
             wbook.save(xl_fn)
 
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modcheker, verbosity)
+            out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modchecker, verbosity)
 
             # Parse output files if runtime not = "Killed":
             if out_rt[0] != 'Killed':
@@ -781,7 +796,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_
             __ = wsheet.cell(column=5, row=(row_id + 5), value=smv_nt_arr[index])
             wbook.save(xl_fn)
 
-            out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modcheker, verbosity)
+            out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modchecker, verbosity)
 
             # Parse output files if runtime not = "Killed":
             if out_rt_nt[0] != 'Killed':
@@ -977,7 +992,7 @@ def print_prism_ssp_nt_spec(filename):
     f.close()
 
 
-def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_number):
+def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modchecker, spec_number):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -987,7 +1002,7 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
             wbook: The excel workbook
             wsheet: the excel worksheet
             xl_fn: excel file name
-            str_modcheker: PRISM
+            str_modchecker: PRISM
             spec_number: type of spec - reachability or	probability
 
     """
@@ -1004,7 +1019,7 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modcheker, spec_n
         # Run Prism on no tags
 
         if index % 2 == 0 or (index % 2 == 1 and prism_nt_arr[index][6:10] != '0.0_'):  # if mu = 0 -> skip
-            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modcheker, sum(ssp),
+            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(prism_nt_arr[index], str_modchecker, sum(ssp),
                                                                    spec_number)
         else:
             row_id += 1
