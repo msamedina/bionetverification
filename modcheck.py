@@ -546,7 +546,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker, 
     elif probtype == 2:
         ltlspec = 'ltl_k'
 
-    # NuSMV/nuXmv inputs
+    # NuSMV/nuXmv inputs, No Loopback
     inputval = ['go_bmc\n', 'check_ltlspec_bmc_onepb -P "' + ltlspec + '" -k ' + str(max_row) + ' -l X\n', 'quit\n']
     check_spec = [1]
 
@@ -911,7 +911,7 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid,
         return 'ltl_k_path_' + str(path_count)
 
 
-def get_spec_res(spec_res_fn):
+def get_spec_res(spec_res_fn, ic3=False):
     """
     Parse the NuSMV output file
         Input:
@@ -920,22 +920,29 @@ def get_spec_res(spec_res_fn):
             result: The specification's truth value result
     """
     # Pattern for result
-    spec_pattern = re.compile("specification.+(false|true)")
+    spec_pattern = re.compile("specification.+(false|true|unknown)")
     result = ''
 
     # Open the output file and read first line
-    # Spec result is always in first line
+    # Spec result is always in first line for non ic3
     with open(spec_res_fn) as f:
-        first_line = f.readline()
-        match = re.search(spec_pattern, first_line)
-        result = match.groups()[0]
+        if not ic3:
+            first_line = f.readline()
+            match = re.search(spec_pattern, first_line)
+            result = match.groups()[0]
+        else:
+            for line in f:
+                match = re.search(spec_pattern, line)
+                if match is not None:
+                    result = match.groups()[0]
+
     # Return result
     return result
 
 
 def parse_cmdout(data):
     """
-    Parse the NuSMV output for BMC
+    Parse the NuSMV output for BMC or IC3
         Input:
             data: Spec command line data
         Output:
@@ -958,14 +965,14 @@ def parse_cmdout(data):
         
 
 def ic3_output(filename, filecontent):
-    # Write header into file
     f = open(filename, 'w')
+    text = filecontent
     # logging.info('SMV file has been opened for editing')
     f.write(filecontent)
     f.close()
 
 
-def pexpect_nuxmv_ic3_allout(filename, str_modchecker, verbosity=0):
+def pexpect_nuxmv_ic3_allout(filename, str_modchecker, max_row, verbosity=0):
     """
     Run nuXmv Model Checker on a given SMV file using the ic3 engine on the LTL specifications
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -987,7 +994,7 @@ def pexpect_nuxmv_ic3_allout(filename, str_modchecker, verbosity=0):
     
     # nuXmv inputs
     inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                'build_boolean_model\n', 'check_ltlspec_ic3\n',
+                'build_boolean_model\n', 'check_ltlspec_ic3 -k ' + str(max_row) + '\n',
                 'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
     check_spec = [4, 6]
 
@@ -1056,7 +1063,7 @@ def pexpect_nuxmv_ic3_allout(filename, str_modchecker, verbosity=0):
     return out_fn_arr, out_rt_arr
 
 
-def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, verbosity=0):
+def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, max_row, verbosity=0):
     """
     Run nuXmv Model Checker on a given SMV file using the ic3 engine on the LTL specifications
     Uses the pexpect library to run NuSMV in verbose interactive format.
@@ -1091,7 +1098,7 @@ def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, verb
 
     # nuXmv inputs
     inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                'build_boolean_model\n', 'check_ltlspec_ic3 -P "' + ltlspec + '"\n', 
+                'build_boolean_model\n', 'check_ltlspec_ic3 -P "' + ltlspec + '" -k ' + str(max_row) + '\n', 
                 'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
     check_spec = [4, 6]
 
@@ -1114,7 +1121,7 @@ def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, verb
                         out_rt_arr.append(runtime)
                         prev_rec = child.before
                         logging.info(prev_rec)
-                        if i == check_spec[0]:
+                        if (i - 1) == check_spec[0]:
                             ic3_output(out_fn_arr[0], prev_rec)
                         print('Spec Run-time: ' + str(runtime) + ' milliseconds')
                         logging.info('Spec Run-time: ' + str(runtime) +

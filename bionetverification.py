@@ -263,7 +263,7 @@ def manual_menu():
                 ec_wb.save(ec_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc)
+                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, max_sums)
 
             elif str_modc == "prism":
 
@@ -663,7 +663,7 @@ def cmd_menu(args):
                 ec_wb.save(ec_xl_fn)
 
                 # Run NuSMV and get outputs for each individual specification
-                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
+                ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc, max_sums, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
             elif str_modc == "prism":
 

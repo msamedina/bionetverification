@@ -503,6 +503,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             set_id: Max set ID (starts from 0)
     """
     for index, ssp in enumerate(ssp_arr):
+        max_sum = sum(ssp)
         # Save index, k, set, and filenames in excel file
         logging.info('Inputting ID, k, and set data into Excel...')
         __ = wsheet.cell(column=1, row=(index + 4), value=index)
@@ -516,7 +517,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
 
             if ic3 and str_modchecker == "nuXmv":
-                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_t_arr[index], str_modchecker, verbosity)
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_t_arr[index], str_modchecker, max_sum, verbosity)
             else:
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_t_arr[index], index, wsheet, wbook, xl_fn,
                                                                     str_modchecker, verbosity)
@@ -533,7 +534,7 @@ def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modc
             wbook.save(xl_fn)
             
             if ic3 and str_modchecker == "nuXmv":
-                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_nt_arr[index], str_modchecker, verbosity)
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_allout(smv_nt_arr[index], str_modchecker, max_sum, verbosity)
             else:
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_allout(smv_nt_arr[index], index, wsheet, wbook, xl_fn,
                                                                     str_modchecker, verbosity)
@@ -582,12 +583,12 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 wbook.save(xl_fn)
 
                 if ic3 and str_modchecker == "nuXmv":
-                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_t_arr[index], 1, output, str_modchecker, verbosity)
+                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_t_arr[index], 1, output, str_modchecker, max_sum, verbosity)
                 else:
                     out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 1, output, str_modchecker, verbosity)
 
                 # Parse output files:
-                ltl_res = modcheck.get_spec_res(out_fn[0])
+                ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
                 logging.info('LTL Result: ' + ltl_res)
                 ctl_res = modcheck.get_spec_res(out_fn[1])
                 logging.info('CTL Result: ' + ctl_res)
@@ -607,12 +608,12 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 wbook.save(xl_fn)
                 
                 if ic3 and str_modchecker == "nuXmv":   
-                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 1, output, str_modchecker, verbosity)
+                    out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 1, output, str_modchecker, max_sum, verbosity)
                 else:
                     out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 1, output, str_modchecker, verbosity)
 
                 # Parse output files:
-                ltl_res = modcheck.get_spec_res(out_fn[0])
+                ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
                 logging.info('LTL Result: ' + ltl_res)
                 ctl_res = modcheck.get_spec_res(out_fn[1])
                 logging.info('CTL Result: ' + ctl_res)
@@ -625,10 +626,13 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 __ = wsheet.cell(column=19, row=(row_id + 4), value=out_rt[1])
                 wbook.save(xl_fn)
 
-            if ltl_res == 'false' and ctl_res == 'true':
+            if ltl_res == 'false' and ctl_res == 'true' and not ic3:
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='YES')
-            elif ltl_res == 'true' and ctl_res == 'false':
+            elif ltl_res == 'true' and ctl_res == 'false' and not ic3:
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='NO')
+            elif ic3 and ltl_res == 'unknown':
+                val = 'UNKNOWN-YES' if ctl_res == 'true' else 'UNKNOWN-NO'
+                __ = wsheet.cell(column=7, row=(row_id + 4), value=val)
             else:
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID RESULT')
             wbook.save(xl_fn)

@@ -535,7 +535,7 @@ def bin_rep(subset, universe):
     return bin_rep
 
 
-def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False, verbosity=0):
+def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, max_sums=None, with_tags='both', ic3=False, verbosity=0):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -568,12 +568,12 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             wbook.save(xl_fn)
 
             if ic3 and str_modchecker == "nuXmv":   
-                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_t_arr[index], 2, out_interest[index], str_modchecker, verbosity)
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_t_arr[index], 2, out_interest[index], str_modchecker, max_sums[index], verbosity)
             else:
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_t_arr[index], 2, out_interest[index], str_modchecker, verbosity)
 
             # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
+            ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
             logging.info('LTL Result: ' + ltl_res)
             ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
@@ -593,12 +593,12 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             wbook.save(xl_fn)
 
             if ic3 and str_modchecker == "nuXmv":   
-                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, verbosity)
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, max_sum, verbosity)
             else:
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, verbosity)
 
             # Parse output files:
-            ltl_res = modcheck.get_spec_res(out_fn[0])
+            ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
             logging.info('LTL Result: ' + ltl_res)
             ctl_res = modcheck.get_spec_res(out_fn[1])
             logging.info('CTL Result: ' + ctl_res)
@@ -616,6 +616,9 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             __ = wsheet.cell(column=7, row=(index + 4), value='YES')
         elif ltl_res == 'true' and ctl_res == 'false':
             __ = wsheet.cell(column=7, row=(index + 4), value='NO')
+        elif ic3 and ltl_res == 'unknown':
+            val = 'UNKNOWN-YES' if ctl_res == 'true' else 'UNKNOWN-NO'
+            __ = wsheet.cell(column=7, row=(index + 4), value=val)
         else:
             __ = wsheet.cell(column=7, row=(index + 4), value='INVALID RESULT')
         wbook.save(xl_fn)
