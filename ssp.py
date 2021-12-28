@@ -8,7 +8,6 @@ import miscfunctions as misc
 import modcheck
 import pandas as pd
 
-
 def print_ssp_menu(str_mc):
     """
     Print menu for SSP options to screen.

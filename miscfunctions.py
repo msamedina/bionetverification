@@ -227,3 +227,42 @@ def cmd_parsing_vro(vro):
     return vro
 
 
+def ssp_create_m_file(Su=None):
+    with open(f'SSP.m', 'w') as f:
+        f.write('% MATLAB file for running SSP\n\n')
+        for S in Su:
+            f.write(f'% S = {str(S)}\n')
+            f.write(f'SSP=SubSumNetworkClass({S})\n')
+            f.write('Figure=SSP.drawNetwork\n')
+            f.write('Figure.Visible=\'on\'\n')
+            f.write('Figure=SSP.multisim(\'Iterations\', 10)\n')
+            f.write('Figure.Visible=\'on\'\n\n')
+        f.close()
+
+
+def EC_create_m_file(Un=None, Su=None):
+    with open(f'EC.m', 'w') as f:
+        f.write('% MATLAB file for running ExCov\n\n')
+        for U, S in zip (Un, Su):
+            f.write(f'% S = {str(S)}\n')
+            f.write(f'% Universe = {str(U)}\n')
+            f.write(f'Sets=zeros({len(U)},{len(S)})\n')
+            for s in S:
+                set_i = ''
+                for e in range(len(U)):
+                    e += 1
+                    if e in s:
+                        set_i += '1;'
+                    else:
+                        set_i += '0;'
+                set_i = '[' + set_i[:-1] + ']'
+                f.write(f'Sets(:,{e})={set_i}\n')
+            f.write(f'EXCOV=ExcovClass(\'inputSets\',Sets,\'Optimize\',false)\n')
+            f.write('Figure = EXCOV.drawExcovNetwork\n')
+            f.write('Figure.Visible=\'on\'\n')
+            f.write('Figure = EXCOV.makeCombinedPlot\n')
+            f.write('Figure.Visible=\'on\'\n\n')
+        f.close()
+
+
+

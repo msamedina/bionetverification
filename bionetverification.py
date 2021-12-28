@@ -224,6 +224,10 @@ def manual_menu():
             logging.info('Closing workbook')
             ssp_wb.close()
 
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.ssp_create_m_file(Su=ssp_arr)
+
         """
         ExCov SELECTED
         """
@@ -303,6 +307,10 @@ def manual_menu():
             logging.info('Output Excel file is: ' + ec_xl_fn)
             logging.info('Closing workbook')
             ec_wb.close()
+
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.EC_create_m_file(Un=universes, Su=subsets_arrays)
 
         """
         SAT SELECTED
