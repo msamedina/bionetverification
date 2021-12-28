@@ -994,7 +994,7 @@ def pexpect_nuxmv_ic3_allout(filename, str_modchecker, max_row, verbosity=0):
     
     # nuXmv inputs
     inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                'build_boolean_model\n', 'check_ltlspec_ic3 -k ' + str(max_row) + '\n',
+                'build_boolean_model\n', 'check_ltlspec_ic3 -k ' + str(max_row + 1) + '\n',
                 'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
     check_spec = [4, 6]
 
@@ -1098,7 +1098,7 @@ def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, max_
 
     # nuXmv inputs
     inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
-                'build_boolean_model\n', 'check_ltlspec_ic3 -P "' + ltlspec + '" -k ' + str(max_row) + '\n', 
+                'build_boolean_model\n', 'check_ltlspec_ic3 -P "' + ltlspec + '" -k ' + str(max_row + 1) + '\n', 
                 'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
     check_spec = [4, 6]
 
