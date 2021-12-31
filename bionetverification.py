@@ -52,6 +52,7 @@ def manual_menu():
     PROBLEM TYPE SELECTION
     -----------------------
     Get the problem type being looked at
+        [0] General Network
         [1] SSP
         [2] ExCov
         [3] SAT
@@ -65,6 +66,19 @@ def manual_menu():
         misc.print_menu()
         problem_type = misc.int_input()
         logging.info('Selected option: ' + str(problem_type))
+
+        """
+        General Network SELECTED
+        """
+        if problem_type == 0:
+            """
+            Get and Parse SSP sets from input file
+            --------------------------------------
+            """
+            # While filename is not in Inputs
+            gn_pstr = 'Please enter Network filename: '
+            gn_fn = misc.input_exists(input_dir, gn_pstr)
+            depth, split_junc, force_down_junc = misc.read_gn(gn_fn)
 
         """
         SSP SELECTED
