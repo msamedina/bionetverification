@@ -176,8 +176,10 @@ def cmd_parsing_prism_spec(spec):
     return spec_list.index(spec)
 
 
-def cmd_parsing_mc(mc):
+def cmd_parsing_mc(mc=None):
     # parsing the model checker without case sensitivity
+    if mc is None:
+        return
     if mc.lower() == 'all':
         return ['NuSMV', 'nuXmv', 'prism']
     if mc.lower() == 'smv' or mc.lower() == 'nusmv':
@@ -301,6 +303,7 @@ def read_gn(fn=None):
                 split_junc.append([i, j])
 
     # read to .txt file
+    logging.info('Save General Network')
     with open('gn.txt', 'w') as f:
         f.write('General Network with the following architecture:\n')
         f.write(f'Depth: {depth}\n')
