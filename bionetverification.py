@@ -535,9 +535,8 @@ def cmd_menu(args):
         --------------------------------------
         """
         # While filename is not in Inputs
-        gn_pstr = 'Please enter Network filename: '
-        gn_fn = misc.input_exists(input_dir, gn_pstr)
-        depth, split_junc, force_down_junc = misc.read_gn(gn_fn)
+        gn_fn = input_dir + filename
+        depth, split_junc, force_down_junc = misc.read_gn(fn=gn_fn)
 
     """
     SSP SELECTED
