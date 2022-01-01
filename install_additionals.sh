@@ -31,12 +31,22 @@ echo "###Installing pip.."
 sudo apt-get install python3-pip
 
 # Install python distutils
-# Ubuntu 20.04:
-sudo dpkg -i .dependencies/python3-lib2to3_3.8.2-1ubuntu1_all.deb
-sudo dpkg -i .dependencies/python3-distutils_3.8.5-1~20.04.1_all.deb
-# Ubuntu 18.04:
-# sudo dpkg -i .dependencies/python3-distutils_3.6.9-1~18.04_all.deb
+Var=$(lsb_release -r)
+NumOnly=$(cut -f2 <<< "$Var")
+BigVersionIndex=${NumOnly%.*}  # retain the part before the period
+if [ $BigVersionIndex == "18" ]
+    then
+        echo "Version is 18"
+        # Ubuntu 18.04:
+        sudo dpkg -i .dependencies/python3-distutils_3.6.9-1~18.04_all.deb
 
+elif [ $BigVersionIndex == "20" ]
+    then
+        echo "Version is 20"
+        # Ubuntu 20.04:
+        sudo dpkg -i .dependencies/python3-lib2to3_3.8.2-1ubuntu1_all.deb
+        sudo dpkg -i .dependencies/python3-distutils_3.8.5-1~20.04.1_all.deb
+fi
 
 # Install python dependencies
 echo "###Installing python dependencies.."

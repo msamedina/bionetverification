@@ -358,7 +358,8 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
     # NuSMV inputs without re-ordering variables
     inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + '\n',
                 'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
-    check_spec = [1, 2]        
+    check_spec = [1, 2]
+
     logging.info('Opening process: ' + str_modchecker)
     
     if sys.platform.startswith('linux'):
@@ -431,7 +432,6 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
         Input:
             filename: The NuSMV filename on which to run
             probtype: Problem type being looked at (1 for SSP or 2 for ExCov)
-            ###row_id: row ID number for excel file save data
             outval: The value of interest being looked at
             str_modchecker: string containing name of model checker (NuSMV or nuXmv)
     """
@@ -458,7 +458,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
     inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\n',
                 'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
     check_spec = [1, 2]
-    
+
     logging.info('Opening process: ' + str_modchecker)
 
     if sys.platform.startswith('linux'):
@@ -546,7 +546,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker, 
     elif probtype == 2:
         ltlspec = 'ltl_k'
 
-    # NuSMV/nuXmv inputs
+    # NuSMV/nuXmv inputs, No Loopback
     inputval = ['go_bmc\n', 'check_ltlspec_bmc_onepb -P "' + ltlspec + '" -k ' + str(max_row) + ' -l X\n', 'quit\n']
     check_spec = [1]
 
@@ -911,7 +911,7 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid,
         return 'ltl_k_path_' + str(path_count)
 
 
-def get_spec_res(spec_res_fn):
+def get_spec_res(spec_res_fn, ic3=False):
     """
     Parse the NuSMV output file
         Input:
@@ -920,22 +920,29 @@ def get_spec_res(spec_res_fn):
             result: The specification's truth value result
     """
     # Pattern for result
-    spec_pattern = re.compile("specification.+(false|true)")
+    spec_pattern = re.compile("specification.+(false|true|unknown)")
     result = ''
 
     # Open the output file and read first line
-    # Spec result is always in first line
+    # Spec result is always in first line for non ic3
     with open(spec_res_fn) as f:
-        first_line = f.readline()
-        match = re.search(spec_pattern, first_line)
-        result = match.groups()[0]
+        if not ic3:
+            first_line = f.readline()
+            match = re.search(spec_pattern, first_line)
+            result = match.groups()[0]
+        else:
+            for line in f:
+                match = re.search(spec_pattern, line)
+                if match is not None:
+                    result = match.groups()[0]
+
     # Return result
     return result
 
 
 def parse_cmdout(data):
     """
-    Parse the NuSMV output for BMC
+    Parse the NuSMV output for BMC or IC3
         Input:
             data: Spec command line data
         Output:
@@ -956,3 +963,209 @@ def parse_cmdout(data):
         
     return result
         
+
+def ic3_output(filename, filecontent):
+    f = open(filename, 'w')
+    text = filecontent
+    # logging.info('SMV file has been opened for editing')
+    f.write(filecontent)
+    f.close()
+
+
+def pexpect_nuxmv_ic3_allout(filename, str_modchecker, max_row, verbosity=0):
+    """
+    Run nuXmv Model Checker on a given SMV file using the ic3 engine on the LTL specifications
+    Uses the pexpect library to run NuSMV in verbose interactive format.
+    NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
+    NOTE: THIS IS FOR SSP ALL OUTPUTS, ONLY LTL
+        Input:
+            filename: The nuXmv filename on which to run
+            verbosity: nuXmv verbosity level
+    """
+    out_fn_arr = [misc.file_name_cformat('output_SSP_IC3_LTL_{0}'),
+                misc.file_name_cformat('output_SSP_CTL_{0}')]
+    out_rt_arr = []
+
+    # Prepare to catch runtimes
+    start = 0
+    stop = 0
+    runtime = 0
+    err_flag = 0
+    
+    # nuXmv inputs
+    inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
+                'build_boolean_model\n', 'check_ltlspec_ic3 -k ' + str(max_row + 1) + '\n',
+                'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + '\n', 'quit\n']
+    check_spec = [4, 6]
+
+    logging.info('Opening process: ' + str_modchecker)
+    
+    if sys.platform.startswith('linux'):
+        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+                            logfile=sys.stdout, encoding='utf-8',
+                            timeout=None)
+        logging.info('Process opened')
+        for i in range(0, len(inputval)):
+            while True:
+                try:
+                    # Expect pattern to identify model checker waiting for input
+                    child.expect('\n' + str_modchecker)
+                    # If previous input was a spec check do:
+                    if (i - 1) == check_spec:
+                        stop = datetime.datetime.now()
+                        runtime = int((stop - start).total_seconds() * 1000)
+                        out_rt_arr.append(runtime)
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                        if (i - 1) == check_spec[0]:
+                            ic3_output(out_fn_arr[0], prev_rec)
+                        print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+                        logging.info('Spec Run-time: ' + str(runtime) +
+                                    ' milliseconds')
+                    else:
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                    break
+                except pexpect.EOF:
+                    err_flag = 1
+                    prev_rec = child.before
+                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modchecker + " was killed."
+                    logging.exception(msg=ermsg)
+                    break
+            
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    start = datetime.datetime.now()
+            
+                logging.info(str_modchecker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                while len(out_rt_arr) < 2:
+                    out_rt_arr.append('Killed')
+                break
+
+        child.close()
+    # WINDOWS SUPPORT FOR FUTURE DEVELOPEMENT
+    """ elif sys.platform.startswith('win32'):
+        inputval_win = [''.join(itemgetter(0,1,-1)(inputval)), ''.join(itemgetter(0,2,-1)(inputval))]
+        for inputval in inputval_win:
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt_arr.append(runtime) """
+    
+    return out_fn_arr, out_rt_arr
+
+
+def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, max_row, verbosity=0):
+    """
+    Run nuXmv Model Checker on a given SMV file using the ic3 engine on the LTL specifications
+    Uses the pexpect library to run NuSMV in verbose interactive format.
+    NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
+    NOTE: THIS IS FOR SSP SINGLE OUTPUTS AND ExCov OUTPUT
+        Input:
+            filename: The nuXmv filename on which to run
+            probtype: Problem type being looked at (1 for SSP or 2 for ExCov)
+            outval: The value of interest being looked at
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
+    """
+
+    if probtype == 1:
+        pt = 'SSP'
+        ltlspec = 'ltl_' + str(outval)
+        ctlspec = 'ctl_' + str(outval)
+    elif probtype == 2:
+        pt = 'EC'
+        ltlspec = 'ltl_k'
+        ctlspec = 'ctl_k'
+    
+    out_fn_arr = [misc.file_name_cformat('output_' + pt + '_LTL_IC3_k_' + str(outval) + '_{0}'),
+                  misc.file_name_cformat('output_' + pt + '_CTL_k_' + str(outval) + '_{0}')]
+    out_rt_arr = []
+
+
+    # Prepare to catch runtimes
+    start = 0
+    stop = 0
+    runtime = 0
+    err_flag = 0
+
+    # nuXmv inputs
+    inputval = ['read_model\n', 'flatten_hierarchy\n', 'encode_variables\n',
+                'build_boolean_model\n', 'check_ltlspec_ic3 -P "' + ltlspec + '" -k ' + str(max_row + 1) + '\n', 
+                'build_model\n', 'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
+    check_spec = [4, 6]
+
+    logging.info('Opening process: ' + str_modchecker)
+
+    if sys.platform.startswith('linux'):
+        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+                            logfile=sys.stdout, encoding='utf-8',
+                            timeout=None)
+        logging.info('Process opened')
+        for i in range(0, len(inputval)):
+            while True:
+                try:
+                    # Expect pattern to identify model checker waiting for input
+                    child.expect('\n' + str_modchecker)
+                    # If previous input was a spec check do:
+                    if (i - 1) in check_spec:
+                        stop = datetime.datetime.now()
+                        runtime = int((stop - start).total_seconds() * 1000)
+                        out_rt_arr.append(runtime)
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                        if (i - 1) == check_spec[0]:
+                            ic3_output(out_fn_arr[0], prev_rec)
+                        print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+                        logging.info('Spec Run-time: ' + str(runtime) +
+                                    ' milliseconds')
+                    else:
+                        prev_rec = child.before
+                        logging.info(prev_rec)
+                    break
+                except pexpect.EOF:
+                    err_flag = 1
+                    prev_rec = child.before
+                    logging.info(prev_rec)
+                    ermsg = "Process " + str_modchecker + " was killed."
+                    logging.exception(msg=ermsg)
+                    break
+            
+            if err_flag == 0:
+                if i in check_spec:
+                    print('Running Specs...')
+                    logging.info('Running specs...')
+                    start = datetime.datetime.now()
+                
+                logging.info(str_modchecker + ' command: ' + inputval[i])
+                child.send(inputval[i])
+            elif err_flag == 1:
+                while len(out_rt_arr) < 2:
+                    out_rt_arr.append('Killed')
+                break
+
+        child.close()
+    # WINDOWS SUPPORT FOR FUTURE DEVELOPEMENT
+    """ elif sys.platform.startswith('win32'):
+        # NuSMV inputs
+        inputval_win = [''.join(itemgetter(0,1,-1)(inputval)), ''.join(itemgetter(0,2,-1)(inputval))]
+
+        for inputval in inputval_win:
+            start = datetime.datetime.now()
+            try:
+                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                stop = datetime.datetime.now()
+                runtime = int((stop - start).total_seconds() * 1000)
+            except subprocess.CalledProcessError:
+                runtime = 'Killed'
+            out_rt = runtime """
+
+    return out_fn_arr, out_rt_arr
+

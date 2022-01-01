@@ -5,3 +5,5 @@ __pycache__/
 
 # exclude directory Logs and all contained files
 **/Logs
+# exclude hidden vscode directory
+**/.vscode

@@ -205,7 +205,6 @@ def cmd_parsing_cut(cut):
         return True
     return cut
 
-
 def cmd_parsing_opt(opt):
     if opt is None:
         return 3
@@ -301,3 +300,11 @@ def read_gn(fn=None):
                 force_down_junc.append([i, j])
 
     return depth, split_junc, force_down_junc
+
+  def cmd_parsing_ic3(ic3):
+    if ic3 is None:
+        return False
+    elif ic3.lower() == 'y' or ic3.lower() == 'yes':
+        return True
+    elif ic3.lower() == 'n' or ic3.lower() == 'no':
+        return False
