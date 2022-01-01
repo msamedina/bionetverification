@@ -72,7 +72,7 @@ def manual_menu():
         """
         if problem_type == 0:
             """
-            Get and Parse SSP sets from input file
+            Get and Parse General Network from input file
             --------------------------------------
             """
             # While filename is not in Inputs
@@ -324,7 +324,7 @@ def manual_menu():
 
             # create MATLAB file
             logging.info('Create MATLAB file')
-            misc.EC_create_m_file(Un=universes, Su=subsets_arrays)
+            misc.ec_create_m_file(Un=universes, Su=subsets_arrays)
 
         """
         SAT SELECTED

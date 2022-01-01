@@ -4,7 +4,7 @@ from bionetverification import manual_menu, cmd_menu
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument('-p', '--problem', required=False, type=str, help='Problem type')  # SSP, ExCov or SAT
+    p.add_argument('-p', '--problem', required=False, type=str, help='Problem type')  # GN, SSP, ExCov or SAT
     p.add_argument('-f', '--filename', required=False, type=str,
                    help='Input file name. Files must be in defined formats for relevant problem types')
     p.add_argument('-m', '--modecheck', required=False, type=str,

@@ -205,6 +205,7 @@ def cmd_parsing_cut(cut):
         return True
     return cut
 
+
 def cmd_parsing_opt(opt):
     if opt is None:
         return 3
@@ -242,7 +243,7 @@ def ssp_create_m_file(Su=None):
         f.close()
 
 
-def EC_create_m_file(Un=None, Su=None):
+def ec_create_m_file(Un=None, Su=None):
     with open(f'EC.m', 'w') as f:
         f.write('% MATLAB file for running ExCov\n\n')
         for U, S in zip(Un, Su):
@@ -285,19 +286,27 @@ def read_gn(fn=None):
 
     # Run through the lines of data in the file
     gn = in_data.readlines()
-    depth = int(gn[0])
+    depth = eval((gn[0])[:-1])
     sj = lambda x, y: eval(gn[1])
     if len(gn) > 2:
         fdj = lambda x, y: eval(gn[2])
     else:
         fdj = lambda x, y: False
 
-    for i in range(1, depth + 1, 1):
-        for j in range(1, i + 1, 1):
-            if sj(i, j):
-                split_junc.append([i, j])
-            elif fdj(i, j):
+    for i in range(depth):
+        for j in range(i + 1):
+            if fdj(i, j):
                 force_down_junc.append([i, j])
+            elif sj(i, j):
+                split_junc.append([i, j])
+
+    # read to .txt file
+    with open('gn.txt', 'w') as f:
+        f.write('General Network with the following architecture:\n')
+        f.write(f'Depth: {depth}\n')
+        f.write(f'Split junctions: {split_junc}\n')
+        f.write(f'Force-down junctions: {force_down_junc}\n')
+        f.close()
 
     return depth, split_junc, force_down_junc
 
