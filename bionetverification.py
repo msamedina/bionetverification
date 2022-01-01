@@ -527,6 +527,19 @@ def cmd_menu(args):
     logging.info('Bionetverification')
 
     """
+    General Network SELECTED
+    """
+    if problem_type == 0:
+        """
+        Get and Parse General Network from input file
+        --------------------------------------
+        """
+        # While filename is not in Inputs
+        gn_pstr = 'Please enter Network filename: '
+        gn_fn = misc.input_exists(input_dir, gn_pstr)
+        depth, split_junc, force_down_junc = misc.read_gn(gn_fn)
+
+    """
     SSP SELECTED
     """
     if problem_type == 1:
@@ -650,6 +663,10 @@ def cmd_menu(args):
             logging.info('Closing workbook')
             ssp_wb.close()
 
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.ssp_create_m_file(Su=ssp_arr)
+
     """
     ExCov SELECTED
     """
@@ -718,6 +735,10 @@ def cmd_menu(args):
             logging.info('Output Excel file is: ' + ec_xl_fn)
             logging.info('Closing workbook')
             ec_wb.close()
+
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.ec_create_m_file(Un=universes, Su=subsets_arrays)
 
     """
     SAT SELECTED

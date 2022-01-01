@@ -163,7 +163,7 @@ def prism_set_mu():
 
 
 def cmd_parsing_problem(problem):
-    problem_list = [None, 'SSP', 'ExCov', 'SAT']
+    problem_list = ['GN', 'SSP', 'ExCov', 'SAT']
     return problem_list.index(problem)
 
 
@@ -310,7 +310,8 @@ def read_gn(fn=None):
 
     return depth, split_junc, force_down_junc
 
-  def cmd_parsing_ic3(ic3):
+
+def cmd_parsing_ic3(ic3):
     if ic3 is None:
         return False
     elif ic3.lower() == 'y' or ic3.lower() == 'yes':
