@@ -19,7 +19,7 @@ def parse_args():
                    help='Flag for using variable reordering (only relevant for SAT)')  # with, without or both
     # Prism
     p.add_argument('-s', '--spec', required=False, type=str,
-                   help='Spec type to be looked at')  # LTL (smv/xmv), CTL (smv/xmv), reachability (PRISM) or	probability (PRISM)
+                   help='Spec type to be looked at')  # reachability (PRISM) or	probability (PRISM)
     p.add_argument('-e', '--error', required=False, type=float,
                    help='error rate for Prism')  # number in range [0,1] - 0 for no errors
     # SMV
@@ -42,4 +42,3 @@ if __name__ == '__main__':
         manual_menu()
     else:
         cmd_menu(args=opts)
-

@@ -52,6 +52,7 @@ def manual_menu():
     PROBLEM TYPE SELECTION
     -----------------------
     Get the problem type being looked at
+        [0] General Network
         [1] SSP
         [2] ExCov
         [3] SAT
@@ -65,6 +66,19 @@ def manual_menu():
         misc.print_menu()
         problem_type = misc.int_input()
         logging.info('Selected option: ' + str(problem_type))
+
+        """
+        General Network SELECTED
+        """
+        if problem_type == 0:
+            """
+            Get and Parse SSP sets from input file
+            --------------------------------------
+            """
+            # While filename is not in Inputs
+            gn_pstr = 'Please enter Network filename: '
+            gn_fn = misc.input_exists(input_dir, gn_pstr)
+            depth, split_junc, force_down_junc = misc.read_gn(gn_fn)
 
         """
         SSP SELECTED
@@ -224,6 +238,10 @@ def manual_menu():
             logging.info('Closing workbook')
             ssp_wb.close()
 
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.ssp_create_m_file(Su=ssp_arr)
+
         """
         ExCov SELECTED
         """
@@ -303,6 +321,10 @@ def manual_menu():
             logging.info('Output Excel file is: ' + ec_xl_fn)
             logging.info('Closing workbook')
             ec_wb.close()
+
+            # create MATLAB file
+            logging.info('Create MATLAB file')
+            misc.EC_create_m_file(Un=universes, Su=subsets_arrays)
 
         """
         SAT SELECTED
@@ -454,13 +476,13 @@ def cmd_menu(args):
 
     # parsing the arguments from command line
     problem_type = misc.cmd_parsing_problem(args.problem)
-    ssp_opt = args.opt
-    with_tags = args.tags
+    ssp_opt = misc.cmd_parsing_opt(args.opt)
+    with_tags = misc.cmd_parsing_tags(args.tags)
     str_modc_list = misc.cmd_parsing_mc(args.modecheck)
-    mu = args.error
+    mu = misc.cmd_parsing_error(args.error)
     prism_spec = misc.cmd_parsing_prism_spec(args.spec)
     filename = args.filename
-    vro = args.vro
+    vro = misc.cmd_parsing_vro(args.vro)
     verbosity = misc.cmd_parsing_verbosity(args.verbosity)
     bit_mapping = misc.cmd_parsing_bit_mapping(args.bit_mapping)
     cut = misc.cmd_parsing_cut(args.cut_in_u)

@@ -3,6 +3,7 @@ Miscellaneous Functions
 Michelle Aluf Medina
 """
 import os
+import logging
 
 
 def file_name_cformat(filename):
@@ -50,6 +51,7 @@ def print_menu():
     Menu for user selection
     """
     print('Select a problem type:')
+    print('\t[0] General Network')
     print('\t[1] SSP')
     print('\t[2] ExCov')
     print('\t[3] SAT')
@@ -80,19 +82,19 @@ def subset_sums(arr, n):
     # dp[i][j] = true if arr[0..i-1] has a subset with sum equal to j
     # setup dp as all false initially
     dp = [[False for i in range(max_sum + 1)]
-                 for i in range(n + 1)]
+          for i in range(n + 1)]
 
     # There is always a subset with 0 Sum
     for i in range(n + 1):
         dp[i][0] = True
-      
+
     # Fill dp[][] in bottom up manner
     for i in range(1, n + 1):
-        
+
         dp[i][arr[i - 1]] = True
 
         for j in range(1, max_sum + 1):
-            
+
             # Achievable sums w/o current array element
             if (dp[i - 1][j] == True):
                 dp[i][j] = True
@@ -101,13 +103,13 @@ def subset_sums(arr, n):
     # Last row True values are valid sums, False values are invalid sums
     vsum = list()
     isum = list()
-    for j in range(max_sum + 1):  
-        if (dp[n][j] == True): 
-            #print(j, end = " ")
+    for j in range(max_sum + 1):
+        if (dp[n][j] == True):
+            # print(j, end = " ")
             vsum.append(j)
         else:
             isum.append(j)
-    
+
     return vsum, isum
 
 
@@ -153,7 +155,8 @@ def modcheck_select():
 
 
 def prism_set_mu():
-    print('What would you like to set mu (probability of pass junction to change the direction)?\n mu should be in [0,1], while mu = 0 meaning no errors')
+    print(
+        'What would you like to set mu (probability of pass junction to change the direction)?\n mu should be in [0,1], while mu = 0 meaning no errors')
     user_input = float(input())
 
     return user_input
@@ -202,11 +205,106 @@ def cmd_parsing_cut(cut):
         return True
     return cut
 
-def cmd_parsing_ic3(ic3):
+def cmd_parsing_opt(opt):
+    if opt is None:
+        return 3
+    return opt
+
+
+def cmd_parsing_tags(tags):
+    if tags is None:
+        return 'without'
+    return tags
+
+
+def cmd_parsing_error(error):
+    if error is None:
+        return 0
+    return error
+
+
+def cmd_parsing_vro(vro):
+    if vro is None:
+        return 'without'
+    return vro
+
+
+def ssp_create_m_file(Su=None):
+    with open(f'SSP.m', 'w') as f:
+        f.write('% MATLAB file for running SSP\n\n')
+        for S in Su:
+            f.write(f'% S = {str(S)}\n')
+            f.write(f'SSP=SubSumNetworkClass({S})\n')
+            f.write('Figure=SSP.drawNetwork\n')
+            f.write('Figure.Visible=\'on\'\n')
+            f.write('Figure=SSP.multisim(\'Iterations\', 10)\n')
+            f.write('Figure.Visible=\'on\'\n\n')
+        f.close()
+
+
+def EC_create_m_file(Un=None, Su=None):
+    with open(f'EC.m', 'w') as f:
+        f.write('% MATLAB file for running ExCov\n\n')
+        for U, S in zip(Un, Su):
+            f.write(f'% S = {str(S)}\n')
+            f.write(f'% Universe = {str(U)}\n')
+            f.write(f'Sets=zeros({len(U)},{len(S)})\n')
+            for s in S:
+                set_i = ''
+                for e in range(len(U)):
+                    e += 1
+                    if e in s:
+                        set_i += '1;'
+                    else:
+                        set_i += '0;'
+                set_i = '[' + set_i[:-1] + ']'
+                f.write(f'Sets(:,{e})={set_i}\n')
+            f.write(f'EXCOV=ExcovClass(\'inputSets\',Sets,\'Optimize\',false)\n')
+            f.write('Figure = EXCOV.drawExcovNetwork\n')
+            f.write('Figure.Visible=\'on\'\n')
+            f.write('Figure = EXCOV.makeCombinedPlot\n')
+            f.write('Figure.Visible=\'on\'\n\n')
+        f.close()
+
+
+def read_gn(fn=None):
+    """
+    Parse the general network input file
+    Find file format in README
+        Input:
+            filename: General Network input file name
+        Output:
+            Depth: The size of the network
+            split_junc: list of split junctions
+            force_down_junc: list of split junctions
+    """
+    logging.info('Opening General Network input file')
+    in_data = open(fn, "r")
+    split_junc = list()
+    force_down_junc = list()
+
+    # Run through the lines of data in the file
+    gn = in_data.readlines()
+    depth = int(gn[0])
+    sj = lambda x, y: eval(gn[1])
+    if len(gn) > 2:
+        fdj = lambda x, y: eval(gn[2])
+    else:
+        fdj = lambda x, y: False
+
+    for i in range(1, depth + 1, 1):
+        for j in range(1, i + 1, 1):
+            if sj(i, j):
+                split_junc.append([i, j])
+            elif fdj(i, j):
+                force_down_junc.append([i, j])
+
+    return depth, split_junc, force_down_junc
+
+  def cmd_parsing_ic3(ic3):
     if ic3 is None:
         return False
     elif ic3.lower() == 'y' or ic3.lower() == 'yes':
         return True
     elif ic3.lower() == 'n' or ic3.lower() == 'no':
         return False
-
