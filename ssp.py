@@ -8,7 +8,6 @@ import miscfunctions as misc
 import modcheck
 import pandas as pd
 
-
 def print_ssp_menu(str_mc):
     """
     Print menu for SSP options to screen.
@@ -482,6 +481,7 @@ def smv_gen(ssp_arr, str_modc, with_tags='both'):
             ssp_smv_nt.append(ssp_smv_name_nt)
 
     return ssp_smv, ssp_smv_nt
+
 
 
 def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False, verbosity=0):

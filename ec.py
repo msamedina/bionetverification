@@ -624,8 +624,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
         wbook.save(xl_fn)
 
 
-def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn,
-                  str_modchecker, verbosity=0):
+def run_nusmv_bmc(universe, subsets, out_interest, max_sums, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, verbosity=0):
     """
     Loop through array of ExCov smv files and run NuSMV. Save results in Excel
         Input:
@@ -953,11 +952,11 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
         out_rt = str(f'{out_rt_arr[0]} / {out_rt_arr[1]}')
         if index % 2 == 0:
             __ = wsheet.cell(column=6, row=(int(index / 2) + 4), value=exist_res)
-            __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=float(prob_res))
+            __ = wsheet.cell(column=7, row=(int(index / 2) + 4), value=str(prob_res))
             __ = wsheet.cell(column=8, row=(int(index / 2) + 4), value=out_rt)
         else:
             __ = wsheet.cell(column=9, row=(int(index / 2) + 4), value=exist_res)
-            __ = wsheet.cell(column=10, row=(int(index / 2) + 4), value=float(prob_res))
+            __ = wsheet.cell(column=10, row=(int(index / 2) + 4), value=str(prob_res))
             __ = wsheet.cell(column=11, row=(int(index / 2) + 4), value=out_rt)
 
         wbook.save(xl_fn)

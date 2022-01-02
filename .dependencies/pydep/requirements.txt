@@ -2,6 +2,7 @@
 pexpect
 scipy
 networkx
+pandas
 
 ###### Requirements with Version Specifiers ######
 CNFgen >= 0.9.0

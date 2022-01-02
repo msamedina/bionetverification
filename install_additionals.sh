@@ -18,16 +18,17 @@ fullpath=$( realpath "$0" )
 dirpath=$( dirname $fullpath )
 
 ##################
+# Install all Debian packages:
 # Install MiniSat
 echo "###Installing MiniSat.."
-# sudo apt-get install minisat
+sudo apt-get install minisat
 sudo dpkg -i .dependencies/minisat_2.2.1.deb
 #minisatpath="$dirpath/.dependencies"
 
 # Unnecessary if all Python dependencies are self contained
 # Install pip3
-# echo "###Installing pip.."
-# sudo apt-get install python3-pip
+echo "###Installing pip.."
+sudo apt-get install python3-pip
 
 # Install python distutils
 Var=$(lsb_release -r)
@@ -74,6 +75,19 @@ echo "# Allow running nuXmv from terminal" >>~/.profile
 echo "export PATH=\$PATH:$dirpath/nuXmv-2.0.0-Linux/bin" >>~/.profile
 # Add permission for nuXmv execution
 chmod u+x $nuxmvpath
+
+# Install PRISM
+echo "###Installing PRISM from binaries.."
+cd prism-4.6-linux64
+. install.sh
+# Add PRISM to PATH variable by adding to .profile
+echo "###Adding PRISM to PATH.."
+prismpath="$dirpath/prism-4.6-linux64/bin/prism"
+echo "# Allow running PRISM from terminal" >>~/.profile
+echo "export PATH=\$PATH:$dirpath/prism-4.6-linux64/bin" >>~/.profile
+# Add permission for nuXmv execution
+chmod u+x $prismpath
+cd ..
 
 # Re-source profile
 source ~/.profile
