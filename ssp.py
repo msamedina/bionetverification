@@ -476,7 +476,7 @@ def smv_gen(ssp_arr, str_modc, with_tags='both'):
         # Without tags
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
-            ssp_smv_name_nt = misc.file_name_cformat('NT_' + '_{0}' + ssp_smv_name)
+            ssp_smv_name_nt = misc.file_name_cformat('NT_' + '{0}_' + ssp_smv_name)
             print_smv_ssp_nt(ssp_smv_name_nt, ssp, sum(ssp), len(ssp))
             logging.info('Generated NuSMV file without tags')
             ssp_smv_nt.append(ssp_smv_name_nt)
@@ -626,9 +626,9 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
                 __ = wsheet.cell(column=19, row=(row_id + 4), value=out_rt[1])
                 wbook.save(xl_fn)
 
-            if ltl_res == 'false' and ctl_res == 'true' and not ic3:
+            if ltl_res == 'false' and ctl_res == 'true':
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='YES')
-            elif ltl_res == 'true' and ctl_res == 'false' and not ic3:
+            elif ltl_res == 'true' and ctl_res == 'false':
                 __ = wsheet.cell(column=7, row=(row_id + 4), value='NO')
             elif ic3 and ltl_res == 'unknown':
                 val = 'UNKNOWN-YES' if ctl_res == 'true' else 'UNKNOWN-NO'
