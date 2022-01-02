@@ -593,7 +593,7 @@ def run_nusmv(universe, subsets, out_interest, smv_t_arr, smv_nt_arr, wbook, wsh
             wbook.save(xl_fn)
 
             if ic3 and str_modchecker == "nuXmv":   
-                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, max_sum, verbosity)
+                out_fn, out_rt = modcheck.pexpect_nuxmv_ic3_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, max_sums[index], verbosity)
             else:
                 out_fn, out_rt = modcheck.call_nusmv_pexpect_singleout(smv_nt_arr[index], 2, out_interest[index], str_modchecker, verbosity)
 
