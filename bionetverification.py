@@ -8,6 +8,7 @@ from openpyxl import load_workbook as loadwb
 import sat
 import ssp
 import ec
+import gn
 import miscfunctions as misc
 import os
 
@@ -77,8 +78,31 @@ def manual_menu():
             """
             # While filename is not in Inputs
             gn_pstr = 'Please enter Network filename: '
-            gn_fn = misc.input_exists(input_dir, gn_pstr)
-            depth, split_junc, force_down_junc = misc.read_gn(gn_fn)
+            gn_smv_fn = misc.input_exists(input_dir, gn_pstr)
+            depth, split_junc, force_down_junc = misc.read_gn(gn_smv_fn)
+
+            # Setup worksheet for data recording
+            gn_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+            ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
+            gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
+            gn_wb.save(gn_xl_fn)
+
+            """
+            Run NuSMV
+            Run new specs (csum and nsum for whole network)
+            ------------------
+            """
+            # Add another worksheet based on the template
+            s_source = gn_wb['NewSpec_Template']
+            gn_s_ws = gn_wb.copy_worksheet(s_source)
+            gn_s_ws.title = ('GN_GenSpec')
+            gn_wb.save(gn_xl_fn)
+            gn_smv_fn = f'GN_depth_{depth}.smv'
+
+            gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
+
+            # Run NuSMV and get outputs for each individual specification
+            gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker='NuSMV', depth=[depth])
 
         """
         SSP SELECTED
@@ -537,6 +561,29 @@ def cmd_menu(args):
         # While filename is not in Inputs
         gn_fn = input_dir + filename
         depth, split_junc, force_down_junc = misc.read_gn(fn=gn_fn)
+
+        # Setup worksheet for data recording
+        gn_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+        ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
+        gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
+        gn_wb.save(gn_xl_fn)
+
+        """
+        Run NuSMV
+        Run new specs (csum and nsum for whole network)
+        ------------------
+        """
+        # Add another worksheet based on the template
+        s_source = gn_wb['NewSpec_Template']
+        gn_s_ws = gn_wb.copy_worksheet(s_source)
+        gn_s_ws.title = ('GN_GenSpec')
+        gn_wb.save(gn_xl_fn)
+        gn_smv_fn = f'GN_depth_{depth}.smv'
+
+        gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
+
+        # Run NuSMV and get outputs for each individual specification
+        gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker='NuSMV', depth=[depth])
 
     """
     SSP SELECTED

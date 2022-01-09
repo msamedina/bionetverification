@@ -435,7 +435,11 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
             outval: The value of interest being looked at
             str_modchecker: string containing name of model checker (NuSMV or nuXmv)
     """
-    if probtype == 1:
+    if probtype == 0:
+        pt = 'GN'
+        ltlspec = 'ltl_' + str(outval)
+        ctlspec = 'ctl_' + str(outval)
+    elif probtype == 1:
         pt = 'SSP'
         ltlspec = 'ltl_' + str(outval)
         ctlspec = 'ctl_' + str(outval)
