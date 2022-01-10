@@ -83,7 +83,7 @@ def manual_menu():
 
             # Setup worksheet for data recording
             gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
-            ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
+            gn_wb_num_of_sheets = len(gn_wb.sheetnames)
             gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
             gn_wb.save(gn_xl_fn)
 
@@ -104,6 +104,17 @@ def manual_menu():
             # Run NuSMV and get outputs for each individual specification
             gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker='NuSMV', depth=[depth])
 
+            if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
+                gn_wb.remove(gn_wb['SINGLE_Template'])
+                gn_wb.remove(gn_wb['Prism_Template'])
+                gn_wb.save(gn_xl_fn)
+                logging.info('Output Excel file is: ' + gn_xl_fn)
+            else:
+                logging.info('There was no action in file: ' + gn_xl_fn)
+                logging.info('delete file: ' + gn_xl_fn)
+                os.remove(gn_xl_fn)
+            logging.info('Closing workbook')
+            gn_wb.close()
         """
         SSP SELECTED
         """
@@ -564,7 +575,7 @@ def cmd_menu(args):
 
         # Setup worksheet for data recording
         gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
-        ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
+        gn_wb_num_of_sheets = len(gn_wb.sheetnames)
         gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
         gn_wb.save(gn_xl_fn)
 
@@ -584,6 +595,18 @@ def cmd_menu(args):
 
         # Run NuSMV and get outputs for each individual specification
         gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker='NuSMV', depth=[depth])
+
+        if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
+            gn_wb.remove(gn_wb['SINGLE_Template'])
+            gn_wb.remove(gn_wb['Prism_Template'])
+            gn_wb.save(gn_xl_fn)
+            logging.info('Output Excel file is: ' + gn_xl_fn)
+        else:
+            logging.info('There was no action in file: ' + gn_xl_fn)
+            logging.info('delete file: ' + gn_xl_fn)
+            os.remove(gn_xl_fn)
+        logging.info('Closing workbook')
+        gn_wb.close()
 
     """
     SSP SELECTED
