@@ -30,13 +30,30 @@ We assume Java is installed (version 8 or higher).
 
 Before running the scripts, run the following to make sure prerequisites are installed.
 
-#### Automated installation
+#### Linux automated installation
 All prerequisite installations and setups are located in the `install_additionals.sh` bash script. This should be run as:
 ```sh
 . install_additionals.sh
 ```
 
 This prompts for sudo access and confirmation (y).
+
+#### Windows installation
+At this time, prerequisites must be installed manually.
+
+External programs that must be installed and able to run from commandline:
+* [NuSMV](http://nusmv.fbk.eu/)
+* [nuXmv](https://nuxmv.fbk.eu/)
+* [PRISM](https://www.prismmodelchecker.org/manual/Main/AllOnOnePage)
+<!-- In progress: * [Storm](https://www.stormchecker.org/)-->
+* [MiniSat](http://minisat.se/)
+
+Python library dependencies:
+* [CNFgen (version 0.9.0 or higher)](https://massimolauria.net/cnfgen/)
+* [openpyxl (version 3.0.1)]
+* [pexpect]
+* [scipy]
+* [networkx]
 
 ### Running the scripts
 The scripts are run using Python 3 (for command line arguments see [below](#4-Usage)):
@@ -65,7 +82,7 @@ To run BNVerify, execute from the repo directory, using the following arguments:
 
 | Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
 |:---------:|:---------------------------:|----------------------------|---------------------------------------|---------------------|
-| -p        | --prob                      | Problem type               | SSP, ExCov or SAT                     | Yes                 |
+| -p        | --prob                      | Problem type               | SSP, ExCov, SAT or General            | Yes                 |
 | -f        | --filename                  | Input file name            |                                       | Yes                 |
 | -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
 | -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (General) | No (1)              |
@@ -89,6 +106,7 @@ Input files for SAT problems should be a text file containing the dimacs 3-SAT f
 There is also interactive mode, which starts after running the script.
 
 The user is first supplied with a menu for selecting the problem type to be looked at:
+0. General Circuit
 1. SSP
 2. ExCov
 3. SAT

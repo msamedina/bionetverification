@@ -53,7 +53,7 @@ def manual_menu():
     PROBLEM TYPE SELECTION
     -----------------------
     Get the problem type being looked at
-        [0] General Network
+        [0] General Circuit
         [1] SSP
         [2] ExCov
         [3] SAT

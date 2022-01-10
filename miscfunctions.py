@@ -51,7 +51,7 @@ def print_menu():
     Menu for user selection
     """
     print('Select a problem type:')
-    print('\t[0] General Network')
+    print('\t[0] General Circuit')
     print('\t[1] SSP')
     print('\t[2] ExCov')
     print('\t[3] SAT')
