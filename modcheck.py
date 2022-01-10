@@ -69,7 +69,7 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
 
         logging.info('Opening process: ' + str_modchecker)
         if sys.platform.startswith('linux'):
-            child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+            child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                               logfile=sys.stdout, encoding='utf-8',
                               timeout=None)
             logging.info('Process opened')
@@ -147,7 +147,7 @@ def call_nusmv_pexpect_sat(filename, var_ord_fn, col_ids, s_id, xl_ws, xl_wb,
             for inputval in inputval_win:
                     start = datetime.datetime.now()
                     try:
-                        child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                        child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                         stop = datetime.datetime.now()
                         runtime = int((stop - start).total_seconds() * 1000)
                     except subprocess.CalledProcessError:
@@ -363,7 +363,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
     logging.info('Opening process: ' + str_modchecker)
     
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -412,7 +412,7 @@ def call_nusmv_pexpect_allout(filename, ssp_id, xl_ws, xl_wb, xl_fn, str_modchec
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
@@ -466,7 +466,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
     logging.info('Opening process: ' + str_modchecker)
 
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -519,7 +519,7 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
@@ -563,7 +563,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker, 
     out_rt_arr = []
                     
     logging.info('Opening process: ' + str_modchecker)
-    child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+    child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
     logging.info('Process opened')
@@ -641,7 +641,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
     logging.info('Opening process: ' + str_modchecker)
     if sys.platform.startswith('linux'):
         check_spec = [1, 2]
-        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                           logfile=sys.stdout, encoding='utf-8',
                           timeout=None)
         logging.info('Process opened')
@@ -692,7 +692,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
@@ -1005,7 +1005,7 @@ def pexpect_nuxmv_ic3_allout(filename, str_modchecker, max_row, verbosity=0):
     logging.info('Opening process: ' + str_modchecker)
     
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -1109,7 +1109,7 @@ def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, max_
     logging.info('Opening process: ' + str_modchecker)
 
     if sys.platform.startswith('linux'):
-        child = pexpect.spawn(str_modchecker, args=['-v', verbosity, '-int', filename],
+        child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
                             logfile=sys.stdout, encoding='utf-8',
                             timeout=None)
         logging.info('Process opened')
@@ -1164,7 +1164,7 @@ def pexpect_nuxmv_ic3_singleout(filename, probtype, outval, str_modchecker, max_
         for inputval in inputval_win:
             start = datetime.datetime.now()
             try:
-                child = subprocess.run(args=[str_modchecker, '-v', verbosity, '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+                child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None, input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
                 stop = datetime.datetime.now()
                 runtime = int((stop - start).total_seconds() * 1000)
             except subprocess.CalledProcessError:
