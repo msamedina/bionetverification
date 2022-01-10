@@ -83,7 +83,7 @@ To run BNVerify, execute from the repo directory, using the following arguments:
 
 | Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
 |:---------:|:---------------------------:|----------------------------|---------------------------------------|---------------------|
-| -p        | --prob                      | Problem type               | SSP, ExCov, SAT or General            | Yes                 |
+| -p        | --prob                      | Problem type               | GC, SSP, ExCov or SAT                 | Yes                 |
 | -f        | --filename                  | Input file name            |                                       | Yes                 |
 | -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
 | -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (General) | No (1)              |
