@@ -703,7 +703,7 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
 
 
 #DONE
-def call_pexpect_ssp_prism(filename, str_modchecker, maxrow, spec_num):
+def call_pexpect_ssp_prism(filename, str_modchecker, maxrow, spec_num, spec_name='spec_ssp.pctl', cudd_epsilon_input=None):
     """
     Run Prism Model Checker on a given file
     Uses the pexpect library to run the relevant model checker.
@@ -719,8 +719,8 @@ def call_pexpect_ssp_prism(filename, str_modchecker, maxrow, spec_num):
     # run specifications: 1. check the profile of output.
     out_fn = f'res_{maxrow}.txt'
     max_cudd = '{:.2e}'.format(0.5**(filename.count('_') - 3))
-    cudd_epsilon = '1' + max_cudd[max_cudd.index('e'):]
-    input_fn = [filename, 'spec_ssp.pctl', '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-cuddepsilon', f'{cudd_epsilon}', '-exportresults', f'{out_fn}:csv']
+    cudd_epsilon = '1' + max_cudd[max_cudd.index('e'):] if cudd_epsilon_input is None else cudd_epsilon_input
+    input_fn = [filename, spec_name, '-prop', f'{spec_num}', '-const', f'k=0:1:{maxrow}', '-cuddepsilon', f'{cudd_epsilon}', '-exportresults', f'{out_fn}:csv']
 
     logging.info('Opening process: ' + str_modchecker)
     if sys.platform.startswith('linux'):

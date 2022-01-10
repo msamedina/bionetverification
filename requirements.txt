@@ -1,8 +1,9 @@
 ###### Requirements without Version Specifiers ######`
-pexpect
-scipy
+pexpect~=4.8.0
+scipy~=1.7.3
 networkx
 
 ###### Requirements with Version Specifiers ######`
 CNFgen >= 0.9.0
 openpyxl==3.0.1
+pandas~=1.3.5
