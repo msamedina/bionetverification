@@ -106,6 +106,7 @@ Input files for SAT problems should be a text file containing the dimacs 3-SAT f
 There is also interactive mode, which starts after running the script.
 
 The user is first supplied with a menu for selecting the problem type to be looked at:
+
 0. General Circuit
 1. SSP
 2. ExCov
