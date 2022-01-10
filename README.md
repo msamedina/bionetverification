@@ -50,10 +50,10 @@ External programs that must be installed and able to run from commandline:
 
 Python library dependencies:
 * [CNFgen (version 0.9.0 or higher)](https://massimolauria.net/cnfgen/)
-* [openpyxl (version 3.0.1)]
-* [pexpect]
-* [scipy]
-* [networkx]
+* [openpyxl (version 3.0.1)](https://openpyxl.readthedocs.io/en/stable/)
+* [pexpect](https://pexpect.readthedocs.io/en/stable/)
+* [scipy](https://scipy.org/)
+* [networkx](https://networkx.org/)
 
 ### Running the scripts
 The scripts are run using Python 3 (for command line arguments see [below](#4-Usage)):
