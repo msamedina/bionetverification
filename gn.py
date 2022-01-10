@@ -29,8 +29,7 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
             logging.info('Inputting ID, k, set, filenames, and output data into Excel...')
             __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
             __ = wsheet.cell(column=2, row=(row_id + 4), value=depth[index])
-            # __ = wsheet.cell(column=3, row=(row_id + 4), value=)
-            __ = wsheet.cell(column=6, row=(row_id + 4), value=output)
+            __ = wsheet.cell(column=4, row=(row_id + 4), value=output)
             wbook.save(xl_fn)
 
             ltl_res = ''
@@ -66,7 +65,7 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
 
             # Run NuSMV on no tags
             if with_tags in ['without', 'both']:
-                __ = wsheet.cell(column=5, row=(row_id + 4), value=gn_smv_fn[index])
+                __ = wsheet.cell(column=3, row=(row_id + 4), value=gn_smv_fn[index])
                 wbook.save(xl_fn)
 
                 if ic3 and str_modchecker == "nuXmv":
@@ -81,23 +80,23 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
                 ctl_res = modcheck.get_spec_res(out_fn[1])
                 logging.info('CTL Result: ' + ctl_res)
                 logging.info('Saving Tags data in Excel')
-                __ = wsheet.cell(column=14, row=(row_id + 4), value=out_fn[0])
-                __ = wsheet.cell(column=15, row=(row_id + 4), value=ltl_res)
-                __ = wsheet.cell(column=16, row=(row_id + 4), value=out_rt[0])
-                __ = wsheet.cell(column=17, row=(row_id + 4), value=out_fn[1])
-                __ = wsheet.cell(column=18, row=(row_id + 4), value=ctl_res)
-                __ = wsheet.cell(column=19, row=(row_id + 4), value=out_rt[1])
+                __ = wsheet.cell(column=6, row=(row_id + 4), value=out_fn[0])
+                __ = wsheet.cell(column=7, row=(row_id + 4), value=ltl_res)
+                __ = wsheet.cell(column=8, row=(row_id + 4), value=out_rt[0])
+                __ = wsheet.cell(column=9, row=(row_id + 4), value=out_fn[1])
+                __ = wsheet.cell(column=10, row=(row_id + 4), value=ctl_res)
+                __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt[1])
                 wbook.save(xl_fn)
 
             if ltl_res == 'false' and ctl_res == 'true' and not ic3:
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='YES')
+                __ = wsheet.cell(column=5, row=(row_id + 4), value='YES')
             elif ltl_res == 'true' and ctl_res == 'false' and not ic3:
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='NO')
+                __ = wsheet.cell(column=5, row=(row_id + 4), value='NO')
             elif ic3 and ltl_res == 'unknown':
                 val = 'UNKNOWN-YES' if ctl_res == 'true' else 'UNKNOWN-NO'
-                __ = wsheet.cell(column=7, row=(row_id + 4), value=val)
+                __ = wsheet.cell(column=5, row=(row_id + 4), value=val)
             else:
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID RESULT')
+                __ = wsheet.cell(column=5, row=(row_id + 4), value='INVALID RESULT')
             wbook.save(xl_fn)
 
             # Prepare for next input

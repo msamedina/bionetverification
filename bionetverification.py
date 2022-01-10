@@ -82,7 +82,7 @@ def manual_menu():
             depth, split_junc, force_down_junc = misc.read_gn(gn_smv_fn)
 
             # Setup worksheet for data recording
-            gn_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+            gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
             ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
             gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
             gn_wb.save(gn_xl_fn)
@@ -93,7 +93,7 @@ def manual_menu():
             ------------------
             """
             # Add another worksheet based on the template
-            s_source = gn_wb['NewSpec_Template']
+            s_source = gn_wb['SINGLE_Template']
             gn_s_ws = gn_wb.copy_worksheet(s_source)
             gn_s_ws.title = ('GN_GenSpec')
             gn_wb.save(gn_xl_fn)
@@ -563,7 +563,7 @@ def cmd_menu(args):
         depth, split_junc, force_down_junc = misc.read_gn(fn=gn_fn)
 
         # Setup worksheet for data recording
-        gn_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+        gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
         ssp_wb_num_of_sheets = len(gn_wb.sheetnames)
         gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
         gn_wb.save(gn_xl_fn)
@@ -574,7 +574,7 @@ def cmd_menu(args):
         ------------------
         """
         # Add another worksheet based on the template
-        s_source = gn_wb['NewSpec_Template']
+        s_source = gn_wb['SINGLE_Template']
         gn_s_ws = gn_wb.copy_worksheet(s_source)
         gn_s_ws.title = ('GN_GenSpec')
         gn_wb.save(gn_xl_fn)
