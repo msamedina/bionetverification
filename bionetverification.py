@@ -107,23 +107,47 @@ def manual_menu():
 
                 # run smv file
                 gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth])
+
             elif str_modc == 'prism':
+                logging.info('Printing GC menu')
+                ssp.print_ssp_menu(str_modc)
+                logging.info('Printed GC menu.')
+                # Get user input for menu selection
+                valid_opt = -1
+                ssp_opt = None
+                while valid_opt == -1:
+                    ssp_opt = misc.int_input()
+                    if ssp_opt in range(1, 4):
+                        valid_opt = 1
+                        print('Selected option ', str(ssp_opt))
+                        logging.info('Selected option: ' + str(ssp_opt))
+                    else:
+                        print('Invalid option selected. '
+                              'Please select a number 1-4.')
+                        logging.info('Invalid option selected.')
+
+                # choose mu
+                mu_user_input = misc.prism_set_mu()
+
                 # Add another worksheet based on the template
                 s_source = gn_wb['Prism_Template']
                 gn_s_ws = gn_wb.copy_worksheet(s_source)
                 gn_s_ws.title = ('GN_GenSpec')
                 gn_wb.save(gn_xl_fn)
-                gn_smv_fn = f'GN_depth_{depth}.pm'
-
-                # choose mu
-                mu_user_input = misc.prism_set_mu()
+                gn_smv_fn = f'GN_depth_{depth}_mu_{mu_user_input}.pm'
 
                 # generate prism file
                 gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu_user_input)
+                if mu_user_input > .0:
+                    gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
+                    gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu_user_input)
+                    gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
+                else:
+                    gn_smv_fn_arr = [gn_smv_fn]
                 gn.gen_prism_spec('spec_gn.pctl')
 
                 # run prism file
-                gn.run_prism_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth])
+                gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth], spec_number=ssp_opt, mu=mu_user_input)
 
             if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
                 gn_wb.remove(gn_wb['SINGLE_Template'])
@@ -620,14 +644,20 @@ def cmd_menu(args):
             gn_s_ws = gn_wb.copy_worksheet(s_source)
             gn_s_ws.title = ('GN_Prism')
             gn_wb.save(gn_xl_fn)
-            gn_smv_fn = f'GN_depth_{depth}.pm'
+
+            gn_smv_fn = f'GN_depth_{depth}_mu_{mu}.pm'
 
             # generate prism file
-            gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu)
-            gn.gen_prism_spec('spec_gn.pctl')
+            gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu_user_input)
+            if mu > .0:
+                gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
+                gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu_user_input)
+                gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
+            else:
+                gn_smv_fn_arr = [gn_smv_fn]
 
             # run prism file
-            gn.run_prism_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth])
+            gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth], spec_number=prism_spec, mu=mu)
 
         if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
             gn_wb.remove(gn_wb['SINGLE_Template'])

@@ -78,7 +78,7 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
     wbook.close()
 
 
-def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=1, depth=None):
+def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=1, depth=None, mu=.0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
     Using new specification type
@@ -98,8 +98,12 @@ def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=
     for index, gn in enumerate(gn_prism_fn):
         # Run Prism on no tags
 
-        out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(gn, str_modchecker, depth[index], spec_number,
+        if index % 2 == 0 or mu > .0:
+            out_fn_nt, out_rt_nt = modcheck.call_pexpect_ssp_prism(gn, str_modchecker, depth[int(index / 2)], spec_number,
                                                                spec_name='spec_gn.pctl', cudd_epsilon_input=1e-5)
+        else:
+            row_id += 1
+            continue
 
         # Parse the results from txt file
         df = pd.read_csv(out_fn_nt, sep=" ")
@@ -125,10 +129,18 @@ def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=
             __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
             __ = wsheet.cell(column=2, row=(row_id + 4), value=depth[index])
             __ = wsheet.cell(column=3, row=(row_id + 4), value=gn_prism_fn[index])
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=repr(reachable_col))
-            __ = wsheet.cell(column=9, row=(row_id + 4), value=repr(unreachable_col))
+            __ = wsheet.cell(column=4, row=(row_id + 4), value=repr(reachable_col))
+            __ = wsheet.cell(column=5, row=(row_id + 4), value=repr(unreachable_col))
+            __ = wsheet.cell(column=7, row=(row_id + 4), value=out_rt_nt)
+            if spec_number == 2:
+                __ = wsheet.cell(column=6, row=(row_id + 4), value=str(prob_col))
+        else:
+            __ = wsheet.cell(column=8, row=(row_id + 4), value=str(reachable_col))
+            __ = wsheet.cell(column=9, row=(row_id + 4), value=str(unreachable_col))
             __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt_nt)
-            wbook.save(xl_fn)
+            if spec_number == 2:
+                __ = wsheet.cell(column=10, row=(row_id + 4), value=str(prob_col))
+        wbook.save(xl_fn)
 
         # Prepare for next input
         if index % 2 == 1:
