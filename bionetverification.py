@@ -646,12 +646,13 @@ def cmd_menu(args):
             gn_wb.save(gn_xl_fn)
 
             gn_smv_fn = f'GN_depth_{depth}_mu_{mu}.pm'
+            gn.gen_prism_spec('spec_gn.pctl')
 
             # generate prism file
-            gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu_user_input)
+            gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu)
             if mu > .0:
                 gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
-                gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu_user_input)
+                gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu)
                 gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
             else:
                 gn_smv_fn_arr = [gn_smv_fn]
