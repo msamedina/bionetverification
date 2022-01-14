@@ -624,41 +624,42 @@ def cmd_menu(args):
         gn_xl_fn = misc.file_name_cformat('gn_{0}.xlsx')
         gn_wb.save(gn_xl_fn)
 
-        if str_modc_list[0] == 'NuSMV':
-            # Add another worksheet based on the template
-            s_source = gn_wb['SINGLE_Template']
-            gn_s_ws = gn_wb.copy_worksheet(s_source)
-            gn_s_ws.title = ('GN_smv')
-            gn_wb.save(gn_xl_fn)
+        for str_modc in str_modc_list:
+            if str_modc == 'NuSMV' or str_modc == 'nuXmv':
+                # Add another worksheet based on the template
+                s_source = gn_wb['SINGLE_Template']
+                gn_s_ws = gn_wb.copy_worksheet(s_source)
+                gn_s_ws.title = ('GN_smv')
+                gn_wb.save(gn_xl_fn)
 
-            # generate smv file
-            gn_smv_fn = f'GN_depth_{depth}.smv'
-            gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
+                # generate smv file
+                gn_smv_fn = f'GN_depth_{depth}.smv'
+                gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
 
-            # run smv file
-            gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth])
+                # run smv file
+                gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth])
 
-        elif str_modc_list[0] == 'prism':
-            # Add another worksheet based on the template
-            s_source = gn_wb['Prism_Template']
-            gn_s_ws = gn_wb.copy_worksheet(s_source)
-            gn_s_ws.title = ('GN_Prism')
-            gn_wb.save(gn_xl_fn)
+            elif str_modc == 'prism':
+                # Add another worksheet based on the template
+                s_source = gn_wb['Prism_Template']
+                gn_s_ws = gn_wb.copy_worksheet(s_source)
+                gn_s_ws.title = ('GN_Prism')
+                gn_wb.save(gn_xl_fn)
 
-            gn_smv_fn = f'GN_depth_{depth}_mu_{mu}.pm'
-            gn.gen_prism_spec('spec_gn.pctl')
+                gn_smv_fn = f'GN_depth_{depth}_mu_{mu}.pm'
+                gn.gen_prism_spec('spec_gn.pctl')
 
-            # generate prism file
-            gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu)
-            if mu > .0:
-                gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
-                gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu)
-                gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
-            else:
-                gn_smv_fn_arr = [gn_smv_fn]
+                # generate prism file
+                gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu)
+                if mu > .0:
+                    gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
+                    gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=mu)
+                    gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
+                else:
+                    gn_smv_fn_arr = [gn_smv_fn]
 
-            # run prism file
-            gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth], spec_number=prism_spec, mu=mu)
+                # run prism file
+                gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth], spec_number=prism_spec, mu=mu)
 
         if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
             gn_wb.remove(gn_wb['SINGLE_Template'])
@@ -690,7 +691,7 @@ def cmd_menu(args):
             ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx')
             ssp_wb.save(ssp_xl_fn)
 
-            if str_modc == "NuSMV" or str_modc == "nuXmv" or str_modc == 'all':
+            if str_modc == "NuSMV" or str_modc == "nuXmv":
                 """
                 Generate smv files
                 """
