@@ -11,6 +11,11 @@ import ec
 import gn
 import miscfunctions as misc
 import os
+import json
+
+# keep statistics of current running
+stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": []}
+prob_dict = {"Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Pass Junction": 0}
 
 
 def manual_menu():
@@ -80,6 +85,14 @@ def manual_menu():
             gn_pstr = 'Please enter Network filename: '
             gn_smv_fn = misc.input_exists(input_dir, gn_pstr)
             depth, split_junc, force_down_junc = misc.read_gn(gn_smv_fn)
+
+            # keep statistics
+            prob_stat = prob_dict.copy()
+            prob_stat["Depth"] = depth
+            prob_stat["Split Junction"] = len(split_junc)
+            prob_stat["Reset Junction"] = len(force_down_junc)
+            prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc)
+            stats["GC"].append(prob_stat)
 
             # Setup worksheet for data recording
             gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
@@ -172,6 +185,18 @@ def manual_menu():
             ssp_pstr = 'Please enter SSP problems filename: '
             ssp_fn = misc.input_exists(input_dir, ssp_pstr)
             ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
+
+            # keep statistics
+            for s_arr in ssp_arr:
+                prob_stat = prob_dict.copy()
+                prob_stat["Depth"] = sum(s_arr)
+                split_arr = [1]
+                for s in s_arr[:-1]:
+                    split_arr.append(s + split_arr[-1])
+                prob_stat["Split Junction"] = sum(split_arr)
+                prob_stat["Reset Junction"] = 0
+                prob_stat["Pass Junction"] = sum(s_arr) ** 2 - sum(split_arr)
+                stats["SSP"].append(prob_stat)
 
             # Setup worksheet for data recording
             ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
@@ -546,6 +571,9 @@ def manual_menu():
 
     # Finished running, close logging
     logging.info('Selected Quit')
+    logging.info('Save statistics')
+    with open(os.path.join(cwd, 'stats.json'), 'w') as f:
+        json.dump(stats, f, indent=4)
     logging.info('Closing python script')
     logging.shutdown()
     print('Output directory: ' + cwd)
@@ -618,6 +646,14 @@ def cmd_menu(args):
         gn_fn = input_dir + filename
         depth, split_junc, force_down_junc = misc.read_gn(fn=gn_fn)
 
+        # keep statistics
+        prob_stat = prob_dict.copy()
+        prob_stat["Depth"] = depth
+        prob_stat["Split Junction"] = len(split_junc)
+        prob_stat["Reset Junction"] = len(force_down_junc)
+        prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc)
+        stats["GC"].append(prob_stat)
+
         # Setup worksheet for data recording
         gn_wb = loadwb(template_dir + 'GN_Template.xlsx')
         gn_wb_num_of_sheets = len(gn_wb.sheetnames)
@@ -684,6 +720,18 @@ def cmd_menu(args):
             """
             ssp_fn = input_dir + filename
             ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
+
+            # keep statistics
+            for s_arr in ssp_arr:
+                prob_stat = prob_dict.copy()
+                prob_stat["Depth"] = sum(s_arr)
+                split_arr = [1]
+                for s in s_arr[:-1]:
+                    split_arr.append(s + split_arr[-1])
+                prob_stat["Split Junction"] = sum(split_arr)
+                prob_stat["Reset Junction"] = 0
+                prob_stat["Pass Junction"] = sum(s_arr) ** 2 - sum(split_arr)
+                stats["SSP"].append(prob_stat)
 
             # Setup worksheet for data recording
             ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
@@ -960,6 +1008,9 @@ def cmd_menu(args):
 
     # Finished running, close logging
     logging.info('Selected Quit')
+    logging.info('Save statistics')
+    with open(os.path.join(cwd, 'stats.json'), 'w') as f:
+        json.dump(stats, f, indent=4)
     logging.info('Closing python script')
     logging.shutdown()
     print('Output directory: ' + cwd)
