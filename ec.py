@@ -60,14 +60,32 @@ def read_ec(filename):
     sset = list()
     sset_list = list()
     uni = list()
+    is_Dimacs = False
 
     # Run through the lines of data in the file
     for line in in_data:
         tokens = line.split()
+
         if len(tokens) != 0 and tokens[0].lower() == 'p':
             # Validation of file input
             if tokens[1].lower() == "excov":
                 num_subsets = int(tokens[2])
+                num_prob += 1
+            elif tokens[1] == "ec":
+                """
+                Convert Dimacs to our format
+                If it's Dimacs:
+                1. add universe line
+                2. increment num_prob by 1
+                3. set the flag is_Dimacs to True
+                """
+                is_Dimacs = True
+                max_u = tokens[-1]
+                tokens = list()
+                tokens.append('u')
+                for i in range(int(max_u)):
+                    tokens.append(str(i + 1))
+                tokens.append("0")
                 num_prob += 1
             else:
                 print("Problem " + str(num_prob) + " not in excov format. Edit and resubmit.")
@@ -90,6 +108,8 @@ def read_ec(filename):
                 else:
                     uni.append(element)
         elif len(tokens) != 0 and tokens[0].lower() == 's':
+            if is_Dimacs and tokens[-1] is not "0":
+                tokens.append("0")
             for tok in tokens[1:]:
                 element = int(tok)
                 if element == 0:
@@ -131,6 +151,12 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both', cut_in_u=Tru
     ec_smv_nt = list()
     ec_outputs = list()
     max_sums = list()
+    num_of_split = list()
+    num_of_pass = list()
+    num_of_reset = list()
+    num_of_p = 0
+    num_of_s = 0
+    num_of_r = 0
     for uni, sets in zip(universes, subsets):
         logging.info('Universe is: ' + str(uni) + '\n')
 
@@ -170,7 +196,7 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both', cut_in_u=Tru
         if with_tags in ['with', 'both']:
             logging.info('Generating NuSMV file with tags...')
             max_tag_id = list()
-            print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id, cut_in_u=cut_in_u)
+            num_of_p, num_of_s, num_of_r = print_smv_ec(ec_smv_name, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, max_tag_id, cut_in_u=cut_in_u)
             logging.info('Generated NuSMV file with tags')
             ec_smv.append(ec_smv_name)
 
@@ -178,11 +204,16 @@ def smv_gen(universes, subsets, bit_mapping=True, with_tags='both', cut_in_u=Tru
         if with_tags in ['without', 'both']:
             logging.info('Generating NuSMV file without tags...')
             ec_smv_name_nt = misc.file_name_cformat('NT_'  + '_{0}' + ec_smv_name)
-            print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=cut_in_u)
+            num_of_p, num_of_s, num_of_r = print_smv_ec_nt(ec_smv_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, cut_in_u=cut_in_u)
             logging.info('Generated NuSMV file without tags')
             ec_smv_nt.append(ec_smv_name_nt)
 
-    return ec_smv, ec_smv_nt, ec_outputs, max_sums
+        # Keep stats
+        num_of_pass.append(num_of_p)
+        num_of_split.append(num_of_s)
+        num_of_reset.append(num_of_r)
+
+    return ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset
 
 
 def print_ec_menu():
@@ -366,6 +397,13 @@ def print_smv_ec(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
     # Close file
     f.close()
 
+    # return stats
+    num_of_reset = len(rc_f_dwn)
+    num_of_split = sum([(i + 1) for i in split_j_loc]) - num_of_reset
+    num_of_pass = sum([(i + 1) for i in range(sum_total) if i not in split_j_loc])
+
+    return num_of_pass, num_of_split, num_of_reset
+
 
 def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
                     bin_uni, cut_in_u=True):
@@ -492,6 +530,13 @@ def print_smv_ec_nt(filename, universe_array, ss_array, bin_ss, int_ss, int_uni,
 
     # Close file
     f.close()
+
+    # return stats
+    num_of_reset = len(rc_f_dwn)
+    num_of_split = sum([(i + 1) for i in split_j_loc]) - num_of_reset
+    num_of_pass = sum([(i + 1) for i in range(sum_total) if i not in split_j_loc])
+
+    return num_of_pass, num_of_split, num_of_reset
 
 
 def rearrange_universe(subsets, universe):
@@ -688,6 +733,12 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True, cut_in_u=Tr
     ec_prism_nt = list()
     ec_outputs = list()
     max_sums = list()
+    num_of_split = list()
+    num_of_pass = list()
+    num_of_reset = list()
+    num_of_p = 0
+    num_of_s = 0
+    num_of_r = 0
     j = 0
 
     for uni, sets in zip(universes, subsets):
@@ -729,21 +780,27 @@ def prism_gen(universes, subsets, mu_user_input=0, bit_mapping=True, cut_in_u=Tr
         # Without error
         logging.info('Generating Prism file without tags...')
         ec_prism_name_nt = file_name(uni, len(uni), 'prism', 0.0)
-        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=cut_in_u)
+        num_of_p, num_of_s, num_of_r = print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=0, cut_in_u=cut_in_u)
         logging.info('Generated Prism file with mu = 0')
         ec_prism_nt.append(ec_prism_name_nt)
 
         # With error (if mu > 0)
         ec_prism_name_nt = file_name(uni, len(uni), 'prism', mu_user_input)
-        print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=cut_in_u)
+        num_of_p, num_of_s, num_of_r = print_prism_ec_nt(ec_prism_name_nt, uni, sets, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu=mu_user_input, cut_in_u=cut_in_u)
         logging.info('Generated Prism file without tags')
         ec_prism_nt.append(ec_prism_name_nt)
+
+        # Keep stats
+        num_of_pass.append(num_of_p)
+        num_of_split.append(num_of_s)
+        num_of_reset.append(num_of_r)
+
         j = j + 1
 
     # create spec file
     print_prism_ec_nt_spec('spec_ec.pctl')
 
-    return ec_prism_nt, ec_outputs, max_sums
+    return ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset
 
 
 def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_bin_int, uni_bin_s, mu, cut_in_u=True):
@@ -878,6 +935,13 @@ def print_prism_ec_nt(filename, universe, ss_array, sets_bin, sets_bin_int, uni_
     f.write('label\t"interesting" = sum = u;')
 
     f.close()
+
+    # return stats
+    num_of_reset = len(rc_f_dwn_list)
+    num_of_split = sum([(i + 1) for i in split_junctions]) - num_of_reset
+    num_of_pass = sum([(i + 1) for i in range(sum_total) if i not in split_junctions])
+
+    return num_of_pass, num_of_split, num_of_reset
 
 
 def print_prism_ec_nt_spec(filename):
