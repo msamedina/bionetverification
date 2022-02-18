@@ -31,6 +31,8 @@ def parse_args():
                    help='An option to use bit mapping optimization')  # True or False
     p.add_argument('-i', '--ic3', required=False, type=str,
                    help='Flag for using IC3 engine on LTL specifications (only relevant for nuXmv)')
+    p.add_argument('-k', '--keep', required=False, type=bool, default=False,
+                   help='Keep statistics without running model checkers')
 
     return p.parse_args()
 
