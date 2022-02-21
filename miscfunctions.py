@@ -4,6 +4,7 @@ Michelle Aluf Medina
 """
 import os
 import logging
+from ec import rearrange_universe, bin_rep
 
 
 def file_name_cformat(filename):
@@ -321,3 +322,51 @@ def cmd_parsing_ic3(ic3):
         return True
     elif ic3.lower() == 'n' or ic3.lower() == 'no':
         return False
+
+
+def calc_ec_stat(u, s, bit_mapping=True, cut=True):
+    """
+    return d, s, r, p
+    """
+
+    if bit_mapping:
+        u = rearrange_universe(s, u)
+
+    # Convert subsets to binary representation
+    sets_bin = list()
+    for i in range(0, len(s)):
+        sets_bin.append(bin_rep(s[i], u))
+
+    uni_bin = list()
+    for i in range(0, len(u)):
+        uni_bin.append('1')
+    uni_bin_s = ''.join(str(e) for e in uni_bin)
+    # Convert binary universe to integer representation
+    uni_bin_int = int(uni_bin_s, base=2)
+
+    # Convert binary to integer representation
+    sets_bin_int = list()
+    for i in range(0, len(sets_bin)):
+        sets_bin_int.append(int(sets_bin[i], base=2))
+    max_sums = sum(sets_bin_int)
+
+    split_j_loc = [0]
+    for i in range(0, len(s) - 1):
+        split_j_loc.append(sets_bin_int[i] + split_j_loc[i])
+
+    reset_counter = 0
+    for i in sets_bin_int[1:]:
+        # calculate the row
+        r = sum(sets_bin_int[0:sets_bin_int.index(i)])
+        for c in range(1, r + 1, 1):
+            if c > uni_bin_int and cut:
+                break
+            # if i & c > 0, they have common bits.
+            # in this case [r, c] are force down junction
+            if (i & c) > 0:
+                reset_counter += 1
+
+    split_counter = sum([(min(i, uni_bin_int) + 1) if cut else (i + 1) for i in split_j_loc]) - reset_counter
+    num_of_pass = sum([(min(i, uni_bin_int) + 1) if cut else (i + 1) for i in range(max_sums) if i not in split_j_loc])
+
+    return max_sums, split_counter, reset_counter, num_of_pass

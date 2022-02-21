@@ -14,11 +14,11 @@ import os
 import json
 
 # keep statistics of current running
-stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": []}
 prob_dict = {"file_name": None, "Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Pass Junction": 0}
 
 
 def manual_menu():
+    stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": []}
     """
     MAIN
     -----
@@ -54,7 +54,7 @@ def manual_menu():
     print('Current working directory:\n' + cwd)
     logging.info('New working directory:' + cwd)
 
-    keep = True
+    keep = False
 
     """
     PROBLEM TYPE SELECTION
@@ -369,28 +369,44 @@ def manual_menu():
             excov_fn = misc.input_exists(input_dir, excov_pstr)
             universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
 
-            # Pick a model checker (NuSMV, nuXmv or PRISM)
-            str_modc = misc.modcheck_select()
+            """
+            Keep stats
+            """
+            for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
+                prob_stat = prob_dict.copy()
+                prob_stat["file_name"] = excov_fn
+                prob_stat["Universe"] = u
+                prob_stat["Subset arrays"] = s
+                d, s, r, p = misc.calc_ec_stat(u, s)
+                prob_stat["Depth"] = d
+                prob_stat["Split Junction"] = s
+                prob_stat["Reset Junction"] = r
+                prob_stat["Pass Junction"] = p
+                stats["ExCov"].append(prob_stat)
 
-            # Setup worksheet for data recording
-            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-            ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
-            ec_wb.save(ec_xl_fn)
+            if not keep:
 
-            if str_modc == "NuSMV" or str_modc == "nuXmv":
-                """
-                Generate smv files
-                """
-                ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
-                                                                                                              subsets_arrays,
-                                                                                                              bit_mapping=True)
+                # Pick a model checker (NuSMV, nuXmv or PRISM)
+                str_modc = misc.modcheck_select()
 
-                """
-                Run NuSMV
-                Single spec for exact cover output
-                ------------------
-                """
-                if not keep:
+                # Setup worksheet for data recording
+                ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+                ec_xl_fn = misc.file_name_cformat('ExCov_{0}.xlsx')
+                ec_wb.save(ec_xl_fn)
+
+                if str_modc == "NuSMV" or str_modc == "nuXmv":
+                    """
+                    Generate smv files
+                    """
+                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
+                                                                                                                  subsets_arrays,
+                                                                                                                  bit_mapping=True)
+
+                    """
+                    Run NuSMV
+                    Single spec for exact cover output
+                    ------------------
+                    """
                     # Add another worksheet based on the template
                     source = ec_wb['EC_Template']
                     ec_ws = ec_wb.copy_worksheet(source)
@@ -401,28 +417,27 @@ def manual_menu():
                     ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc,
                                  max_sums)
 
-            elif str_modc == "prism":
-
-                """
-                Generate prism files
-                """
-
-                # choose type of check
-                ec_opt = ec.ec_prism_menu()
-
-                while ec_opt != 3:
-                    mu_user_input = misc.prism_set_mu()
-                    ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes,
-                                                                                                              subsets_arrays,
-                                                                                                              mu_user_input,
-                                                                                                              bit_mapping=True)
+                elif str_modc == "prism":
 
                     """
-                    Run prism
-                    Single spec for exact cover output
-                    ------------------
+                    Generate prism files
                     """
-                    if not keep:
+
+                    # choose type of check
+                    ec_opt = ec.ec_prism_menu()
+
+                    while ec_opt != 3:
+                        mu_user_input = misc.prism_set_mu()
+                        ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes,
+                                                                                                                  subsets_arrays,
+                                                                                                                  mu_user_input,
+                                                                                                                  bit_mapping=True)
+
+                        """
+                        Run prism
+                        Single spec for exact cover output
+                        ------------------
+                        """
                         # Add another worksheet based on the template
                         source = ec_wb['EC_Prism_Template']
                         ec_ws = ec_wb.copy_worksheet(source)
@@ -432,27 +447,10 @@ def manual_menu():
                         # Run Prism and get outputs for each individual specification
                         ec.run_prism(universes, subsets_arrays, ec_outputs, ec_prism_nt, ec_wb, ec_ws, ec_xl_fn, ec_opt)
                         ec_opt = ec.ec_prism_menu()
-                    else:
-                        break
 
-            """
-            Keep stats
-            """
-            for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
-                prob_stat = prob_dict.copy()
-                prob_stat["file_name"] = excov_fn
-                prob_stat["Universe"] = u
-                prob_stat["Subset arrays"] = s
-                prob_stat["Depth"] = max_sums[idx]
-                prob_stat["Split Junction"] = num_of_split[idx]
-                prob_stat["Reset Junction"] = num_of_reset[idx]
-                prob_stat["Pass Junction"] = num_of_pass[idx]
-                stats["ExCov"].append(prob_stat)
-
-            """
-            Finished running ExCov
-            """
-            if not keep:
+                """
+                Finished running ExCov
+                """
                 ec_wb.remove(ec_wb['EC_Template'])
                 ec_wb.remove(ec_wb['EC_Prism_Template'])
                 ec_wb.save(ec_xl_fn)
@@ -627,7 +625,8 @@ def cmd_menu(args):
     bit_mapping = misc.cmd_parsing_bit_mapping(args.bit_mapping)
     cut = misc.cmd_parsing_cut(args.cut_in_u)
     ic3 = misc.cmd_parsing_ic3(args.ic3)
-    keep = misc.cmd_parsing_ic3(args.keep)
+    keep = args.keep
+    stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": []}
 
     """
     MAIN
@@ -907,27 +906,42 @@ def cmd_menu(args):
             excov_fn = input_dir + filename
             universes, subsets_arrays, num_probs = ec.read_ec(excov_fn)
 
-            # Setup worksheet for data recording
-            ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
-            ec_xl_fn = misc.file_name_cformat(f'ExCov_{str_modc}.xlsx')
-            ec_wb.save(ec_xl_fn)
+            """
+            Keep stats
+            """
+            for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
+                prob_stat = prob_dict.copy()
+                prob_stat["file_name"] = excov_fn
+                prob_stat["Universe"] = u
+                prob_stat["Subset arrays"] = s
+                d, s, r, p = misc.calc_ec_stat(u, s)
+                prob_stat["Depth"] = d
+                prob_stat["Split Junction"] = s
+                prob_stat["Reset Junction"] = r
+                prob_stat["Pass Junction"] = p
+                stats["ExCov"].append(prob_stat)
 
-            if str_modc == "NuSMV" or str_modc == "nuXmv":
-                """
-                Generate smv files
-                """
-                ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
-                                                                                                              subsets_arrays,
-                                                                                                              bit_mapping=bit_mapping,
-                                                                                                              with_tags=with_tags,
-                                                                                                              cut_in_u=cut)
+            if not keep:
+                # Setup worksheet for data recording
+                ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
+                ec_xl_fn = misc.file_name_cformat(f'ExCov_{str_modc}.xlsx')
+                ec_wb.save(ec_xl_fn)
 
-                """
-                Run NuSMV
-                Single spec for exact cover output
-                ------------------
-                """
-                if not keep:
+                if str_modc == "NuSMV" or str_modc == "nuXmv":
+                    """
+                    Generate smv files
+                    """
+                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
+                                                                                                                  subsets_arrays,
+                                                                                                                  bit_mapping=bit_mapping,
+                                                                                                                  with_tags=with_tags,
+                                                                                                                  cut_in_u=cut)
+
+                    """
+                    Run NuSMV
+                    Single spec for exact cover output
+                    ------------------
+                    """
                     # Add another worksheet based on the template
                     source = ec_wb['EC_Template']
                     ec_ws = ec_wb.copy_worksheet(source)
@@ -938,20 +952,19 @@ def cmd_menu(args):
                     ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc,
                                  max_sums, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
-            elif str_modc == "prism":
+                elif str_modc == "prism":
 
-                """
-                Generate prism files
-                """
+                    """
+                    Generate prism files
+                    """
 
-                ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=bit_mapping)
+                    ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=bit_mapping)
 
-                """
-                Run prism
-                Single spec for exact cover output
-                ------------------
-                """
-                if not keep:
+                    """
+                    Run prism
+                    Single spec for exact cover output
+                    ------------------
+                    """
                     # Add another worksheet based on the template
                     source = ec_wb['EC_Prism_Template']
                     ec_ws = ec_wb.copy_worksheet(source)
@@ -961,24 +974,9 @@ def cmd_menu(args):
                     # Run Prism and get outputs for each individual specification
                     ec.run_prism(universes, subsets_arrays, ec_outputs, ec_prism_nt, ec_wb, ec_ws, ec_xl_fn, prism_spec)
 
-            """
-            Keep stats
-            """
-            for (u, s), idx in enumerate(zip(universes, subsets_arrays)):
-                prob_stat = prob_dict.copy()
-                prob_stat["file_name"] = excov_fn
-                prob_stat["Universe"] = u
-                prob_stat["Subset arrays"] = s
-                prob_stat["Depth"] = max_sums[idx]
-                prob_stat["Split Junction"] = num_of_split[idx]
-                prob_stat["Reset Junction"] = num_of_reset[idx]
-                prob_stat["Pass Junction"] = num_of_pass[idx]
-                stats["ExCov"].append(prob_stat)
-
-            """
-            Finished running ExCov
-            """
-            if not keep:
+                """
+                Finished running ExCov
+                """
                 ec_wb.remove(ec_wb['EC_Template'])
                 ec_wb.remove(ec_wb['EC_Prism_Template'])
                 ec_wb.save(ec_xl_fn)

@@ -100,7 +100,7 @@ def read_ec(filename):
                 subsets_list.append(sset_list[:])
                 uni.clear()
                 sset_list.clear()
-        elif len(tokens) != 0 and tokens[0].lower() == 'u':
+        if len(tokens) != 0 and tokens[0].lower() == 'u':
             for tok in tokens[1:]:
                 element = int(tok)
                 if element == 0:
