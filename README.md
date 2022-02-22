@@ -94,6 +94,7 @@ To run BNVerify, execute from the repo directory, using the following arguments:
 | -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4                   | No (0)              |
 | -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                           | No (True)           |
 | -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                           | No (True)           |
+| -i        | --ic3                       | IC3 engine for LTL (nuXmv) | True, False                           | No (False)           |
 
 Input files should be saved in the Inputs directory. Once this is done, it is enough to enter the file name without full path. If the file is saved within a subdirectory, that part of the path should be entered with the filename.
 
