@@ -372,19 +372,25 @@ def manual_menu():
             """
             Keep stats
             """
-            for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
-                prob_stat = prob_dict.copy()
-                prob_stat["file_name"] = excov_fn
-                prob_stat["Universe"] = u
-                prob_stat["Subset arrays"] = s
-                d, s, r, p = misc.calc_ec_stat(u, s)
-                prob_stat["Depth"] = d
-                prob_stat["Split Junction"] = s
-                prob_stat["Reset Junction"] = r
-                prob_stat["Pass Junction"] = p
-                stats["ExCov"].append(prob_stat)
+            overflow_flag = False
+            try:
+                for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
+                    prob_stat = prob_dict.copy()
+                    prob_stat["file_name"] = excov_fn
+                    prob_stat["Universe"] = u
+                    prob_stat["Subset arrays"] = s
+                    d, s, r, p = misc.calc_ec_stat(u, s)
+                    prob_stat["Depth"] = d
+                    prob_stat["Split Junction"] = s
+                    prob_stat["Reset Junction"] = r
+                    prob_stat["Pass Junction"] = p
+                    stats["ExCov"].append(prob_stat)
+            except:
+                print("The problem is too big")
+                logging.info('ExCov problem is too big')
+                overflow_flag = True
 
-            if not keep:
+            if not keep and not overflow_flag:
 
                 # Pick a model checker (NuSMV, nuXmv or PRISM)
                 str_modc = misc.modcheck_select()
@@ -398,9 +404,10 @@ def manual_menu():
                     """
                     Generate smv files
                     """
-                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
-                                                                                                                  subsets_arrays,
-                                                                                                                  bit_mapping=True)
+                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(
+                        universes,
+                        subsets_arrays,
+                        bit_mapping=True)
 
                     """
                     Run NuSMV
@@ -414,7 +421,8 @@ def manual_menu():
                     ec_wb.save(ec_xl_fn)
 
                     # Run NuSMV and get outputs for each individual specification
-                    ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc,
+                    ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn,
+                                 str_modc,
                                  max_sums)
 
                 elif str_modc == "prism":
@@ -428,10 +436,11 @@ def manual_menu():
 
                     while ec_opt != 3:
                         mu_user_input = misc.prism_set_mu()
-                        ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes,
-                                                                                                                  subsets_arrays,
-                                                                                                                  mu_user_input,
-                                                                                                                  bit_mapping=True)
+                        ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(
+                            universes,
+                            subsets_arrays,
+                            mu_user_input,
+                            bit_mapping=True)
 
                         """
                         Run prism
@@ -707,7 +716,8 @@ def cmd_menu(args):
                     gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
 
                     # run smv file
-                    gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth])
+                    gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
+                                    depth=[depth])
 
                 elif str_modc == 'prism':
                     # Add another worksheet based on the template
@@ -729,7 +739,8 @@ def cmd_menu(args):
                         gn_smv_fn_arr = [gn_smv_fn]
 
                     # run prism file
-                    gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0], depth=[depth],
+                    gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
+                                    depth=[depth],
                                     spec_number=prism_spec, mu=mu)
 
             if len(gn_wb.sheetnames) > gn_wb_num_of_sheets:
@@ -843,7 +854,8 @@ def cmd_menu(args):
                         ssp_wb.save(ssp_xl_fn)
 
                         # Run NuSMV and get outputs for each individual specification
-                        ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc,
+                        ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn,
+                                              str_modc,
                                               with_tags=with_tags, verbosity=verbosity)
 
                 elif str_modc == "prism":
@@ -909,19 +921,25 @@ def cmd_menu(args):
             """
             Keep stats
             """
-            for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
-                prob_stat = prob_dict.copy()
-                prob_stat["file_name"] = excov_fn
-                prob_stat["Universe"] = u
-                prob_stat["Subset arrays"] = s
-                d, s, r, p = misc.calc_ec_stat(u, s)
-                prob_stat["Depth"] = d
-                prob_stat["Split Junction"] = s
-                prob_stat["Reset Junction"] = r
-                prob_stat["Pass Junction"] = p
-                stats["ExCov"].append(prob_stat)
+            overflow_flag = False
+            try:
+                for idx, (u, s) in enumerate(zip(universes, subsets_arrays)):
+                    prob_stat = prob_dict.copy()
+                    prob_stat["file_name"] = excov_fn
+                    prob_stat["Universe"] = u
+                    prob_stat["Subset arrays"] = s
+                    d, s, r, p = misc.calc_ec_stat(u, s)
+                    prob_stat["Depth"] = d
+                    prob_stat["Split Junction"] = s
+                    prob_stat["Reset Junction"] = r
+                    prob_stat["Pass Junction"] = p
+                    stats["ExCov"].append(prob_stat)
+            except:
+                print("The problem is too big")
+                logging.info('ExCov problem is too big')
+                overflow_flag = True
 
-            if not keep:
+            if not keep and not overflow_flag:
                 # Setup worksheet for data recording
                 ec_wb = loadwb(template_dir + 'EC_Template.xlsx')
                 ec_xl_fn = misc.file_name_cformat(f'ExCov_{str_modc}.xlsx')
@@ -931,11 +949,12 @@ def cmd_menu(args):
                     """
                     Generate smv files
                     """
-                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(universes,
-                                                                                                                  subsets_arrays,
-                                                                                                                  bit_mapping=bit_mapping,
-                                                                                                                  with_tags=with_tags,
-                                                                                                                  cut_in_u=cut)
+                    ec_smv, ec_smv_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.smv_gen(
+                        universes,
+                        subsets_arrays,
+                        bit_mapping=bit_mapping,
+                        with_tags=with_tags,
+                        cut_in_u=cut)
 
                     """
                     Run NuSMV
@@ -949,7 +968,8 @@ def cmd_menu(args):
                     ec_wb.save(ec_xl_fn)
 
                     # Run NuSMV and get outputs for each individual specification
-                    ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn, str_modc,
+                    ec.run_nusmv(universes, subsets_arrays, ec_outputs, ec_smv, ec_smv_nt, ec_wb, ec_ws, ec_xl_fn,
+                                 str_modc,
                                  max_sums, with_tags=with_tags, ic3=ic3, verbosity=verbosity)
 
                 elif str_modc == "prism":
@@ -958,7 +978,10 @@ def cmd_menu(args):
                     Generate prism files
                     """
 
-                    ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes, subsets_arrays, mu, bit_mapping=bit_mapping)
+                    ec_prism_nt, ec_outputs, max_sums, num_of_pass, num_of_split, num_of_reset = ec.prism_gen(universes,
+                                                                                                              subsets_arrays,
+                                                                                                              mu,
+                                                                                                              bit_mapping=bit_mapping)
 
                     """
                     Run prism
