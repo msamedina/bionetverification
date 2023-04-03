@@ -9,3 +9,6 @@ __pycache__/
 **/.vscode
 # exclude workspace
 *.code-workspace
+prism-4.6-linux64/tmp
+prism-4.6-linux64/bin/prism
+prism-4.6-linux64/bin/xprism
