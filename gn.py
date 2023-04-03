@@ -149,14 +149,15 @@ def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=
         wbook.close()
 
 
-def smv_gen(filename, depth, split, force_down):
+def smv_gen(filename, depth, split, force_down, reset_diag):
     """
-    Print out the SSP network description to the smv file
+    Print out the GC network description to an smv file
         Input:
             filename: The NuSMV filename in which to write the description
-            set_array: the set being looked at for the subset sum problem
-            max_sum: the total sum of all elements in the set
-            set_size: the size of the set
+            depth: the depth of the network
+            split: the set of split junctions (by row? look at parser to make sure)
+            force_down: the set of reset down junctions
+            reset_diag: the set of reset diagonal junctions
     """
     # ----------------
     # BEGINNING OF FILE CREATION
@@ -171,7 +172,7 @@ def smv_gen(filename, depth, split, force_down):
     f.write('MODULE main\n' + 'VAR\n')
     f.write('\trow: 0..' + str(depth) + ';\n')
     f.write('\tcolumn: 0..' + str(depth) + ';\n')
-    f.write('\tjunction: {pass, split, reset};\n')
+    f.write('\tjunction: {pass, split, reset, resetDiag};\n')
     f.write('\tdir: {dwn, diag};\n')
     f.write('\tflag: boolean;\n')
 
@@ -184,6 +185,8 @@ def smv_gen(filename, depth, split, force_down):
         init_junction = 'split'
     elif [0, 0] in force_down:
         init_junction = 'reset'
+    elif [0, 0] in reset_diag:
+        init_junction = 'resetDiag'
     else:
         init_junction = 'pass'
     f.write(f'\tinit(junction) := {init_junction};\n')
@@ -230,6 +233,7 @@ def smv_gen(filename, depth, split, force_down):
     f.write('(junction = split): {dwn, diag};\n\t\t\t\t\t\t')
     f.write('(junction = pass): dir;\n\t\t\t\t\t\t')
     f.write('(junction = reset): dwn;\n\t\t\t\t\t\t')
+    f.write('(junction = resetDiag): diag;\n\t\t\t\t\t\t')
     f.write('TRUE: {dwn, diag};\n\t\t\t\t\tesac;\n\n')
 
     # Write column transitions to file

@@ -280,12 +280,14 @@ def read_gn(fn=None):
         Output:
             Depth: The size of the network
             split_junc: list of split junctions
-            force_down_junc: list of split junctions
+            force_down_junc: list of reset to down junctions
+            reset_diag_junc: list of reset to diagonal junctions
     """
     logging.info('Opening General Network input file')
     in_data = open(fn, "r")
     split_junc = list()
     force_down_junc = list()
+    reset_diag_junc = list()
 
     # Run through the lines of data in the file
     gn = in_data.readlines()
@@ -295,11 +297,17 @@ def read_gn(fn=None):
         fdj = lambda x, y: eval(gn[2])
     else:
         fdj = lambda x, y: False
+    if len(gn) > 3:
+        rdiagj = lambda x, y: eval(gn[2])
+    else:
+        rdiagj = lambda x, y: False
 
     for i in range(depth):
         for j in range(i + 1):
             if fdj(i, j):
                 force_down_junc.append([i, j])
+            elif rdiagj(i, j):
+                reset_diag_junc.append([i, j])
             elif sj(i, j):
                 split_junc.append([i, j])
 
@@ -310,9 +318,10 @@ def read_gn(fn=None):
         f.write(f'Depth: {depth}\n')
         f.write(f'Split junctions: {split_junc}\n')
         f.write(f'Force-down junctions: {force_down_junc}\n')
+        f.write(f'Reset-diag junctions: {reset_diag_junc}\n')
         f.close()
 
-    return depth, split_junc, force_down_junc
+    return depth, split_junc, force_down_junc, reset_diag_junc
 
 
 def cmd_parsing_ic3(ic3):

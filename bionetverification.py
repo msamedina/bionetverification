@@ -14,7 +14,7 @@ import os
 import json
 
 # keep statistics of current running
-prob_dict = {"file_name": None, "Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Pass Junction": 0}
+prob_dict = {"file_name": None, "Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Reset Diagonal Junction": 0, "Pass Junction": 0}
 
 
 def manual_menu():
@@ -86,7 +86,7 @@ def manual_menu():
             # While filename is not in Inputs
             gn_pstr = 'Please enter Network filename: '
             gn_smv_fn = misc.input_exists(input_dir, gn_pstr)
-            depth, split_junc, force_down_junc = misc.read_gn(gn_smv_fn)
+            depth, split_junc, force_down_junc, reset_diag_junc = misc.read_gn(gn_smv_fn)
 
             # keep statistics
             prob_stat = prob_dict.copy()
@@ -94,7 +94,8 @@ def manual_menu():
             prob_stat["Depth"] = depth
             prob_stat["Split Junction"] = len(split_junc)
             prob_stat["Reset Junction"] = len(force_down_junc)
-            prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc)
+            prob_stat["Reset Diagonal Junction"] = len(reset_diag_junc)
+            prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc) -len(reset_diag_junc)
             stats["GC"].append(prob_stat)
 
             if not keep:

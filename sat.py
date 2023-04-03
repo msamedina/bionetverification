@@ -61,10 +61,10 @@ def dimacs_reader(filename):
                 # logging.warning('Edit and resubmit')
                 return -1
         elif len(tokens) != 0 and tokens[0].lower() not in ("p", "c"):
-            if len(tokens) != 4:
-                print("Not in 3-CNF format. Please edit and resubmit")
-                # logging.warning('Not in 3-CNF format. Edit and resubmit')
-                return -1
+            # if len(tokens) != 4:
+            #     print("Not in 3-CNF format. Please edit and resubmit")
+            #     # logging.warning('Not in 3-CNF format. Edit and resubmit')
+            #     return -1
             for tok in tokens:
                 lit = int(tok)
                 maxvar = max(maxvar, abs(lit))
@@ -76,8 +76,8 @@ def dimacs_reader(filename):
     cnf.pop()
     assert (len(cnf) == num_clause), "Incorrect number of clauses. Re-run."
     assert (maxvar <= num_var), "Incorrect number of variables. Re-run."
-    print("Your 3-CNF in list format: ", cnf)
-    # logging.info('Current 3-CNF in list format: ' + str(cnf))
+    print("Your CNF in list format: ", cnf)
+    # logging.info('Current CNF in list format: ' + str(cnf))
     print("Max variable index used: ", maxvar)
     # logging.info('Max variable index used: ' + str(maxvar))
     return cnf, num_clause, num_var
@@ -127,7 +127,7 @@ def print_smv_noClau(filename, cnf_list, num_clause, num_var):
     dedicated variable
         Input:
             filename: the smv filename to be used
-            cnf_list: The CNF list for the 3-SAT problem
+            cnf_list: The CNF list for the SAT problem
             num_clause: The number of clauses
             num_var: The number of variables
     """
@@ -135,7 +135,7 @@ def print_smv_noClau(filename, cnf_list, num_clause, num_var):
     f = open(filename, 'w')
     # logging.info('SMV file has been opened for editing')
     now = datetime.datetime.now()
-    f.write('--Michelle Aluf Medina,\t' + now.strftime("%d-%m-%Y"))
+    f.write('--Date:\t' + now.strftime("%d-%m-%Y"))
     f.write('\n--SAT Problem\n--' + str(num_clause) + ' Clauses and '
             + str(num_var) + ' Variables: ' + str(cnf_list)
             + '\n-------------------------------\n')
@@ -206,17 +206,20 @@ def print_smv_noClau(filename, cnf_list, num_clause, num_var):
         f.write('\n\t--C' + str(i + 1) + '\n')
         f.write('\tnext(tag[' + str(i + 1) + ']) :=\n\t\t\t\t\tcase\n')
         f.write('\t\t\t\t\t\t(junction = clause) & (')
-        for j in range(0, 3):
+        for j in range(0, len(cnf_list[i])):#range(0, 3):
             currvar = cnf_list[i][j]
             torf = ''
             if currvar > 0:
                 torf = 'TRUE'
             else:
                 torf = 'FALSE'
-            if j == 0:
+            if j == 0 and j == (len(cnf_list[i]) - 1):
+                f.write('(vari = ' + str(abs(currvar)) + ' & next(varval) = '
+                        + torf + '))')
+            elif j == 0:
                 f.write('(vari = ' + str(abs(currvar)) + ' & next(varval) = '
                         + torf + ')')
-            elif j == 2:
+            elif j == (len(cnf_list[i]) - 1):
                 f.write(' | (vari = ' + str(abs(currvar))
                         + ' & next(varval) = ' + torf + '))')
             else:
@@ -249,14 +252,14 @@ def print_smv_clau(filename, cnf_list, num_clause, num_var):
     variable only indicates the clauses entered
         Input:
             filename: the smv filename to be used
-            cnf_list: The CNF list for the 3-SAT problem
+            cnf_list: The CNF list for the SAT problem
             num_clause: The number of clauses
             num_var: The number of variables
     """
     # Write header into file
     f = open(filename, 'w')
     now = datetime.datetime.now()
-    f.write('--Michelle Aluf Medina,\t' + now.strftime("%d-%m-%Y"))
+    f.write('--Date:\t' + now.strftime("%d-%m-%Y"))
     f.write('\n--SAT Problem\n--' + str(num_clause) + ' Clauses and '
             + str(num_var) + ' Variables: ' + str(cnf_list)
             + '\n-------------------------------\n')
@@ -325,18 +328,22 @@ def print_smv_clau(filename, cnf_list, num_clause, num_var):
     f.write('\tnext(clau) := \n\t\t\t\t\tcase\n')
 
     for i in range(0, num_clause):
-        for j in range(0, 3):
+        for j in range(0, len(cnf_list[i])):#range(0, 3):
             currvar = cnf_list[i][j]
             torf = ''
             if currvar > 0:
                 torf = 'TRUE'
             else:
                 torf = 'FALSE'
-            if j == 0:
+            if j == 0 and j == (len(cnf_list[i]) - 1):
+                f.write('\t\t\t\t\t\t(vari = ' + str(abs(currvar))
+                        + ' & next(varval) = ' + torf + ' & clau < '
+                        + str(i + 1) + '): ' + str(i + 1) + ';\n')
+            elif j == 0:
                 f.write('\t\t\t\t\t\t(vari = ' + str(abs(currvar))
                         + ' & next(varval) = ' + torf + ' & clau < '
                         + str(i + 1) + ')')
-            elif j == 2:
+            elif j == (len(cnf_list[i]) - 1):
                 f.write(' | (vari = ' + str(abs(currvar))
                         + ' & next(varval) = ' + torf + ' & clau < '
                         + str(i + 1) + '): ' + str(i + 1) + ';\n')
@@ -385,14 +392,14 @@ def print_prism(filename, cnf_list, num_clause, num_var):
     variable only indicates the clauses entered
         Input:
             filename: the prism filename to be used
-            cnf_list: The CNF list for the 3-SAT problem
+            cnf_list: The CNF list for the SAT problem
             num_clause: The number of clauses
             num_var: The number of variables
     """
     # Write header into file
     f = open(filename, 'w')
     now = datetime.datetime.now()
-    f.write('// Avraham Raviv,\t' + now.strftime("%d-%m-%Y"))
+    f.write('// Date:\t' + now.strftime("%d-%m-%Y"))
     f.write('\n// SAT Problem\n// ' + str(num_clause) + ' Clauses and '
             + str(num_var) + ' Variables: ' + str(cnf_list)
             + '\n')
@@ -585,7 +592,7 @@ def smv_run_specs(smv_nc_fns, smv_c_fns, sample_size, xl_ws, xl_wb, xl_fn, str_m
         Input:
             smv_nc_fns: List of the NoClau smv file names
             smv_c_fns: List of the Clau smv file names
-            sample_size: The number of 3-SAT problems created
+            sample_size: The number of SAT problems created
             xl_ws: Excel worksheet where to save data
             str_modcheker: string containing name of model checker (NuSMV or nuXmv)
             vro: Flag for using variable re-ordering
@@ -670,7 +677,7 @@ def dimacs_to_prism(dimacs_file_list, sample_size, xl_ws, xl_wb, xl_fn):
     Function that runs through the generated DIMACS samples and generates prism files
         Input:
             dimacs_file_list: List of sample DIMACS file names
-            sample_size: The number of 3-SAT problems created
+            sample_size: The number of SAT problems created
         Outputs:
             prism_fns: List of the prism file names
     """
@@ -755,7 +762,7 @@ def prism_run_specs(prism_fns, sample_size, xl_ws, xl_wb, xl_fn, str_modcheker):
 
 def mini_sat_solver(in_files, sample_size, xl_ws, xl_wb, xl_fn):
     """
-    Run MiniSat SAT Solver on generated DIMACS samples
+    Run MiniSat SAT Solver on DIMACS samples
         Input:
             in_files: List of DIMACS sample file names
             sample_size: The number of 3-SAT problems created
@@ -799,7 +806,7 @@ def copy_range(start_col, start_row, end_col, end_row, sheet):
 
 def cnf_preprocessing(num_v, num_c, cnf):
     """
-    Clears un-used variables from the 3-CNFs
+    Clears un-used variables from the CNFs
         Inputs:
             num_v: number of variables
             num_c: number of clauses

@@ -1,0 +1,12 @@
+c description: Random 10-CNF over 10 variables and 5 clauses
+c generator: CNFgen (0.9.0)
+c copyright: (C) 2012-2020 Massimo Lauria <massimo.lauria@uniroma1.it>
+c url: https://massimolauria.net/cnfgen
+c command line: cnfgen randkcnf 10 10 5
+c
+p cnf 10 5
+1 2 -6 7 -10 0
+-4 -5 -6 7 8 -9 -10 0
+-3 -6 0
+1 0
+-4 -9 -10 0
