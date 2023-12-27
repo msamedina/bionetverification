@@ -54,7 +54,7 @@ Python library dependencies:
 * [pexpect](https://pexpect.readthedocs.io/en/stable/)
 * [scipy](https://scipy.org/)
 * [networkx](https://networkx.org/)
-* [pandas] (https://pandas.pydata.org/)
+* [pandas](https://pandas.pydata.org/)
 
 ### Running the scripts
 The scripts are run using Python 3 (for command line arguments see [below](#4-Usage)):
