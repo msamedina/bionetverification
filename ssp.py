@@ -1030,7 +1030,7 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modchecker, spec_
             continue
 
         # Parse the results from txt file
-        df = pd.read_csv(out_fn_nt, sep=" ")
+        df = pd.read_csv(out_fn_nt)
 
         # Valid-invalid output
         reachable_col = []

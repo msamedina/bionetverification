@@ -106,7 +106,7 @@ def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=
 			continue
 
 		# Parse the results from txt file
-		df = pd.read_csv(out_fn_nt, sep=" ")
+		df = pd.read_csv(out_fn_nt)
 
 		# Valid-invalid output
 		reachable_col = []

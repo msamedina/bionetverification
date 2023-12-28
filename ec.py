@@ -1009,7 +1009,7 @@ def run_prism(universe, subsets, out_interest, prism_nt_arr, wbook, wsheet, xl_f
 			prob_res = open(f'{out_fn[1]}', "r").readlines()[1][:-1]
 			logging.info('Prob Result: ' + prob_res)
 		elif spec_num == 2:
-			df = pd.read_csv(out_fn[1], sep=" ")
+			df = pd.read_csv(out_fn[1])
 			prob_res = df['Result'].tolist()
 			logging.info('Prob Result: ' + str(prob_res))
 
