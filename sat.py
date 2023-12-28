@@ -68,7 +68,7 @@ def dimacs_reader(filename):
 			#     return -1
 			for tok in tokens:
 				lit = int(tok)
-				if (abs(lit) not in unique_var_list) and (lit is not 0):
+				if (abs(lit) not in unique_var_list) and (lit != 0):
 					unique_var_list.append(abs(lit))
 				#maxvar = max(maxvar, abs(lit))
 				if lit == 0:

@@ -686,7 +686,7 @@ def cmd_menu(args):
 		"""
 		# While filename is not in Inputs
 		gn_fn = input_dir + filename
-		depth, split_junc, force_down_junc = misc.read_gn(fn=gn_fn)
+		depth, split_junc, force_down_junc, reset_true_junc = misc.read_gn(fn=gn_fn)
 
 		# keep statistics
 		prob_stat = prob_dict.copy()
@@ -714,7 +714,7 @@ def cmd_menu(args):
 
 					# generate smv file
 					gn_smv_fn = f'GN_depth_{depth}.smv'
-					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
+					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc)
 
 					# run smv file
 					gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
@@ -727,20 +727,20 @@ def cmd_menu(args):
 					gn_s_ws.title = ('GN_Prism')
 					gn_wb.save(gn_xl_fn)
 
-					gn_smv_fn = f'GN_depth_{depth}_mu_{mu}.pm'
+					gn_pm_fn = f'GN_depth_{depth}_mu_{mu}.pm'
 					gn.gen_prism_spec('spec_gn.pctl')
 
 					# generate prism file
-					gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu)
+					gn.prism_gen(gn_pm_fn, depth, split_junc, force_down_junc, mu=mu)
 					if mu > .0:
-						gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
-						gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=.0)
-						gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
+						gn_pm_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
+						gn.prism_gen(gn_pm_fn_no_error, depth, split_junc, force_down_junc, mu=.0)
+						gn_pm_fn_arr = [gn_pm_fn_no_error, gn_pm_fn]
 					else:
-						gn_smv_fn_arr = [gn_smv_fn]
+						gn_pm_fn_arr = [gn_pm_fn]
 
 					# run prism file
-					gn.run_prism_gn(gn_smv_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
+					gn.run_prism_gn(gn_pm_fn_arr, gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
 									depth=[depth],
 									spec_number=prism_spec, mu=mu)
 

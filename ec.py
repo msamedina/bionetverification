@@ -108,7 +108,7 @@ def read_ec(filename):
 				else:
 					uni.append(element)
 		elif len(tokens) != 0 and tokens[0].lower() == 's':
-			if is_Dimacs and tokens[-1] is not "0":
+			if is_Dimacs and tokens[-1] != "0":
 				tokens.append("0")
 			for tok in tokens[1:]:
 				element = int(tok)
