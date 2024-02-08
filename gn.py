@@ -240,7 +240,7 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 	f.write('\t--If diag, increase column, otherwise dwn, same column\n')
 	f.write('\tnext(column) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
 	f.write('(next(row) = 0): 0;\n\t\t\t\t\t\t')
-	f.write('(next(dir) = diag): (column + 1) mod ' + str(depth) + ';\n\t\t\t\t\t\t')
+	f.write('(next(dir) = diag): (column + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
 	f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
 	f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
 
