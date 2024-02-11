@@ -121,7 +121,7 @@ def manual_menu():
 
 					# generate smv file
 					gn_smv_fn = f'GN_depth_{depth}.smv'
-					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc)
+					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc)
 
 					# run smv file
 					gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth])

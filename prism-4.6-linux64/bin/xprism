@@ -3,7 +3,7 @@
 # Startup script for PRISM GUI (Linux/Solaris)
 
 # PRISM home directory
-PRISM_DIR="/home/avraham/Downloads/prism-4.6-linux64"
+PRISM_DIR="/home/michelle/Scripts/bionetverification/prism-4.6-linux64"
 
 # Launch using main PRISM script
 PRISM_MAINCLASS=userinterface.GUIPrism
