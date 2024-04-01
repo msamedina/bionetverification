@@ -85,17 +85,20 @@ def manual_menu():
 			"""
 			# While filename is not in Inputs
 			gn_pstr = 'Please enter Network filename: '
-			gn_smv_fn = misc.input_exists(input_dir, gn_pstr)
-			depth, split_junc, force_down_junc, reset_true_junc = misc.read_gn(gn_smv_fn)
+			gn_fn = misc.input_exists(input_dir, gn_pstr)
+			# depth, split_junc, force_down_junc, reset_diag_junc, split_top_junc, specs
+			depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, specs = misc.read_gn(gn_fn)
 
 			# keep statistics
 			prob_stat = prob_dict.copy()
-			prob_stat["file_name"] = gn_smv_fn
+			prob_stat["file_name"] = gn_fn
 			prob_stat["Depth"] = depth
 			prob_stat["Split Junction"] = len(split_junc)
-			prob_stat["Reset Junction"] = len(force_down_junc)
-			prob_stat["Reset Diagonal Junction"] = len(reset_true_junc)
+			prob_stat["Split Top Junction"] = len(split_top_junc)
+			prob_stat["Reset-False Junction"] = len(force_down_junc)
+			prob_stat["Reset-True Junction"] = len(reset_true_junc)
 			prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc) -len(reset_true_junc)
+			prob_stat["Specs"] = specs
 			stats["GC"].append(prob_stat)
 
 			if not keep:
@@ -107,7 +110,6 @@ def manual_menu():
 
 				"""
 				Run Model Checker
-				Run new specs (csum and nsum for whole network)
 				------------------
 				"""
 
@@ -121,10 +123,11 @@ def manual_menu():
 
 					# generate smv file
 					gn_smv_fn = f'GN_depth_{depth}.smv'
-					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc)
+					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, specs)
 
+					parsed_specs = gn.parse_input_smv_specs(specs)
 					# run smv file
-					gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth])
+					gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc, depth=[depth], specs=parsed_specs)
 
 				elif str_modc == 'prism':
 					logging.info('Printing GC menu')
@@ -155,10 +158,10 @@ def manual_menu():
 					gn_smv_fn = f'GN_depth_{depth}_mu_{mu_user_input}.pm'
 
 					# generate prism file
-					gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, mu=mu_user_input)
+					gn.prism_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, mu=mu_user_input)
 					if mu_user_input > .0:
 						gn_smv_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
-						gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, mu=.0)
+						gn.prism_gen(gn_smv_fn_no_error, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, mu=.0)
 						gn_smv_fn_arr = [gn_smv_fn_no_error, gn_smv_fn]
 					else:
 						gn_smv_fn_arr = [gn_smv_fn]
@@ -686,15 +689,18 @@ def cmd_menu(args):
 		"""
 		# While filename is not in Inputs
 		gn_fn = input_dir + filename
-		depth, split_junc, force_down_junc, reset_true_junc = misc.read_gn(fn=gn_fn)
+		depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, specs = misc.read_gn(fn=gn_fn)
 
 		# keep statistics
 		prob_stat = prob_dict.copy()
 		prob_stat["file_name"] = gn_fn
 		prob_stat["Depth"] = depth
 		prob_stat["Split Junction"] = len(split_junc)
-		prob_stat["Reset Junction"] = len(force_down_junc)
-		prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc)
+		prob_stat["Split Top Junction"] = len(split_top_junc)
+		prob_stat["Reset-False Junction"] = len(force_down_junc)
+		prob_stat["Reset-True Junction"] = len(reset_true_junc)
+		prob_stat["Pass Junction"] = depth ** 2 - len(split_junc) - len(force_down_junc) -len(reset_true_junc)
+		prob_stat["Specs"] = specs
 		stats["GC"].append(prob_stat)
 
 		if not keep:
@@ -714,11 +720,12 @@ def cmd_menu(args):
 
 					# generate smv file
 					gn_smv_fn = f'GN_depth_{depth}.smv'
-					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc)
+					gn.smv_gen(gn_smv_fn, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, specs)
 
+					parsed_specs = gn.parse_input_smv_specs(specs)
 					# run smv file
 					gn.run_nusmv_gn([gn_smv_fn], gn_wb, gn_s_ws, gn_xl_fn, str_modchecker=str_modc_list[0],
-									depth=[depth])
+									depth=[depth], specs=parsed_specs)
 
 				elif str_modc == 'prism':
 					# Add another worksheet based on the template
@@ -731,10 +738,10 @@ def cmd_menu(args):
 					gn.gen_prism_spec('spec_gn.pctl')
 
 					# generate prism file
-					gn.prism_gen(gn_pm_fn, depth, split_junc, force_down_junc, mu=mu)
+					gn.prism_gen(gn_pm_fn, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, mu=mu)
 					if mu > .0:
 						gn_pm_fn_no_error = f'GN_depth_{depth}_mu_0.pm'
-						gn.prism_gen(gn_pm_fn_no_error, depth, split_junc, force_down_junc, mu=.0)
+						gn.prism_gen(gn_pm_fn_no_error, depth, split_junc, force_down_junc, reset_true_junc, split_top_junc, mu=.0)
 						gn_pm_fn_arr = [gn_pm_fn_no_error, gn_pm_fn]
 					else:
 						gn_pm_fn_arr = [gn_pm_fn]

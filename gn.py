@@ -6,10 +6,11 @@ import logging
 import miscfunctions as misc
 import modcheck
 import pandas as pd
+import re
 
 
 def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='without', verbosity=0, depth=[],
-				 ic3=False):
+				 ic3=False, specs=[]):
 	"""
 	Loop through array of SSP smv files and run NuSMV. Save results in Excel
 	Using new specification type
@@ -24,13 +25,25 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
 			with_tags: Flag for using networks with tags
 	"""
 	row_id = 0
+	outputs = None
+
+	
+
 	for index, gn in enumerate(gn_smv_fn):
-		for output in range(depth[index] + 1):
+		if specs != []:
+			outputs = specs
+		else:
+			outputs = range(depth[index] + 1)
+
+		for i, output in enumerate(outputs):
 			# Save index, k, set, filenames, and output of interest in excel file
-			logging.info('Inputting ID, k, set, filenames, and output data into Excel...')
+			logging.info('Inputting ID, depth, output, filenames, and output data into Excel...')
 			__ = wsheet.cell(column=1, row=(row_id + 4), value=index)
 			__ = wsheet.cell(column=2, row=(row_id + 4), value=depth[index])
-			__ = wsheet.cell(column=4, row=(row_id + 4), value=output)
+			if specs != []:
+				__ = wsheet.cell(column=4, row=(row_id + 4), value=f"Input Spec {i}")
+			else:
+				__ = wsheet.cell(column=4, row=(row_id + 4), value=output)
 			wbook.save(xl_fn)
 
 			ltl_res = ''
@@ -48,17 +61,40 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
 																		   verbosity)
 
 				# Parse output files:
-				ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
-				logging.info('LTL Result: ' + ltl_res)
-				ctl_res = modcheck.get_spec_res(out_fn[1])
-				logging.info('CTL Result: ' + ctl_res)
+				ltl_res = ''
+				ctl_res = ''
+				ltl_fn = ''
+				ctl_fn = ''
+				ltl_rn = ''
+				ctl_rn = ''
+
+				if specs != [] and output[0] == 'LTLSPEC':
+					ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
+					ltl_fn = out_fn[0]
+					ltl_rn = out_rt[0]
+					logging.info('LTL Result: ' + ltl_res)
+				elif specs != [] and output[0] == 'CTLSPEC':
+					ctl_res = modcheck.get_spec_res(out_fn[0])
+					ctl_fn = out_fn[0]
+					ctl_rn = out_rt[0]
+					logging.info('CTL Result: ' + ctl_res)
+				else:
+					ltl_res = modcheck.get_spec_res(out_fn[0], ic3)
+					logging.info('LTL Result: ' + ltl_res)
+					ctl_res = modcheck.get_spec_res(out_fn[1])
+					logging.info('CTL Result: ' + ctl_res)
+					ltl_fn = out_fn[0]
+					ctl_fn = out_fn[1]
+					ltl_rn = out_rt[0]
+					ctl_rn = out_rt[1]
+				
 				logging.info('Saving Tags data in Excel')
-				__ = wsheet.cell(column=6, row=(row_id + 4), value=out_fn[0])
+				__ = wsheet.cell(column=6, row=(row_id + 4), value=ltl_fn)
 				__ = wsheet.cell(column=7, row=(row_id + 4), value=ltl_res)
-				__ = wsheet.cell(column=8, row=(row_id + 4), value=out_rt[0])
-				__ = wsheet.cell(column=9, row=(row_id + 4), value=out_fn[1])
+				__ = wsheet.cell(column=8, row=(row_id + 4), value=ltl_rn)
+				__ = wsheet.cell(column=9, row=(row_id + 4), value=ctl_fn)
 				__ = wsheet.cell(column=10, row=(row_id + 4), value=ctl_res)
-				__ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt[1])
+				__ = wsheet.cell(column=11, row=(row_id + 4), value=ctl_rn)
 				wbook.save(xl_fn)
 
 			if ltl_res == 'false' and ctl_res == 'true' and not ic3:
@@ -68,6 +104,8 @@ def run_nusmv_gn(gn_smv_fn, wbook, wsheet, xl_fn, str_modchecker, with_tags='wit
 			elif ic3 and ltl_res == 'unknown':
 				val = 'UNKNOWN-YES' if ctl_res == 'true' else 'UNKNOWN-NO'
 				__ = wsheet.cell(column=5, row=(row_id + 4), value=val)
+			elif (ltl_res == 'false' and ctl_res == '') or (ltl_res == '' and ctl_res == 'true'):
+				__ = wsheet.cell(column=5, row=(row_id + 4), value='YES')
 			else:
 				__ = wsheet.cell(column=5, row=(row_id + 4), value='INVALID RESULT')
 			wbook.save(xl_fn)
@@ -149,7 +187,7 @@ def run_prism_gn(gn_prism_fn, wbook, wsheet, xl_fn, str_modchecker, spec_number=
 		wbook.close()
 
 
-def smv_gen(filename, depth, split, force_down, reset_diag):
+def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	"""
 	Print out the GC network description to an smv file
 		Input:
@@ -158,6 +196,8 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 			split: the set of split junctions (by row? look at parser to make sure)
 			force_down: the set of reset down junctions
 			reset_diag: the set of reset diagonal junctions
+			split_top: the set of split top junctions
+			specs: the list of specifications
 	"""
 	# ----------------
 	# BEGINNING OF FILE CREATION
@@ -172,7 +212,7 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 	f.write('MODULE main\n' + 'VAR\n')
 	f.write('\trow: 0..' + str(depth) + ';\n')
 	f.write('\tcolumn: 0..' + str(depth) + ';\n')
-	f.write('\tjunction: {pass, split, reset, resetDiag};\n')
+	f.write('\tjunction: {pass, split, reset, resetDiag, splitTop};\n')
 	f.write('\tdir: {dwn, diag};\n')
 	f.write('\tflag: boolean;\n')
 
@@ -187,6 +227,8 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 		init_junction = 'reset'
 	elif [0, 0] in reset_diag:
 		init_junction = 'resetDiag'
+	elif [0, 0] in split_top:
+		init_junction = 'splitTop'
 	else:
 		init_junction = 'pass'
 	f.write(f'\tinit(junction) := {init_junction};\n')
@@ -205,7 +247,9 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 
 	# Write junction transitions to file
 	f.write(f'\n\t--Split junctions at [r, c] in {str(split)}')
-	f.write(f'\n\t--Reset junctions at [r, c] in {str(force_down)}')
+	f.write(f'\n\t--Reset-False junctions at [r, c] in {str(force_down)}')
+	f.write(f'\n\t--Reset-True junctions at [r, c] in {str(reset_diag)}')
+	f.write(f'\n\t--Split-Top junctions at [r, c] in {str(split_top)}')
 
 	f.write('\n\n\tnext(junction) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t(')
 	for i in range(0, len(force_down)):
@@ -217,6 +261,24 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 					+ ')&(next(column) = ' + str(force_down[i][1])
 					+ '))): reset;\n\t\t\t\t\t\t(')
 
+	for i in range(0, len(reset_diag)):
+		if i < len(reset_diag) - 1:
+			f.write('((next(row) = ' + str(reset_diag[i][0])
+					+ ')&(next(column) = ' + str(reset_diag[i][1]) + '))|')
+		else:
+			f.write('((next(row) = ' + str(reset_diag[i][0])
+					+ ')&(next(column) = ' + str(reset_diag[i][1])
+					+ '))): resetDiag;\n\t\t\t\t\t\t(')
+
+	for i in range(0, len(split_top)):
+		if i < len(split_top) - 1:
+			f.write('((next(row) = ' + str(split_top[i][0])
+					+ ')&(next(column) = ' + str(split_top[i][1]) + '))|')
+		else:
+			f.write('((next(row) = ' + str(split_top[i][0])
+					+ ')&(next(column) = ' + str(split_top[i][1])
+					+ '))): splitTop;\n\t\t\t\t\t\t(')
+				
 	for i in range(0, len(split)):
 		if i < len(split) - 1:
 			f.write('((next(row) = ' + str(split[i][0])
@@ -234,6 +296,8 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 	f.write('(junction = pass): dir;\n\t\t\t\t\t\t')
 	f.write('(junction = reset): dwn;\n\t\t\t\t\t\t')
 	f.write('(junction = resetDiag): diag;\n\t\t\t\t\t\t')
+	f.write('(junction = splitTop) & (dir = dwn): {dwn, diag};\n\t\t\t\t\t\t')
+	f.write('(junction = splitTop) & (dir = diag): dir;\n\t\t\t\t\t\t')
 	f.write('TRUE: {dwn, diag};\n\t\t\t\t\tesac;\n\n')
 
 	# Write column transitions to file
@@ -245,19 +309,25 @@ def smv_gen(filename, depth, split, force_down, reset_diag):
 	f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
 
 	# ----------------
-	# Write specifications for each network output
-	for i in range(0, depth + 1):
-		f.write('LTLSPEC\tNAME\tltl_' + str(i)
-				+ ' := G! ((flag = TRUE) & (column = ' + str(i) + '));\n')
-		f.write('CTLSPEC\tNAME\tctl_' + str(i)
-				+ ' := EF ((flag = TRUE) & (column = ' + str(i) + '));\n')
+	# Write specifications for each network output if not given any explicit specs
+	if specs == []:
+		logging.info('No specifications given. Writing default specifications...')
+		for i in range(0, depth + 1):
+			f.write('LTLSPEC\tNAME\tltl_' + str(i)
+					+ ' := G! ((flag = TRUE) & (column = ' + str(i) + '));\n')
+			f.write('CTLSPEC\tNAME\tctl_' + str(i)
+					+ ' := EF ((flag = TRUE) & (column = ' + str(i) + '));\n')
+	else:
+		logging.info('Writing given specifications...')
+		for i in range(0, len(specs)):
+			f.write(specs[i] + '\n')
 
 	# ----------------
 	# CLOSE THE FILE
 	f.close()
 
 
-def prism_gen(filename, depth, split, force_down, mu=0.):
+def prism_gen(filename, depth, split, force_down, reset_diag, split_top, mu=0.):
 	"""
 	Loop through array of SSP problems and generate prism file
 		Input:
@@ -389,3 +459,24 @@ def gen_prism_spec(filename):
 	f.write('P>0 [ F = maxrow+1 row=maxrow & column = k]\n')
 	f.write('P=? [ F = maxrow+1 row=maxrow & column = k]\n')
 	f.close()
+
+def parse_input_smv_specs(specs):
+	"""
+	Parse the input smv specs
+	Input:
+		specs: list of specs
+	Output:
+		specs_data: list of specs, LTL or CTL, Name, and the spec
+	"""
+	specs_data = []
+	# Parse the specs
+	for spec in specs:
+		# Pattern
+		spec_pattern = re.compile(r"([LC]TLSPEC|SPEC)[\s]+NAME[\s]+(\S+)[\s]+:=[\s]+([^;]+)")
+		spec_match = re.search(spec_pattern, spec)
+
+		# Group 1 - LTL or CTL spec
+		# Group 2 - Name of spec
+		# Group 3 - The actual spec
+		specs_data.append([spec_match.group(1), spec_match.group(2), spec_match.group(3)])
+	return specs_data

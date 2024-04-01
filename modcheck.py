@@ -432,13 +432,16 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
 		Input:
 			filename: The NuSMV filename on which to run
 			probtype: Problem type being looked at (1 for SSP or 2 for ExCov)
-			outval: The value of interest being looked at
+			outval: The value of interest being looked at or a given spec for GC
 			str_modchecker: string containing name of model checker (NuSMV or nuXmv)
 	"""
-	if probtype == 0:
+	if probtype == 0 and isinstance(outval, int):
 		pt = 'GN'
 		ltlspec = 'ltl_' + str(outval)
 		ctlspec = 'ctl_' + str(outval)
+	elif probtype == 0:
+		pt = 'GC'
+		spec = outval
 	elif probtype == 1:
 		pt = 'SSP'
 		ltlspec = 'ltl_' + str(outval)
@@ -447,10 +450,6 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
 		pt = 'EC'
 		ltlspec = 'ltl_k'
 		ctlspec = 'ctl_k'
-	
-	out_fn_arr = [misc.file_name_cformat('output_' + pt + '_LTL_k_' + str(outval) + '_{0}'),
-				  misc.file_name_cformat('output_' + pt + '_CTL_k_' + str(outval) + '_{0}')]
-	out_rt_arr = []
 
 	# Prepare to catch runtimes
 	start = 0
@@ -458,10 +457,19 @@ def call_nusmv_pexpect_singleout(filename, probtype, outval, str_modchecker, ver
 	runtime = 0
 	err_flag = 0
 
-	# NuSMV inputs
-	inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\n',
+	# Output filenames and NuSMV inputs
+	if probtype == 0 and not isinstance(outval, int):
+		out_fn_arr = [misc.file_name_cformat('output_' + pt + '_InputSpec_{0}')]
+		inputval = ['go\n', f'check_{spec[0].lower()} -o {out_fn_arr[0]} -P "{spec[1]}"\n', 'quit\n']
+		check_spec = [1]
+	else:
+		out_fn_arr = [misc.file_name_cformat('output_' + pt + '_LTL_k_' + str(outval) + '_{0}'),
+					misc.file_name_cformat('output_' + pt + '_CTL_k_' + str(outval) + '_{0}')]
+		
+		inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "' + ltlspec + '"\n',
 				'check_ctlspec -o ' + out_fn_arr[1] + ' -P "' + ctlspec + '"\n', 'quit\n']
-	check_spec = [1, 2]
+		check_spec = [1, 2]
+	out_rt_arr = []
 
 	logging.info('Opening process: ' + str_modchecker)
 
