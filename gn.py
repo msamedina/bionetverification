@@ -212,6 +212,7 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	f.write('MODULE main\n' + 'VAR\n')
 	f.write('\trow: 0..' + str(depth) + ';\n')
 	f.write('\tcolumn: 0..' + str(depth) + ';\n')
+	f.write('\tz: 0..' + str(depth) + ';\n')
 	f.write('\tjunction: {pass, split, reset, resetDiag, splitTop};\n')
 	f.write('\tdir: {dwn, diag};\n')
 	f.write('\tflag: boolean;\n')
@@ -220,6 +221,7 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	f.write('ASSIGN\n')
 	f.write('\tinit(row) := 0;\n')
 	f.write('\tinit(column) := 0;\n')
+	f.write('\tinit(z) := 0;\n')
 	init_junction = ''
 	if [0, 0] in split:
 		init_junction = 'split'
@@ -307,6 +309,17 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	f.write('(next(dir) = diag): (column + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
 	f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
 	f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
+
+	# Write z transitions to file
+	f.write('\t--If diag taken from split, increase z, otherwise same z\n')
+	f.write('\tnext(z) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
+	f.write('(junction = split) & (next(dir) = diag): (z + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('(junction = split) & (next(dir) = dwn): z;\n\t\t\t\t\t\t')
+	f.write('(junction = pass): z;\n\t\t\t\t\t\t')
+	f.write('(junction = reset): z;\n\t\t\t\t\t\t')
+	f.write('(junction = resetDiag): z;\n\t\t\t\t\t\t')
+	f.write('(junction = splitTop) & (next(dir) = diag): (z + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('TRUE: z;\n\t\t\t\t\tesac;\n\n')
 
 	# ----------------
 	# Write specifications for each network output if not given any explicit specs
