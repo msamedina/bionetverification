@@ -313,6 +313,7 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	# Write z transitions to file
 	f.write('\t--If diag taken from split, increase z, otherwise same z\n')
 	f.write('\tnext(z) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
+	f.write('(row = ' + str(depth) + '): 0;\n\t\t\t\t\t\t')
 	f.write('(junction = split) & (next(dir) = diag): (z + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
 	f.write('(junction = split) & (next(dir) = dwn): z;\n\t\t\t\t\t\t')
 	f.write('(junction = pass): z;\n\t\t\t\t\t\t')
