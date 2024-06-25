@@ -34,6 +34,9 @@ def parse_args():
 	p.add_argument('-k', '--keep', required=False, type=bool, default=False,
 					help='Keep statistics without running model checkers')
 
+	# 3-Partition
+	p.add_argument('-n', '--3_partition', required=False, type=int, help='Description of new argument')
+
 	return p.parse_args()
 
 

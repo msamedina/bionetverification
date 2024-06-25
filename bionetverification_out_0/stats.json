@@ -1,0 +1,20 @@
+{
+    "GC": [],
+    "SSP": [
+        {
+            "file_name": "C:\\Users\\shoham\\Desktop\\bionetverification/Inputs/SSP_small",
+            "Depth": 16,
+            "Split Junction": 12,
+            "Reset Junction": 0,
+            "Reset Diagonal Junction": 0,
+            "Pass Junction": 244,
+            "SSP array": [
+                2,
+                5,
+                9
+            ]
+        }
+    ],
+    "ExCov": [],
+    "SAT": []
+}
