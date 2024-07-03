@@ -294,33 +294,41 @@ def read_gn(fn=None):
 
 	specs = list()
 
+	logging.info('Reading line by line')
 	# Run through the lines of data in the file
 	gn = in_data.readlines()
 
+	logging.info('Save depth.')
 	# Depth - row 0
 	depth = eval((gn[0])[:-1])
+	logging.info('Save split rows/coordinates')
 	# Split - row 1
 	sj = lambda x, y: eval(gn[1])
+	logging.info('Save reset-false coordinates')
 	# Reset-False - row 2
 	if len(gn) > 2 and gn[2] != '\n':
 		fdj = lambda x, y: eval(gn[2])
 	else:
 		fdj = lambda x, y: False
+	logging.info('Save reset-true coordinates')
 	# Reset-True - row 3
 	if len(gn) > 3 and gn[3] != '\n':
 		rdiagj = lambda x, y: eval(gn[3])
 	else:
 		rdiagj = lambda x, y: False
+	logging.info('Save spit-top coordinates')
 	# Split-Top - row 4
 	if len(gn) > 4 and gn[4] != '\n':
 		s_top = lambda x, y: eval(gn[4])
 	else:
 		s_top = lambda x, y: False
+	logging.info('Save specifications (currently only SMV)')
 	# Specifications - row 5
 	if len(gn) > 5 and gn[5] != '\n':
 		for i in range(5, len(gn)):
 			specs.append(gn[i])
 
+	logging.info('Convert to coordinate lists')
 	for i in range(depth):
 		for j in range(i + 1):
 			if fdj(i, j):
