@@ -212,16 +212,22 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	f.write('MODULE main\n' + 'VAR\n')
 	f.write('\trow: 0..' + str(depth) + ';\n')
 	f.write('\tcolumn: 0..' + str(depth) + ';\n')
-	f.write('\tz: 0..' + str(depth) + ';\n')
+	f.write('\tz_split: 0..' + str(depth) + ';\n')
+	f.write('\tz_reset: 0..' + str(depth) + ';\n')
 	f.write('\tjunction: {pass, split, reset, resetDiag, splitTop};\n')
 	f.write('\tdir: {dwn, diag};\n')
 	f.write('\tflag: boolean;\n')
 
 	# Write assignment definitions
+	f.write('DEFINE\n')
+	f.write('\tz_total := z_split + z_reset;\n')
+	
+	# Write assignment definitions
 	f.write('ASSIGN\n')
 	f.write('\tinit(row) := 0;\n')
 	f.write('\tinit(column) := 0;\n')
-	f.write('\tinit(z) := 0;\n')
+	f.write('\tinit(z_split) := 0;\n')
+	f.write('\tinit(z_reset) := 0;\n')
 	init_junction = ''
 	if [0, 0] in split:
 		init_junction = 'split'
@@ -310,17 +316,29 @@ def smv_gen(filename, depth, split, force_down, reset_diag, split_top, specs):
 	f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
 	f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
 
-	# Write z transitions to file
-	f.write('\t--If diag taken from split, increase z, otherwise same z\n')
-	f.write('\tnext(z) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
+	# Write z_split transitions to file
+	f.write('\t--If diag taken from split, increase z_split, otherwise same z_split\n')
+	f.write('\tnext(z_split) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
 	f.write('(row = ' + str(depth) + '): 0;\n\t\t\t\t\t\t')
-	f.write('(junction = split) & (next(dir) = diag): (z + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
-	f.write('(junction = split) & (next(dir) = dwn): z;\n\t\t\t\t\t\t')
-	f.write('(junction = pass): z;\n\t\t\t\t\t\t')
-	f.write('(junction = reset): z;\n\t\t\t\t\t\t')
-	f.write('(junction = resetDiag): z;\n\t\t\t\t\t\t')
-	f.write('(junction = splitTop) & (next(dir) = diag): (z + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
-	f.write('TRUE: z;\n\t\t\t\t\tesac;\n\n')
+	f.write('(junction = split) & (next(dir) = diag): (z_split + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('(junction = split) & (next(dir) = dwn): z_split;\n\t\t\t\t\t\t')
+	f.write('(junction = pass): z_split;\n\t\t\t\t\t\t')
+	f.write('(junction = reset): z_split;\n\t\t\t\t\t\t')
+	f.write('(junction = resetDiag): z_split;\n\t\t\t\t\t\t')
+	f.write('(junction = splitTop) & (next(dir) = diag): (z_split + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('TRUE: z_split;\n\t\t\t\t\tesac;\n\n')
+
+	# Write z_reset transitions to file
+	f.write('\t--If diag taken from split, increase z_reset, otherwise same z_reset\n')
+	f.write('\tnext(z_reset) := \n\t\t\t\t\tcase\n\t\t\t\t\t\t')
+	f.write('(row = ' + str(depth) + '): 0;\n\t\t\t\t\t\t')
+	f.write('(junction = split) & (next(dir) = diag): z_reset;\n\t\t\t\t\t\t')
+	f.write('(junction = split) & (next(dir) = dwn): z_reset;\n\t\t\t\t\t\t')
+	f.write('(junction = pass): z_reset;\n\t\t\t\t\t\t')
+	f.write('(junction = reset): (z_reset + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('(junction = resetDiag): (z_reset + 1) mod ' + str(depth + 1) + ';\n\t\t\t\t\t\t')
+	f.write('(junction = splitTop) & (next(dir) = diag): z_reset;\n\t\t\t\t\t\t')
+	f.write('TRUE: z_reset;\n\t\t\t\t\tesac;\n\n')
 
 	# ----------------
 	# Write specifications for each network output if not given any explicit specs
