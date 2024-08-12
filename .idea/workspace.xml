@@ -5,14 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e33ce695-9b6f-4349-88b6-79fba02e14ac" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/bionetverification.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/run_script.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Examples/SSP/smv_files/output_SSP_LTL_k_2_4" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/bionetverification.py" beforeDir="false" afterPath="$PROJECT_DIR$/bionetverification.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_NBC.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_NBC.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/miscfunctions.py" beforeDir="false" afterPath="$PROJECT_DIR$/miscfunctions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modcheck.py" beforeDir="false" afterPath="$PROJECT_DIR$/modcheck.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_script.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_script.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/threepartition.py" beforeDir="false" afterPath="$PROJECT_DIR$/threepartition.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -33,9 +33,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2i2iGBV85km5UCyf7aRj3qHFwOG" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -53,6 +53,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\shoham\Desktop\bionetverification\Examples\SSP\smv_files" />
       <recent name="C:\Users\shoham\Desktop\bionetverification" />
     </key>
   </component>
@@ -89,7 +90,7 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="SDK_NAME" value="Python 3.10 (PythonGames)" />
+      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="C:\Users\shoham\Desktop\bionetverification" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -125,5 +126,16 @@
       <updated>1718694979442</updated>
     </task>
     <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/modcheck.py</url>
+          <line>824</line>
+          <option name="timeStamp" value="38" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

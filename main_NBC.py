@@ -4,7 +4,7 @@ from bionetverification import manual_menu, cmd_menu
 
 def parse_args():
 	p = argparse.ArgumentParser()
-	p.add_argument('-p', '--problem', required=False, type=str, help='Problem type')  # GN, SSP, ExCov or SAT
+	p.add_argument('-p', '--problem', required=False, type=str, help='Problem type')  # GN, SSP, ExCov or SAT or 3Partition
 	p.add_argument('-f', '--filename', required=False, type=str,
 					help='Input file name. Files must be in defined formats for relevant problem types')
 	p.add_argument('-m', '--modecheck', required=False, type=str,
@@ -33,9 +33,6 @@ def parse_args():
 					help='Flag for using IC3 engine on LTL specifications (only relevant for nuXmv)')
 	p.add_argument('-k', '--keep', required=False, type=bool, default=False,
 					help='Keep statistics without running model checkers')
-
-	# 3-Partition
-	p.add_argument('-n', '--3_partition', required=False, type=int, help='Description of new argument')
 
 	return p.parse_args()
 

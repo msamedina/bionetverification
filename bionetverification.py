@@ -623,7 +623,7 @@ def manual_menu():
 	print('Output directory: ' + cwd)
 	print('Log file location: ' + log_path)
 
-
+#------ CHANGED - add the 3-partition option
 def cmd_menu(args):
 	# parsing the arguments from command line
 	problem_type = misc.cmd_parsing_problem(args.problem)
@@ -639,7 +639,7 @@ def cmd_menu(args):
 	cut = misc.cmd_parsing_cut(args.cut_in_u)
 	ic3 = misc.cmd_parsing_ic3(args.ic3)
 	keep = args.keep
-	stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": []}
+	stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": [], "3Partition": []} #------ CHANGED - add the 3-partition option
 
 	"""
 	MAIN
@@ -792,7 +792,7 @@ def cmd_menu(args):
 			# Setup worksheet for data recording
 			ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
 			ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
-			ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx')
+			ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx') #change name 3part
 			ssp_wb.save(ssp_xl_fn)
 
 			if not keep:
@@ -858,7 +858,7 @@ def cmd_menu(args):
 						# Add another worksheet based on the template
 						s_source = ssp_wb['NewSpec_Template']
 						ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-						ssp_s_ws.title = 'SSP_GenSpec'
+						ssp_s_ws.title = 'SSP_GenSpec' #change name
 						ssp_wb.save(ssp_xl_fn)
 
 						# Run NuSMV and get outputs for each individual specification
@@ -1130,9 +1130,9 @@ def cmd_menu(args):
 				stats["SSP"].append(prob_stat)
 
 			# Setup worksheet for data recording
-			ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx')
+			ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx') # to see thr
 			ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
-			ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx')
+			ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx') # to change the name of file
 			ssp_wb.save(ssp_xl_fn)
 
 			if not keep:
@@ -1154,6 +1154,7 @@ def cmd_menu(args):
 					if ssp_opt == 3:
 						ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr, str_modc, with_tags=with_tags)
 
+						 #To choose the 3 option
 					# If selected bulk run
 					if ssp_opt == 1:
 						"""
@@ -1246,10 +1247,6 @@ def cmd_menu(args):
 					os.remove(ssp_xl_fn)
 				logging.info('Closing workbook')
 				ssp_wb.close()
-
-				# create MATLAB file
-				logging.info('Create MATLAB file')
-				misc.ssp_create_m_file(Su=ssp_arr)
 
 			else:
 				break

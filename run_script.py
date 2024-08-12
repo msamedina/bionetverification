@@ -3,42 +3,19 @@ import subprocess
 import time
 import pandas as pd
 import threepartition
+import modcheck
 
-def run_nuxmv(model_filename, k=None, engine=None):
-    """
-    Run nuXmv model checker with the given model file and parameters.
 
-    :param model_filename (str): The filename of the nuXmv model.
-    :param k (int, optional): The number of steps for bounded model checking. Defaults to None.
-    :param engine (str, optional): The engine to use for model checking.
-                                Options: "SAT" for SAT-based BMC, "BDD" for BDD-based BMC. Defaults to None.
-    :return: The filename of the output file.
-    """
+set = [4,5,6,7,8,9,10,11,15]
 
-    # get current directory
-    cwd = os.getcwd()
+sum_sub = threepartition.pre_calc_3partition(set)
+print("The Target Sum is: " + str(sum_sub) + " of the set", set)
 
-    #### CHANGE HERE TO THE PATH OF YOUR nuXmv BIN FOLDER ####
-    os.chdir(r'C:\Users\shoham\Desktop\bionetverification')
-    # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+f = open('smv_file.smv', 'w')
+threepartition.print_smv_3partition('smv_file.smv', set, sum(set), len(set), [], int(sum_sub))
 
-    # run the command
-    args = [".\\nuXmv.exe", "-int", model_filename]
-    nuxmv_process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout= subprocess.PIPE, universal_newlines=True)
+modcheck.call_nusmv_pexpect_3partition("smv_file.smv", "nuXmv", len(set), int(sum_sub), set)
 
-    # enter cnrl + c to exit
-    nuxmv_process.stdin.write("quit\n")
 
-    # generate output file name
-    output_filename = model_filename.split(".")[0] + ".out"
 
-    stdout, _ = nuxmv_process.communicate()
-
-    # save output to file
-    with open(output_filename, "w") as f:
-        f.write(stdout)
-    print(f"Output saved to {output_filename}")
-
-    # change the directory back to the original directory
-    os.chdir(cwd)
 

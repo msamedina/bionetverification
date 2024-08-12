@@ -1,0 +1,442 @@
+-- specification  G !(flag = TRUE & column = 2)  is false
+-- as demonstrated by the following execution sequence
+Trace Description: LTL Counterexample 
+Trace Type: Counterexample 
+  -> State: 1.1 <-
+    row = 0
+    column = 0
+    junction = split
+    dir = dwn
+    flag = FALSE
+    tag[0] = FALSE
+    tag[1] = FALSE
+    tag[2] = FALSE
+    tag[3] = FALSE
+    tag[4] = FALSE
+    tag[5] = FALSE
+    tag[6] = FALSE
+    tag[7] = FALSE
+    tag[8] = FALSE
+    tag[9] = FALSE
+    tag[10] = FALSE
+    tag[11] = FALSE
+    tag[12] = FALSE
+    tag[13] = FALSE
+    tag[14] = FALSE
+    tag[15] = FALSE
+    tag[16] = FALSE
+    tag[17] = FALSE
+    tag[18] = FALSE
+    tag[19] = FALSE
+    tag[20] = FALSE
+    tag[21] = FALSE
+    tag[22] = FALSE
+    tag[23] = FALSE
+    tag[24] = FALSE
+    tag[25] = FALSE
+    tag[26] = FALSE
+    tag[27] = FALSE
+    tag[28] = FALSE
+    tag[29] = FALSE
+    tag[30] = FALSE
+    tag[31] = FALSE
+    tag[32] = FALSE
+    tag[33] = FALSE
+    tag[34] = FALSE
+    tag[35] = FALSE
+    tag[36] = FALSE
+    tag[37] = FALSE
+    tag[38] = FALSE
+    tag[39] = FALSE
+    tag[40] = FALSE
+    tag[41] = FALSE
+    tag[42] = FALSE
+    tag[43] = FALSE
+    tag[44] = FALSE
+    tag[45] = FALSE
+    tag[46] = FALSE
+    tag[47] = FALSE
+    tag[48] = FALSE
+    tag[49] = FALSE
+    tag[50] = FALSE
+    tag[51] = FALSE
+    tag[52] = FALSE
+    tag[53] = FALSE
+    tag[54] = FALSE
+    tag[55] = FALSE
+    tag[56] = FALSE
+    tag[57] = FALSE
+    tag[58] = FALSE
+    tag[59] = FALSE
+    tag[60] = FALSE
+    tag[61] = FALSE
+    tag[62] = FALSE
+    tag[63] = FALSE
+    tag[64] = FALSE
+    tag[65] = FALSE
+    tag[66] = FALSE
+    tag[67] = FALSE
+    tag[68] = FALSE
+    tag[69] = FALSE
+    tag[70] = FALSE
+    tag[71] = FALSE
+    tag[72] = FALSE
+    tag[73] = FALSE
+    tag[74] = FALSE
+    tag[75] = FALSE
+    tag[76] = FALSE
+    tag[77] = FALSE
+    tag[78] = FALSE
+    tag[79] = FALSE
+    tag[80] = FALSE
+    tag[81] = FALSE
+    tag[82] = FALSE
+    tag[83] = FALSE
+    tag[84] = FALSE
+    tag[85] = FALSE
+    tag[86] = FALSE
+    tag[87] = FALSE
+    tag[88] = FALSE
+    tag[89] = FALSE
+    tag[90] = FALSE
+    tag[91] = FALSE
+    tag[92] = FALSE
+    tag[93] = FALSE
+    tag[94] = FALSE
+    tag[95] = FALSE
+    tag[96] = FALSE
+    tag[97] = FALSE
+    tag[98] = FALSE
+    tag[99] = FALSE
+    tag[100] = FALSE
+    tag[101] = FALSE
+    tag[102] = FALSE
+    tag[103] = FALSE
+    tag[104] = FALSE
+    tag[105] = FALSE
+    tag[106] = FALSE
+    tag[107] = FALSE
+    tag[108] = FALSE
+    tag[109] = FALSE
+  -> State: 1.2 <-
+    row = 1
+    column = 1
+    junction = pass
+    dir = diag
+    tag[0] = TRUE
+  -> State: 1.3 <-
+    row = 2
+    column = 2
+    junction = split
+  -> State: 1.4 <-
+    row = 3
+    junction = pass
+    dir = dwn
+  -> State: 1.5 <-
+    row = 4
+  -> State: 1.6 <-
+    row = 5
+    junction = split
+  -> State: 1.7 <-
+    row = 6
+    junction = pass
+  -> State: 1.8 <-
+    row = 7
+  -> State: 1.9 <-
+    row = 8
+  -> State: 1.10 <-
+    row = 9
+  -> State: 1.11 <-
+    row = 10
+    junction = split
+  -> State: 1.12 <-
+    row = 11
+    junction = pass
+  -> State: 1.13 <-
+    row = 12
+  -> State: 1.14 <-
+    row = 13
+  -> State: 1.15 <-
+    row = 14
+  -> State: 1.16 <-
+    row = 15
+  -> State: 1.17 <-
+    row = 16
+  -> State: 1.18 <-
+    row = 17
+    junction = split
+  -> State: 1.19 <-
+    row = 18
+    junction = pass
+  -> State: 1.20 <-
+    row = 19
+  -> State: 1.21 <-
+    row = 20
+  -> State: 1.22 <-
+    row = 21
+  -> State: 1.23 <-
+    row = 22
+  -> State: 1.24 <-
+    row = 23
+  -> State: 1.25 <-
+    row = 24
+  -> State: 1.26 <-
+    row = 25
+  -> State: 1.27 <-
+    row = 26
+  -> State: 1.28 <-
+    row = 27
+  -> State: 1.29 <-
+    row = 28
+    junction = split
+  -> State: 1.30 <-
+    row = 29
+    junction = pass
+  -> State: 1.31 <-
+    row = 30
+  -> State: 1.32 <-
+    row = 31
+  -> State: 1.33 <-
+    row = 32
+  -> State: 1.34 <-
+    row = 33
+  -> State: 1.35 <-
+    row = 34
+  -> State: 1.36 <-
+    row = 35
+  -> State: 1.37 <-
+    row = 36
+  -> State: 1.38 <-
+    row = 37
+  -> State: 1.39 <-
+    row = 38
+  -> State: 1.40 <-
+    row = 39
+  -> State: 1.41 <-
+    row = 40
+  -> State: 1.42 <-
+    row = 41
+    junction = split
+  -> State: 1.43 <-
+    row = 42
+    junction = pass
+  -> State: 1.44 <-
+    row = 43
+  -> State: 1.45 <-
+    row = 44
+  -> State: 1.46 <-
+    row = 45
+  -> State: 1.47 <-
+    row = 46
+  -> State: 1.48 <-
+    row = 47
+  -> State: 1.49 <-
+    row = 48
+  -> State: 1.50 <-
+    row = 49
+  -> State: 1.51 <-
+    row = 50
+  -> State: 1.52 <-
+    row = 51
+  -> State: 1.53 <-
+    row = 52
+  -> State: 1.54 <-
+    row = 53
+  -> State: 1.55 <-
+    row = 54
+  -> State: 1.56 <-
+    row = 55
+  -> State: 1.57 <-
+    row = 56
+  -> State: 1.58 <-
+    row = 57
+  -> State: 1.59 <-
+    row = 58
+    flag = TRUE
+  -- Loop starts here
+  -> State: 1.60 <-
+    row = 0
+    column = 0
+    junction = split
+    flag = FALSE
+    tag[0] = FALSE
+  -> State: 1.61 <-
+    row = 1
+    column = 1
+    junction = pass
+    dir = diag
+    tag[0] = TRUE
+  -> State: 1.62 <-
+    row = 2
+    column = 2
+    junction = split
+  -> State: 1.63 <-
+    row = 3
+    junction = pass
+    dir = dwn
+  -> State: 1.64 <-
+    row = 4
+  -> State: 1.65 <-
+    row = 5
+    junction = split
+  -> State: 1.66 <-
+    row = 6
+    column = 3
+    junction = pass
+    dir = diag
+    tag[6] = TRUE
+  -> State: 1.67 <-
+    row = 7
+    column = 4
+  -> State: 1.68 <-
+    row = 8
+    column = 5
+  -> State: 1.69 <-
+    row = 9
+    column = 6
+  -> State: 1.70 <-
+    row = 10
+    column = 7
+    junction = split
+  -> State: 1.71 <-
+    row = 11
+    junction = pass
+    dir = dwn
+  -> State: 1.72 <-
+    row = 12
+  -> State: 1.73 <-
+    row = 13
+  -> State: 1.74 <-
+    row = 14
+  -> State: 1.75 <-
+    row = 15
+  -> State: 1.76 <-
+    row = 16
+  -> State: 1.77 <-
+    row = 17
+    junction = split
+  -> State: 1.78 <-
+    row = 18
+    column = 8
+    junction = pass
+    dir = diag
+    tag[28] = TRUE
+  -> State: 1.79 <-
+    row = 19
+    column = 9
+  -> State: 1.80 <-
+    row = 20
+    column = 10
+  -> State: 1.81 <-
+    row = 21
+    column = 11
+  -> State: 1.82 <-
+    row = 22
+    column = 12
+  -> State: 1.83 <-
+    row = 23
+    column = 13
+  -> State: 1.84 <-
+    row = 24
+    column = 14
+  -> State: 1.85 <-
+    row = 25
+    column = 15
+  -> State: 1.86 <-
+    row = 26
+    column = 16
+  -> State: 1.87 <-
+    row = 27
+    column = 17
+  -> State: 1.88 <-
+    row = 28
+    column = 18
+    junction = split
+  -> State: 1.89 <-
+    row = 29
+    column = 19
+    junction = pass
+    tag[57] = TRUE
+  -> State: 1.90 <-
+    row = 30
+    column = 20
+  -> State: 1.91 <-
+    row = 31
+    column = 21
+  -> State: 1.92 <-
+    row = 32
+    column = 22
+  -> State: 1.93 <-
+    row = 33
+    column = 23
+  -> State: 1.94 <-
+    row = 34
+    column = 24
+  -> State: 1.95 <-
+    row = 35
+    column = 25
+  -> State: 1.96 <-
+    row = 36
+    column = 26
+  -> State: 1.97 <-
+    row = 37
+    column = 27
+  -> State: 1.98 <-
+    row = 38
+    column = 28
+  -> State: 1.99 <-
+    row = 39
+    column = 29
+  -> State: 1.100 <-
+    row = 40
+    column = 30
+  -> State: 1.101 <-
+    row = 41
+    column = 31
+    junction = split
+  -> State: 1.102 <-
+    row = 42
+    junction = pass
+    dir = dwn
+  -> State: 1.103 <-
+    row = 43
+  -> State: 1.104 <-
+    row = 44
+  -> State: 1.105 <-
+    row = 45
+  -> State: 1.106 <-
+    row = 46
+  -> State: 1.107 <-
+    row = 47
+  -> State: 1.108 <-
+    row = 48
+  -> State: 1.109 <-
+    row = 49
+  -> State: 1.110 <-
+    row = 50
+  -> State: 1.111 <-
+    row = 51
+  -> State: 1.112 <-
+    row = 52
+  -> State: 1.113 <-
+    row = 53
+  -> State: 1.114 <-
+    row = 54
+  -> State: 1.115 <-
+    row = 55
+  -> State: 1.116 <-
+    row = 56
+  -> State: 1.117 <-
+    row = 57
+  -> State: 1.118 <-
+    row = 58
+    flag = TRUE
+  -> State: 1.119 <-
+    row = 0
+    column = 0
+    junction = split
+    flag = FALSE
+    tag[0] = FALSE
+    tag[6] = FALSE
+    tag[28] = FALSE
+    tag[57] = FALSE

@@ -622,7 +622,7 @@ def call_nusmv_pexpect_bmc(filename, probtype, outval, max_row, str_modchecker, 
 	return output, runtime
 
 
-#DONE
+#DONE- to copy
 def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
 	"""
 	Run NuSMV or nuXmv Model Checker on a given SMV file
@@ -708,6 +708,196 @@ def call_nusmv_pexpect_ssp_newspec(filename, str_modchecker, verbosity=0):
 			out_rt_arr.append(runtime)
 
 	return out_fn_arr, out_rt_arr
+
+#NEWWWWWWWWWWWWWWWWWWWWWW
+def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub, origin_set, verbosity=0):
+	"""
+	Run NuSMV or nuXmv Model Checker on a given SMV file
+	Uses the pexpect library to run NuSMV in verbose interactive format.
+	NOTE: THIS CAN ONLY BE USED ON A UNIX SYSTEM. WILL NOT WORK ON WINDOWS.
+	NOTE: THIS IS FOR SSP (new spec)
+		Input:
+			filename: The NuSMV filename on which to run
+			str_modchecker: string containing name of model checker (NuSMV or nuXmv)
+	"""
+	out_fn_arr = [misc.file_name_cformat('output_3par_LTL_{0}')]
+	out_rt_arr = []
+
+	# Prepare to catch runtimes
+	start = 0
+	stop = 0
+	runtime = 0
+	err_flag = 0
+	path = []
+
+	# NuSMV inputs
+	inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "ltl_0"\n', 'quit\n']
+
+	logging.info('Opening process: ' + str_modchecker)
+	if sys.platform.startswith('linux'):
+		check_spec = [1, 2]
+		child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
+							  logfile=sys.stdout, encoding='utf-8',
+							  timeout=None)
+		logging.info('Process opened')
+		for i in range(0, len(inputval)):
+			while True:
+				try:
+					# Expect pattern to identify model checker waiting for input
+					child.expect('\n' + str_modchecker)
+					# If previous input was a spec check do:
+					if (i - 1) in check_spec:
+						stop = datetime.datetime.now()
+						runtime = int((stop - start).total_seconds() * 1000)
+						out_rt_arr.append(runtime)
+						prev_rec = child.before
+						logging.info(prev_rec)
+						print('Spec Run-time: ' + str(runtime) + ' milliseconds')
+						logging.info('Spec Run-time: ' + str(runtime) +
+									 ' milliseconds')
+					else:
+						prev_rec = child.before
+						logging.info(prev_rec)
+					break
+				except pexpect.EOF:
+					err_flag = 1
+					prev_rec = child.before
+					logging.info(prev_rec)
+					ermsg = "Process " + str_modchecker + " was killed."
+					logging.exception(msg=ermsg)
+					break
+
+			if err_flag == 0:
+				if i in check_spec:
+					print('Running Specs...')
+					logging.info('Running specs...')
+					start = datetime.datetime.now()
+
+				logging.info(str_modchecker + ' command: ' + inputval[i])
+				child.send(inputval[i])
+			elif err_flag == 1:
+				while len(out_rt_arr) < 2:
+					out_rt_arr.append('Killed')
+				break
+
+		child.close()
+
+	elif sys.platform.startswith('win32'):
+		counter_path = 0
+		inputval_win = [''.join(itemgetter(0, 1, -1)(inputval))] #to check
+		for inputval in inputval_win: #to change for loop- while there is no solution
+			start = datetime.datetime.now()
+			try:
+				child = subprocess.run(args=[str_modchecker, '-v', str(verbosity), '-int', filename], timeout=None,
+									   input=inputval, stdout=subprocess.PIPE, encoding='ascii', shell=True)
+				stop = datetime.datetime.now()
+				runtime = int((stop - start).total_seconds() * 1000)
+				#בדיקה אם יש דוגמא נגדית.
+				#אם לא -סיימנו. אם יש דוגמא נגדית- GET PATH.
+				#Add new spec path
+			    # add input val - check what we get in the syntax of inputval_win
+				# Check the result from the output
+				output = child.stdout
+				path_val = get_path(out_fn_arr[-1], sum_sub)
+
+				if (path_val[0] == "nil") : #there is no counter example
+					break
+				else: #there is counter example
+
+					path.append(path_val) # make the interest GENERAL
+					counter_path += 1
+					spec_name = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+
+					# NuSMV inputs
+					out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
+					inputval_temp = ['go\n', 'check_ltlspec -o ' + out_fn_arr[-1] + ' -P "' +spec_name +'"\n','quit\n']
+					inputval_add = ''.join(itemgetter(0, 1, -1)(inputval_temp)) # to check
+					inputval_win.append(inputval_add)
+
+
+			except subprocess.CalledProcessError:
+				runtime = 'Killed'
+			out_rt_arr.append(runtime)
+
+	# The universe is the set of all unique elements in the subsets
+	universe = set.union(*[set(s) for s in path])
+
+	is_solve, subsets_sol = find_exact_cover(path, universe)
+
+	# print if there is a solution
+	print("There is solution: " +str(is_solve))
+
+	values_subset = convert_indexes_to_values(subsets_sol, origin_set)
+
+	# if there is- print the subsets of the solution
+	if is_solve:
+		print("The solution subsets:", values_subset)
+
+	return out_fn_arr, out_rt_arr, is_solve
+
+
+def find_exact_cover(sets, universe):
+	"""
+    Finds if there exists an exact cover using the provided subsets,
+    and returns the subsets that constitute the exact cover.
+
+    Parameters:
+        sets (list of lists): The list of subsets (each subset is a list of elements).
+        universe (set): The set of all elements that need to be covered.
+
+    Returns:
+        tuple: (bool, list)
+               - True if an exact cover exists, False otherwise.
+               - List of subsets that form the exact cover (if one exists).
+    """
+
+	# Helper function for backtracking
+	def backtrack(remaining_universe, chosen_subsets):
+		# If the universe is empty, we have an exact cover
+		if not remaining_universe:
+			return True, chosen_subsets
+
+		# Try each subset to see if it can be part of the exact cover
+		for subset in sets:
+			# Convert the subset to a set for easy comparison
+			subset_set = set(subset)
+
+			# Check if the subset can contribute to the exact cover
+			if subset_set.issubset(remaining_universe):
+				# Remove elements covered by this subset from the remaining universe
+				new_remaining_universe = remaining_universe - subset_set
+
+				# Recur with the new remaining universe
+				is_cover, result_subsets = backtrack(new_remaining_universe, chosen_subsets + [subset])
+				if is_cover:
+					return True, result_subsets
+
+		return False, []
+
+	# Start the backtracking with the full universe and no chosen subsets
+	return backtrack(universe, [])
+
+def convert_indexes_to_values(subsets, universe):
+    """
+    Converts subsets of indexes to their corresponding values in the universe.
+
+    Parameters:
+        subsets (list of lists): List of subsets where each subset contains indexes.
+        universe (list): The universe of values where each index maps to a value.
+
+    Returns:
+        list of lists: List of subsets where indexes are replaced by their corresponding values.
+    """
+    # Convert the universe list to a dictionary for faster lookups
+    index_to_value = {index: value for index, value in enumerate(universe)}
+
+    # Convert each subset of indexes to their corresponding values
+    value_subsets = []
+    for subset in subsets:
+        value_subset = [index_to_value[int(index)] for index in subset]
+        value_subsets.append(value_subset)
+
+    return value_subsets
 
 
 #DONE
@@ -841,6 +1031,7 @@ def get_path(output_filename, output_interest):
 	tag_pattern = re.compile(r"tag\[([0-9]+)] = TRUE")
 	column_pattern = re.compile(r"column = ([0-9]+)")
 	flag_pattern = re.compile(r"flag = (FALSE|TRUE)")
+	tcounter_value = re.compile(r"tcounter = ([0-3]+)")
 
 	# Run through output file
 	for i, line in enumerate(file):
@@ -863,13 +1054,13 @@ def get_path(output_filename, output_interest):
 
 	# Close the file
 	file.close()
+	print(path_tag)
 
 	# Return the path taken
 	return path_tag
 
 
-def add_path_spec(path, path_count, output_interest, filename, maxtagid,
-				  ssp_or_ec):
+def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_3part):
 	"""
 	Add specification to smv file that checks for additional paths to output
 	Relevant for SSP (original spec) and ExCov, has no meaning for SAT
@@ -885,22 +1076,27 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid,
 			the name of the new specification
 	"""
 	new_spec = ''
-	if ssp_or_ec == 'ssp':
+	if ssp_ec_3part == 'ssp':
 		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
 					+ str(path_count) + ' := G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
-	elif ssp_or_ec == 'ec':
+	elif ssp_ec_3part == 'ec':
 		new_spec = ('\nLTLSPEC\tNAME\tltl_k_path_' + str(path_count)
 					+ ' := G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
+	elif ssp_ec_3part == '3part':
+		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
+					+ str(path_count) + ' := G! ( (tcounter = 3) & (flag = TRUE) & (column = '
+					+ str(output_interest) + ') & !(')
+
 	# Make list for the tags
 	tag_list = ''
-	for path_id in range(1, path_count):
-		if path_id != 1:
+	for path_id in range(0, path_count):
+		if path_id != 0:
 			tag_list += ' | ('
 		else:
 			tag_list += '('
-		for i in range(0, maxtagid + 1):
+		for i in range(0, maxtagid):
 			if i != 0:
 				tag_list += ' & '
 			if str(i) in path[path_id]:
@@ -917,9 +1113,9 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid,
 	f.close()
 	
 	# Return the name of the spec
-	if ssp_or_ec == 'ssp':
+	if ssp_ec_3part == 'ssp' or ssp_ec_3part == '3part' :
 		return 'ltl_' + str(output_interest) + '_path_' + str(path_count)
-	elif ssp_or_ec == 'ec':
+	elif ssp_ec_3part == 'ec':
 		return 'ltl_k_path_' + str(path_count)
 
 
@@ -994,8 +1190,7 @@ def pexpect_nuxmv_ic3_allout(filename, str_modchecker, max_row, verbosity=0):
 			filename: The nuXmv filename on which to run
 			verbosity: nuXmv verbosity level
 	"""
-	out_fn_arr = [misc.file_name_cformat('output_SSP_IC3_LTL_{0}'),
-				misc.file_name_cformat('output_SSP_CTL_{0}')]
+	out_fn_arr = [misc.file_name_cformat('output_SSP_IC3_LTL_{0}')]
 	out_rt_arr = []
 
 	# Prepare to catch runtimes

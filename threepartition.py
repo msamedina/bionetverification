@@ -7,69 +7,63 @@ import miscfunctions as misc
 # import nusmv
 import modcheck
 import pandas as pd
+import re
 
-# ------------Pre calcultions of the set s:
-def pre_calc(s_arr):
+# Pre calcultions of the set s:
+def pre_calc_3partition(s_arr):
+    """
+    Function for precalculating the sum of the subsets in a 3-partition problem.
 
-    if size(s_arr) % 3 != 0:
+    Input:
+        s_arr (list): A list of integers representing the input array.
+
+    Ouyput:
+        float or bool: The target sum for each subset if the array can be partitioned
+                   into three equal subsets, otherwise False.
+    """
+    if len(s_arr) % 3 != 0:
         return False
     else:
-        count_sub = size(s_arr)/3
+        count_sub = len(s_arr)/3
     sum_s = sum(s_arr)
     sum_sub = sum_s / count_sub
 
     return sum_sub
 
-def print_ssp_menu(str_mc):
+def file_name_gen_3part(set_array, arr_length, str_mc='NuSMV'):
     """
-    Print menu for SSP options to screen.
-    """
-    if str_mc == 'NuSMV' or str_mc == 'nuXmv':
-        print('What would you like to look at with this set:\n')
-        print('\t[1] Bulk run output specifications')
-        print('\t[2] Run individual output specifications')
-        print('\t[3] Run general valid-invalid output specifications')
-        print('\t[4] Main Menu')
-    elif str_mc == 'prism':
-        print('What would you like to look at with this set:\n')
-        print('\t[1] Run general valid-invalid output')
-        print('\t[2] Calculate the probabilities of outputs')
-        print('\t[3] Main Menu')
-
-
-def file_name_gen(set_array, arr_length, str_mc='NuSMV'):
-    """
-    Generate smv file name for given SSP problem using the set
+    Generate smv file name for given 3partition problem using the set
         Input:
             set_array: The input set
             arr_length: Number of elements in the set
         Output:
-            filename: smv file name for the SSP network with formatting
+            filename: smv file name for the 3partition network with formatting
     """
     if str_mc == 'NuSMV' or str_mc == 'nuXmv':
-        filename = 'autoSSP_'
+        filename = 'auto3partition_'
         for i in range(arr_length):
             filename += str(set_array[i]) + '_'
         filename += 'Set_{0}.smv'
         return misc.file_name_cformat(filename)
 
     elif str_mc == 'prism':
-        filename = 'autoSSP_'
+        filename = 'auto3partition_'
         for i in range(arr_length):
             filename += str(set_array[i]) + '_'
         filename += 'Set.pm'
         return misc.file_name_cformat(filename)
 
 #CHANGED
-def print_smv_ssp(filename, set_array, max_sum, set_size, max_tag_id):
+def print_smv_3partition(filename, set_array, max_sum, set_size, max_tag_id, sum_sub):
     """
-    Print out the SSP network description to the smv file
+    Print out the 3Partition network description to the smv file
         Input:
             filename: The NuSMV filename in which to write the description
-            set_array: the set being looked at for the subset sum problem
+            set_array: the set being looked at for the 3partition problem
             max_sum: the total sum of all elements in the set
             set_size: the size of the set
             max_tag_id: empty array containing the last tag element
+            sum_sub: the sum of the subsets
     """
     # ----------------
     # BEGINNING OF FILE CREATION
@@ -86,7 +80,7 @@ def print_smv_ssp(filename, set_array, max_sum, set_size, max_tag_id):
     for i in range(0, len(set_array) - 1):
         split_j_loc.append(set_array[i] + split_j_loc[i])
     # Calculate number of split junctions
-    num_split_j = sum(split_j_loc) + len(split_j_loc)
+    num_split_j = len(split_j_loc)
     max_tag_id.append(num_split_j - 1)
     # ----------------
     # Write beginning of module and variable definitions
@@ -96,7 +90,20 @@ def print_smv_ssp(filename, set_array, max_sum, set_size, max_tag_id):
     f.write('\tjunction: {pass, split};\n')
     f.write('\tdir: {dwn, diag};\n')
     f.write('\tflag: boolean;\n')
-    f.write('\ttag: array ' + str(split_j_loc - 1) + ' of boolean;\n\n') # ------- CHANGED- add tags of split junctions
+    f.write('\ttag: array 0.. ' + str(len(split_j_loc)-1) + ' of boolean;\n') # ------- CHANGED- add tags of split junctions
+
+
+    # Define tcounter variable
+    f.write('\nDEFINE\n')
+    f.write('\ttcounter := ')
+    for i in range(0, num_split_j):
+        if (i == num_split_j-1):
+            f.write('\t\t(tag[' + str(i) + '] ? 1 : 0);\n\n')
+        elif (i == 0):
+            f.write(' (tag[' + str(i) + '] ? 1 : 0) +\n')
+        else:
+            f.write('\t\t(tag[' + str(i) + '] ? 1 : 0) +\n')
+
 
     # Write assignment definitions
     f.write('ASSIGN\n')
@@ -104,12 +111,14 @@ def print_smv_ssp(filename, set_array, max_sum, set_size, max_tag_id):
     f.write('\tinit(column) := 0;\n')
     f.write('\tinit(junction) := split;\n')
     f.write('\tinit(dir) := dwn;\n')
-    f.write('\tinit(flag) := FALSE;\n\n')
+    f.write('\tinit(flag) := FALSE;\n')
+
+
     for i in range(0, num_split_j):
         if (((i + 1) % 5) == 0) or (i == num_split_j - 1):
-            f.write('\tinit(tag[' + str(split_j_loc[i]) + ']) := FALSE;\n') # ---------- CHANGED- the location of the tags
+            f.write('\tinit(tag[' + str(i) + ']) := FALSE;\n') # ---------- CHANGED- the location of the tags
         else:
-            f.write('\tinit(tag[' + str(split_j_loc[i]) + ']) := FALSE;\t')
+            f.write('\tinit(tag[' + str(i) + ']) := FALSE;\t')
 
     # ----------------
     # Write row transitions to file
@@ -156,257 +165,51 @@ def print_smv_ssp(filename, set_array, max_sum, set_size, max_tag_id):
     f.write('\t--Set tag TRUE if curr row = split, dir = diag\n')
     i = 0
     while i < num_split_j:
-        for j in range(0, len(split_j_loc)): # ------- rows only- without columns
-            f.write('\tnext(tag[' + str(i)
+        for j in range(0, len(split_j_loc)): # ------- CHANGED- rows only- without columns
+            f.write('\tnext(tag[' + str(j)
                     + ']) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
             f.write('(row = ' + str(split_j_loc[j]) + ') & next(dir) = diag: TRUE;\n\t\t\t\t\t\t')
             f.write('(next(row) = 0): FALSE;\n\t\t\t\t\t\t')
-            f.write('TRUE: tag[' + str(i) + '];\n\t\t\t\t\tesac;\n\n')
+            f.write('TRUE: tag[' + str(j) + '];\n\t\t\t\t\tesac;\n\n')
             i += 1
 
     # ----------------
     # Write specifications for each network output
-    for i in range(0, max_sum + 1):
-        f.write('LTLSPEC\tNAME\tltl_' + str(i)
-                + ' := G! ((flag = TRUE) & (column = ' + str(i) + '));\n')
-        f.write('CTLSPEC\tNAME\tctl_' + str(i)
-                + ' := EF ((flag = TRUE) & (column = ' + str(i) + '));\n')
+    #for i in range(0, max_sum + 1):
+        f.write('LTLSPEC\tNAME\tltl_' + str(0)
+                + ' := G! ((flag = TRUE) & (tcounter = 3) & (column = ' + str(int(sum_sub)) + '));\n')
+
 
     # ----------------
     # CLOSE THE FILE
     f.close()
 
-
-def print_smv_ssp_nt(filename, set_array, max_sum, set_size):
+def tags_count(output_filename):
     """
-    Print out the SSP network description to the smv file
-        Input:
-            filename: The NuSMV filename in which to write the description
-            set_array: the set being looked at for the subset sum problem
-            max_sum: the total sum of all elements in the set
-            set_size: the size of the set
+    	Parse the ltl output to find the count of tags that has changed for TRUE
+        Save their numbers in a set of changed_tags
+    		Input:
+    			output_filename: output file to be looked at
+    		Output:
+    			path_tag: the count of unique tags that changed to TRUE ant their values.
     """
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
-    # Write header into file
-    f = open(filename, 'w')
-    f.write('--Auto Subset Sum ' + str(set_array)
-            + '\n-------------------------------\n')
+    # Initialize a set to track tags that have changed to TRUE
+    changed_tags = set()
 
-    # ----------------
-    # Find row locations of split junctions
-    split_j_loc = [0]
-    for i in range(0, len(set_array) - 1):
-        split_j_loc.append(set_array[i] + split_j_loc[i])
-    # ----------------
-    # Write beginning of module and variable definitions
-    f.write('MODULE main\n' + 'VAR\n')
-    f.write('\trow: 0..' + str(max_sum) + ';\n')
-    f.write('\tcolumn: 0..' + str(max_sum) + ';\n')
-    f.write('\tjunction: {pass, split};\n')
-    f.write('\tdir: {dwn, diag};\n')
-    f.write('\tflag: boolean;\n')
+    # Regular expression to find tag changes
+    tag_pattern = re.compile(r"tag\[(\d+)] = TRUE")
 
-    # Write assignment definitions
-    f.write('ASSIGN\n')
-    f.write('\tinit(row) := 0;\n')
-    f.write('\tinit(column) := 0;\n')
-    f.write('\tinit(junction) := split;\n')
-    f.write('\tinit(dir) := dwn;\n')
-    f.write('\tinit(flag) := FALSE;\n\n')
+    # Read the file
+    with open(output_filename, 'r') as file:
+        for line in file:
+            # Search for tag changes
+            match = tag_pattern.search(line)
+            if match:
+                tag_number = int(match.group(1))
+                changed_tags.add(tag_number)
 
-    # ----------------
-    # Write row transitions to file
-    f.write('\n\n\t--Always advance to next row\n')
-    f.write('\tnext(row) := (row + 1) mod ' + str(max_sum + 1) + ';\n')
-
-    # Write flag transitions to file
-    f.write('\n\t--Flag turns on when row is ' + str(max_sum) + '\n')
-    f.write('\tnext(flag) := (next(row) = ' + str(max_sum) +
-            ' ? TRUE : FALSE);\n')
-
-    # Write junction transitions to file
-    f.write('\n\t--Split junctions at rows ')
-    for i in range(0, len(split_j_loc)):
-        if i < len(split_j_loc) - 1:
-            f.write(str(split_j_loc[i]) + ', ')
-        else:
-            f.write(str(split_j_loc[i]) + '\n')
-    f.write('\tnext(junction) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t(')
-    for i in range(0, len(split_j_loc)):
-        if i < len(split_j_loc) - 1:
-            f.write('(next(row) = ' + str(split_j_loc[i]) + ')|')
-        else:
-            f.write('(next(row) = ' + str(split_j_loc[i]) + ')): split;\n')
-            f.write('\t\t\t\t\t\tTRUE: pass;\n\t\t\t\t\tesac;\n\n')
-
-    # Write direction transitions to file
-    f.write('\t--Decide direction for next move by to current junction\n')
-    f.write('\tnext(dir) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
-    f.write('(junction = split): {dwn, diag};\n\t\t\t\t\t\t')
-    f.write('(junction = pass): dir;\n\t\t\t\t\t\t')
-    f.write('TRUE: {dwn, diag};\n\t\t\t\t\tesac;\n\n')
-
-    # Write column transitions to file
-    f.write('\t--If diag, increase column, otherwise dwn, same column\n')
-    f.write('\tnext(column) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
-    f.write('(next(row) = 0): 0;\n\t\t\t\t\t\t')
-    f.write('(next(dir) = diag): (column + 1) mod ' + str(max_sum + 1)
-            + ';\n\t\t\t\t\t\t')
-    f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
-    f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
-
-    # ----------------
-    # Write specifications for each network output
-    for i in range(0, max_sum + 1):
-        f.write('LTLSPEC\tNAME\tltl_' + str(i)
-                + ' := G! ((flag = TRUE) & (column = ' + str(i) + '));\n')
-        f.write('CTLSPEC\tNAME\tctl_' + str(i)
-                + ' := EF ((flag = TRUE) & (column = ' + str(i) + '));\n')
-
-    # ----------------
-    # CLOSE THE FILE
-    f.close()
-
-
-def print_smv_ssp_newspec(filename, set_array, max_sum, set_size, max_tag_id, use_tag):
-    """
-     Print out the SSP network description to the smv file
-    Use new specifications checking valid and invalid sum values
-        Input:
-            filename: The NuSMV filename in which to write the description
-            set_array: the set being looked at for the subset sum problem
-            max_sum: the total sum of all elements in the set
-            set_size: the size of the set
-            max_tag_id: empty array containing the last tag element
-            use_tag: true - add tag variable, flase - do not add tag variable
-    """
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
-    # Write header into file
-    f = open(filename, 'w')
-    f.write('--Auto Subset Sum ' + str(set_array)
-            + '\n-------------------------------\n')
-
-    # ----------------
-    # Find row locations of split junctions
-    split_j_loc = [0]
-    for i in range(0, len(set_array) - 1):
-        split_j_loc.append(set_array[i] + split_j_loc[i])
-    # Calculate number of split junctions
-    num_split_j = sum(split_j_loc) + len(split_j_loc)
-    max_tag_id.append(num_split_j - 1)
-    # ----------------
-    # Write beginning of module and variable definitions
-    f.write('MODULE main\n' + 'VAR\n')
-    f.write('\trow: 0..' + str(max_sum) + ';\n')
-    f.write('\tcolumn: 0..' + str(max_sum) + ';\n')
-    f.write('\tjunction: {pass, split};\n')
-    f.write('\tdir: {dwn, diag};\n')
-    f.write('\tflag: boolean;\n')
-    f.write('\tsum: 0..' + str(max_sum + 1) + ';\n')
-    f.write('\txsum: 0..' + str(max_sum + 1) + ';\n')
-    if use_tag:
-        f.write('\ttag: array 0..' + str(num_split_j - 1) + ' of boolean;\n')
-
-    # Write assignment definitions
-    f.write('\nASSIGN\n')
-    f.write('\tinit(row) := 0;\n')
-    f.write('\tinit(column) := 0;\n')
-    f.write('\tinit(junction) := split;\n')
-    f.write('\tinit(dir) := dwn;\n')
-    f.write('\tinit(flag) := FALSE;\n')
-    f.write('\tinit(sum) := ' + str(max_sum + 1) + ';\n')
-    f.write('\tinit(xsum) := ' + str(max_sum + 1) + ';\n\n')
-    if use_tag:
-        for i in range(0, num_split_j):
-            if (((i + 1) % 5) == 0) or (i == num_split_j - 1):
-                f.write('\tinit(tag[' + str(i) + ']) := FALSE;\n')
-            else:
-                f.write('\tinit(tag[' + str(i) + ']) := FALSE;\t')
-
-    # ----------------
-    # Write row transitions to file
-    f.write('\n\n\t--Always advance to next row\n')
-    f.write('\tnext(row) := (row + 1) mod ' + str(max_sum + 1) + ';\n')
-
-    # Write flag transitions to file
-    f.write('\n\t--Flag turns on when row is ' + str(max_sum) + '\n')
-    f.write('\tnext(flag) := (next(row) = ' + str(max_sum) +
-            ' ? TRUE : FALSE);\n')
-
-    # Write junction transitions to file
-    f.write('\n\t--Split junctions at rows ')
-    for i in range(0, len(split_j_loc)):
-        if i < len(split_j_loc) - 1:
-            f.write(str(split_j_loc[i]) + ', ')
-        else:
-            f.write(str(split_j_loc[i]) + '\n')
-    f.write('\tnext(junction) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t(')
-    for i in range(0, len(split_j_loc)):
-        if i < len(split_j_loc) - 1:
-            f.write('(next(row) = ' + str(split_j_loc[i]) + ')|')
-        else:
-            f.write('(next(row) = ' + str(split_j_loc[i]) + ')): split;\n')
-            f.write('\t\t\t\t\t\tTRUE: pass;\n\t\t\t\t\tesac;\n\n')
-
-    # Write direction transitions to file
-    f.write('\t--Decide direction for next move by to current junction\n')
-    f.write('\tnext(dir) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
-    f.write('(junction = split): {dwn, diag};\n\t\t\t\t\t\t')
-    f.write('(junction = pass): dir;\n\t\t\t\t\t\t')
-    f.write('TRUE: {dwn, diag};\n\t\t\t\t\tesac;\n\n')
-
-    # Write column transitions to file
-    f.write('\t--If diag, increase column, otherwise dwn, same column\n')
-    f.write('\tnext(column) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
-    f.write('(next(row) = 0): 0;\n\t\t\t\t\t\t')
-    f.write('(next(dir) = diag): (column + 1) mod ' + str(max_sum + 1)
-            + ';\n\t\t\t\t\t\t')
-    f.write('(next(dir) = dwn): column;\n\t\t\t\t\t\t')
-    f.write('TRUE: column;\n\t\t\t\t\tesac;\n\n')
-
-    # Write sum and xsum transitions to file
-    vsum, ivsum = misc.subset_sums(set_array, set_size)
-    vsum_str = ", ".join(repr(e) for e in vsum)
-    ivsum_str = ", ".join(repr(e) for e in ivsum)
-    f.write('\t--Pick random sum and xsum after initial state\n')
-    f.write('\tnext(sum) := (sum = ' + str(max_sum + 1) + ' ? {' + vsum_str + '} : sum);\n')
-    f.write('\tnext(xsum) := (xsum = ' + str(max_sum + 1) + ' ? {' + ivsum_str + '} : xsum);\n')
-
-    # Write tag transitions to file
-    if use_tag:
-        f.write('\t--Set tag TRUE if curr row = split, dir = diag\n')
-        i = 0
-        while i < num_split_j:
-            for j in range(0, len(split_j_loc)):
-                for k in range(0, split_j_loc[j] + 1):
-                    f.write('\tnext(tag[' + str(i)
-                            + ']) :=\n\t\t\t\t\tcase\n\t\t\t\t\t\t')
-                    f.write('(row = ' + str(split_j_loc[j]) + ') & (column = '
-                            + str(k) + ') & next(dir) = diag: TRUE;\n\t\t\t\t\t\t')
-                    f.write('(next(row) = 0): FALSE;\n\t\t\t\t\t\t')
-                    f.write('TRUE: tag[' + str(i) + '];\n\t\t\t\t\tesac;\n\n')
-                    i += 1
-
-    # ----------------
-    # Write new specifications
-    f.write('--Valid Network:\tSpec returns true, the network always exits on a valid sum\n')
-    f.write(
-        '--Invalid Network:\tSpec returns false, there exists a non-reachable valid sum. Counter-example shows one non-reachable valid sum\n')
-    f.write('CTLSPEC\tNAME\tcsum := !(EX (AG ((flag = FALSE) | (!(column = sum)))));\n')
-
-    f.write('--Valid Network:\tSpec returns true, there exists no path to an invalid sum\n')
-    f.write(
-        '--Invalid Network:\tSpec returns false, there exists a path to an invalid sum. Counter-example shows one reachable invalid sum\n')
-    f.write('CTLSPEC\tNAME\tnsum := !(EF ((flag = TRUE) & (column = xsum)));\n')
-
-    # ----------------
-    # CLOSE THE FILE
-    f.close()
-
+    # Return the count of unique tags that changed to TRUE
+    return changed_tags, len(changed_tags)
 
 def manual_input():
     """
@@ -428,20 +231,20 @@ def manual_input():
     return set_array, max_sum
 
 
-def read_ssp(filename):
+def read_3partition(filename):
     """
-    Parse the ssp input file for list of ssp problems
+    Parse the 3partition input file for list of 3partition problems
     Find file format in README
         Input:
-            filename: SSP input file name
+            filename: 3partition input file name
         Output:
-            ssp_list: List of all SSP problems
+            list_3partition: List of all 3partition problems
             set_id: Max set ID (starts from 0)
     """
-    logging.info('Opening SSP input file')
+    logging.info('Opening 3partition input file')
     in_data = open(filename, "r")
-    ssp_list = list()
-    ssp_list.append(list())
+    list_3partition = list()
+    list_3partition.append(list())
 
     # Run through the lines of data in the file
     for set_id, line in enumerate(in_data):
@@ -450,50 +253,41 @@ def read_ssp(filename):
             for tok in tokens:
                 lit = int(tok)
                 if lit == 0:
-                    logging.info('Set ' + str(set_id) + ': ' + str(ssp_list[-1]))
-                    ssp_list.append(list())
+                    logging.info('Set ' + str(set_id) + ': ' + str(list_3partition[-1]))
+                    list_3partition.append(list())
                 else:
-                    ssp_list[-1].append(lit)
-    ssp_list.pop()
-    logging.info('Total number of SSP sets: ' + str(set_id + 1))
-    return ssp_list, set_id
+                    list_3partition[-1].append(lit)
+    list_3partition.pop()
+    logging.info('Total number of 3partition sets: ' + str(set_id + 1))
+    return list_3partition, set_id
 
 
-def smv_gen(ssp_arr, str_modc, with_tags='both'):
+def smv_gen(arr_3partition, str_modc, with_tags='both'):
     """
-    Loop through array of SSP problems and generate two smv files for each (with and without tags)
+    Loop through array of 3partition problems and generate two smv files for each (with and without tags)
         Input:
             filename: NuSMV output file name
             with_tags: Flag for using networks with tags
         Output:
-            ssp_list: List of all SSP problems
+            smv_3partition: List of all 3partition problems
             set_id: Max set ID (starts from 0)
     """
-    ssp_smv = []
-    ssp_smv_nt = []
+    smv_3partition = []
 
-    for ssp in ssp_arr:
-        # Create SSP NuSMV File
+    for p3part in arr_3partition:
+        # Create 3partition NuSMV File
         max_tag_id = []
         # With tags
-        ssp_smv_name = file_name_gen(ssp, len(ssp), str_modc)
+        smv_name_3part = file_name_gen_3part(p3part, len(p3part), str_modc)
         if with_tags in ['with', 'both']:
             logging.info('Generating NuSMV file with tags...')
-            print_smv_ssp(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id)
+            print_smv_3partition(smv_name_3part, p3part, sum(p3part), len(p3part), max_tag_id)
             logging.info('Generated NuSMV file with tags')
-            ssp_smv.append(ssp_smv_name)
+            smv_3partition.append(smv_name_3part)
 
-        # Without tags
-        if with_tags in ['without', 'both']:
-            logging.info('Generating NuSMV file without tags...')
-            ssp_smv_name_nt = misc.file_name_cformat('NT_' + '_{0}' + ssp_smv_name)
-            print_smv_ssp_nt(ssp_smv_name_nt, ssp, sum(ssp), len(ssp))
-            logging.info('Generated NuSMV file without tags')
-            ssp_smv_nt.append(ssp_smv_name_nt)
+    return smv_3partition
 
-    return ssp_smv, ssp_smv_nt
-
-
+#To check if this functions are rellevant?
 def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False,
                   verbosity=0):
     """
@@ -658,206 +452,6 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             row_id = row_id + 1
 
 
-def run_nusmv_bmc(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, verbosity=0):
-    """
-    Loop through array of SSP smv files and run NuSMV. Save results in Excel
-        Input:
-            ssp_arr: array of SSP problems
-            smv_t_arr: array of smv files using tagging
-            smv_nt_arr: array of smv files not using tagging
-            wbook: The excel workbook
-            wsheet: the excel worksheet
-            xl_fn: excel file name
-            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
-        Output:
-            ssp_list: List of all SSP problems
-            set_id: Max set ID (starts from 0)
-    """
-    row_id = 0
-    for index, ssp in enumerate(ssp_arr):
-        max_sum = sum(ssp)
-        for output in range(max_sum + 1):
-            # Save index, k, set, filenames, and output of interest in excel file
-            logging.info('Inputting ID, k, set, filenames, and output data into Excel...')
-            __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
-            __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
-            __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
-            __ = wsheet.cell(column=4, row=(row_id + 4), value=max_sum)
-            __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_t_arr[index])
-            __ = wsheet.cell(column=6, row=(row_id + 4), value=smv_nt_arr[index])
-            __ = wsheet.cell(column=7, row=(row_id + 4), value=output)
-            wbook.save(xl_fn)
-
-            # Run NuSMV on with tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_t_arr[index], 1, output, max_sum, str_modchecker,
-                                                              verbosity)
-
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_res)
-            __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt)
-            wbook.save(xl_fn)
-
-            # Run NuSMV on no tags
-            out_res, out_rt = modcheck.call_nusmv_pexpect_bmc(smv_nt_arr[index], 1, output, max_sum, str_modchecker,
-                                                              verbosity)
-
-            logging.info('Saving No Tags data in Excel')
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_res)
-            __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt)
-            wbook.save(xl_fn)
-
-            # Prepare for next input
-            row_id = row_id + 1
-
-
-def smv_gen_newspec(ssp_arr, str_modc, with_tags='both'):
-    """
-    Loop through array of SSP problems and generate two smv files for each (with and without tags)
-    Using the new specification setup
-        Input:
-            filename: NuSMV output file name
-            with_tags: Flag for using networks with tags
-        Output:
-            ssp_list: List of all SSP problems
-            set_id: Max set ID (starts from 0)
-    """
-    ssp_smv = []
-    ssp_smv_nt = []
-    for ssp in ssp_arr:
-        # Create SSP NuSMV File
-        max_tag_id = []
-        ssp_smv_name = file_name_gen(ssp, len(ssp), str_modc)
-        # With tags
-        if with_tags in ['with', 'both']:
-            logging.info('Generating NuSMV file with tags...')
-            print_smv_ssp_newspec(ssp_smv_name, ssp, sum(ssp), len(ssp), max_tag_id, True)
-            logging.info('Generated NuSMV file with tags')
-            ssp_smv.append(ssp_smv_name)
-
-        # Without tags
-        if with_tags in ['without', 'both']:
-            logging.info('Generating NuSMV file without tags...')
-            ssp_smv_name_nt = 'NT_' + ssp_smv_name
-            print_smv_ssp_newspec(ssp_smv_name_nt, ssp, sum(ssp), len(ssp), max_tag_id, False)
-            logging.info('Generated NuSMV file without tags')
-            ssp_smv_nt.append(ssp_smv_name_nt)
-
-    return ssp_smv, ssp_smv_nt
-
-
-def run_nusmv_newspec(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both',
-                      verbosity=0):
-    """
-    Loop through array of SSP smv files and run NuSMV. Save results in Excel
-    Using new specification type
-        Input:
-            ssp_arr: array of SSP problems
-            smv_t_arr: array of smv files using tagging
-            smv_nt_arr: array of smv files not using tagging
-            wbook: The excel workbook
-            wsheet: the excel worksheet
-            xl_fn: excel file name
-            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
-            with_tags: Flag for using networks with tags
-    """
-    row_id = 0
-    for index, ssp in enumerate(ssp_arr):
-        # Save index, k, set, filenames, and output of interest in excel file
-        logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
-        __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
-        __ = wsheet.cell(column=1, row=(row_id + 5), value=index)
-        __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
-        __ = wsheet.cell(column=2, row=(row_id + 5), value=len(ssp))
-        __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
-        __ = wsheet.cell(column=3, row=(row_id + 5), value=repr(ssp))
-        __ = wsheet.cell(column=6, row=(row_id + 4), value='csum')
-        __ = wsheet.cell(column=6, row=(row_id + 5), value='nsum')
-        wbook.save(xl_fn)
-
-        # Run NuSMV new spec on with tags
-        if with_tags in ['with', 'both']:
-            __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
-            __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
-            wbook.save(xl_fn)
-
-            out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modchecker, verbosity)
-
-            # Parse output files if runtime not = "Killed":
-            if out_rt[0] != 'Killed':
-                csum = modcheck.get_spec_res(out_fn[0])
-            else:
-                csum = 'Killed'
-            if out_rt[1] != 'Killed':
-                nsum = modcheck.get_spec_res(out_fn[1])
-            else:
-                nsum = 'Killed'
-            logging.info('csum Result: ' + csum)
-            logging.info('nsum Result: ' + nsum)
-
-            if csum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
-            elif csum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-            elif csum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
-            if nsum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
-            elif nsum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
-            elif nsum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
-
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
-            __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[0])
-            __ = wsheet.cell(column=8, row=(row_id + 5), value=out_fn[1])
-            __ = wsheet.cell(column=9, row=(row_id + 5), value=out_rt[1])
-            wbook.save(xl_fn)
-
-        # Run NuSMV on no tags
-        if with_tags in ['without', 'both']:
-            __ = wsheet.cell(column=5, row=(row_id + 4), value=smv_nt_arr[index])
-            __ = wsheet.cell(column=5, row=(row_id + 5), value=smv_nt_arr[index])
-            wbook.save(xl_fn)
-
-            out_fn_nt, out_rt_nt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_nt_arr[index], str_modchecker, verbosity)
-
-            # Parse output files if runtime not = "Killed":
-            if out_rt_nt[0] != 'Killed':
-                csum = modcheck.get_spec_res(out_fn_nt[0])
-            else:
-                csum = 'Killed'
-            if out_rt_nt[1] != 'Killed':
-                nsum = modcheck.get_spec_res(out_fn_nt[1])
-            else:
-                nsum = 'Killed'
-            logging.info('csum Result: ' + csum)
-            logging.info('nsum Result: ' + nsum)
-
-            if csum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
-            elif csum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-            elif csum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
-            if nsum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
-            elif nsum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
-            elif nsum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
-
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=10, row=(row_id + 4), value=out_fn_nt[0])
-            __ = wsheet.cell(column=11, row=(row_id + 4), value=out_rt_nt[0])
-            __ = wsheet.cell(column=10, row=(row_id + 5), value=out_fn_nt[1])
-            __ = wsheet.cell(column=11, row=(row_id + 5), value=out_rt_nt[1])
-            wbook.save(xl_fn)
-
-        # Prepare for next input
-        row_id = row_id + 2
-
-
 def prism_gen(ssp_arr, mu_user_input):
     """
     Loop through array of SSP problems and generate prism file
@@ -872,7 +466,7 @@ def prism_gen(ssp_arr, mu_user_input):
     for ssp in ssp_arr:
         # Create SSP Prism File
         max_tag_id = []
-        ssp_prism_name = file_name_gen(ssp, len(ssp), 'prism')
+        ssp_prism_name = file_name_gen_3part(ssp, len(ssp), 'prism')
         # Without tags
         logging.info('Generating Prism file without tags...')
         ssp_prism_name_nt = 'NT_mu_0_' + ssp_prism_name
@@ -889,131 +483,6 @@ def prism_gen(ssp_arr, mu_user_input):
     print_prism_ssp_nt_spec('spec_ssp.pctl')
 
     return ssp_prism_nt
-
-
-def print_prism_ssp_nt(filename, primes, maxrow, num_of_primes, mu=0, bug_cell=None):
-    """
-    Print out the SSP network description to the prism file
-        Input:
-            num_of_primes: the number of elements in the set S.
-            bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
-            mu: a probability of an error. By default there is no error, so mu = 0.
-    """
-
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
-
-    # Open file and write header into file
-    f = open(filename, 'w')
-    f.write(f'// SSP Network for {num_of_primes} primes\n')
-    f.write('// S = {' + str(primes)[1:-1] + '}\n')
-
-    # calculate the split junctions
-    split_junctions = []
-    for p in primes:
-        split_junctions.append(sum(primes[0:primes.index(p)]))
-
-    f.write('// Split junctions are: {' + str(split_junctions)[1:-1] + '}\n\n')
-    f.write('dtmc\n')
-
-    # ----------------
-    #      CONSTS
-    # ----------------
-    f.write('\n// Consts:\n')
-    f.write('const pass = 0;\n')
-    f.write('const split = 1;\n')
-    f.write('const dwn = 0;\n')
-    f.write('const diag = 1;\n')
-    f.write(f'const maxrow = {maxrow};\n')
-    f.write('const maxrow_1 = maxrow + 1;\n')
-    f.write(f'const double mu  = {mu};\n')
-    if bug_cell is None:
-        bug_cell = [-2, -2, 0]
-    f.write(f'const row_bug  = {bug_cell[0]};\n')
-    f.write(f'const col_bug  = {bug_cell[1]};\n')
-    f.write(f'const dir_bug  = {bug_cell[2]};\n')
-
-    # ------------------
-    #      FORMULAS
-    # ------------------
-
-    # fill 'next is split'
-    f.write('\n\n// Formulas:\n')
-    f.write('formula next_is_split = (')
-    for sj in split_junctions[1:]:
-        f.write(f'row = {sj - 1}')
-        if sj != split_junctions[-1]:
-            f.write(' | ')
-    f.write(') & !force_dir;\n')
-
-    # fill 'next is not split'
-    f.write('formula next_is_not_split = !start & ')
-    for sj in split_junctions[1:]:
-        f.write(f'row != {sj - 1} & ')
-    f.write('row != maxrow & !force_dir;\n')
-
-    # fill next is maxrow or start
-    f.write('formula row_is_maxrow = row = maxrow;\n')
-    f.write('formula start = row = -1;\n')
-
-    # fill error cell
-    f.write('formula force_dir = row = row_bug & column = col_bug;\n')
-
-    # ------------------
-    #    MODULE NET
-    # ------------------
-
-    # declaration
-    f.write('\n\n// Module:\n')
-    f.write('module net\n')
-    f.write('\trow: [-1..maxrow] init -1;\n')
-    f.write('\tcolumn: [-1..maxrow] init -1;\n')
-    f.write('\tjunction: [pass..split];\n')
-    f.write('\tdir: [dwn..diag] init dwn;\n')
-
-    # transition relation
-    str_temp = "[] (start | row_is_maxrow) & !force_dir -> 0.5 : (junction' = split) & (dir' = diag) & (column' = 0) & (row' = 0) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = 0) & (row' = 0);"
-    f.write('\n\t' + str_temp + '\n')
-    str_temp = "	[] next_is_split -> 0.5 : (junction' = split) & (dir' = diag) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) + 0.5 : (junction' = split) & (dir' = dwn) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1));"
-    f.write(str_temp + '\n')
-    str_temp = "	[] next_is_not_split -> (1 - mu): (junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir) + mu:(junction' = pass) & (column' = mod(column + dir, maxrow_1)) & (row' = mod(row + 1, maxrow_1)) & (dir' = mod(dir+1,2));"
-    f.write(str_temp + '\n')
-    str_temp = "	[] force_dir -> (junction' = pass) & (column' = column) & (row' = mod(row + 1, maxrow_1)) & (dir'=dir_bug);"
-    f.write(str_temp + '\n')
-
-    f.write('\nendmodule\n')
-
-    # ------------------
-    #  REWARD + LABELS
-    # ------------------
-    f.write('\n\n// Rewards:\n')
-    f.write('rewards "steps"\n')
-    f.write('\ttrue : 1;\n')
-    f.write('endrewards\n')
-
-    f.close()
-
-
-def print_prism_ssp_nt_spec(filename):
-    """
-    Print out the SSP network description to the prism file
-        Input:
-            num_of_primes: the number of elements in the set S.
-            bug_cell: option to add a bug. bug cell is a list, [r, c, dir]. By default there are no bugs.
-            mu: a probability of an error. By default there is no error, so mu = 1.
-    """
-
-    # ----------------
-    # BEGINNING OF FILE CREATION
-    # ----------------
-
-    # Open file and write header into file
-    f = open(filename, 'w')
-    f.write('const int k;\n\n')
-    f.write('P>0 [ F = maxrow+1 row=maxrow & column = k ]\n')
-    f.write('P=? [ F = maxrow+1 row=maxrow & column = k ]\n')
-    f.close()
 
 
 def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modchecker, spec_number):
@@ -1089,3 +558,20 @@ def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modchecker, spec_
         # Prepare for next input
         if index % 2 == 1:
             row_id += 1
+
+
+def print_ssp_menu(str_mc):
+    """
+    Print menu for SSP options to screen.
+    """
+    if str_mc == 'NuSMV' or str_mc == 'nuXmv':
+        print('What would you like to look at with this set:\n')
+        print('\t[1] Bulk run output specifications')
+        print('\t[2] Run individual output specifications')
+        print('\t[3] Run general valid-invalid output specifications')
+        print('\t[4] Main Menu')
+    elif str_mc == 'prism':
+        print('What would you like to look at with this set:\n')
+        print('\t[1] Run general valid-invalid output')
+        print('\t[2] Calculate the probabilities of outputs')
+        print('\t[3] Main Menu')
