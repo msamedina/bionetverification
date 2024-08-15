@@ -12,6 +12,7 @@ import gn
 import miscfunctions as misc
 import os
 import json
+import threepartition
 
 # keep statistics of current running
 prob_dict = {"file_name": None, "Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Reset Diagonal Junction": 0, "Pass Junction": 0}
@@ -639,7 +640,7 @@ def cmd_menu(args):
 	cut = misc.cmd_parsing_cut(args.cut_in_u)
 	ic3 = misc.cmd_parsing_ic3(args.ic3)
 	keep = args.keep
-	stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": [], "3Partition": []} #------ CHANGED - add the 3-partition option
+	stats = {"GC": [], "SSP": [], "ExCov": [], "SAT": [], "3Part": []} #------ CHANGED - add the 3-partition option
 
 	"""
 	MAIN
@@ -1109,17 +1110,17 @@ def cmd_menu(args):
 	if problem_type == 4:
 		for str_modc in str_modc_list:
 			"""
-			Get and Parse SSP sets from input file
-            --------------------------------------
-            """
-			ssp_fn = input_dir + filename
-			ssp_arr, num_sets = ssp.read_ssp(ssp_fn)
+			Get and Parse 3-Partition sets from input file
+			--------------------------------------
+			"""
+			fn_3part = input_dir + filename
+			arr_3part, num_sets = ssp.read_ssp(fn_3part)
 
 			# keep statistics
-			for s_arr in ssp_arr:
+			for s_arr in arr_3part:
 				prob_stat = prob_dict.copy()
-				prob_stat["file_name"] = ssp_fn
-				prob_stat["SSP array"] = s_arr
+				prob_stat["file_name"] = fn_3part
+				prob_stat["3part array"] = s_arr
 				prob_stat["Depth"] = sum(s_arr)
 				split_arr = [1]
 				for s in s_arr[:-1]:
@@ -1127,129 +1128,83 @@ def cmd_menu(args):
 				prob_stat["Split Junction"] = sum(split_arr)
 				prob_stat["Reset Junction"] = 0
 				prob_stat["Pass Junction"] = sum(s_arr) ** 2 - sum(split_arr)
-				stats["SSP"].append(prob_stat)
+				stats["3Part"].append(prob_stat)
 
 			# Setup worksheet for data recording
-			ssp_wb = loadwb(template_dir + 'SSP_Template.xlsx') # to see thr
-			ssp_wb_num_of_sheets = len(ssp_wb.sheetnames)
-			ssp_xl_fn = misc.file_name_cformat(f'SSP_{str_modc}.xlsx') # to change the name of file
-			ssp_wb.save(ssp_xl_fn)
+			wb_3part = loadwb(template_dir + 'SSP_Template.xlsx') # to see thr
+			wb_num_of_sheets_3part = len(wb_3part.sheetnames)
+			xl_fn_3part = misc.file_name_cformat(f'3Partition_{str_modc}.xlsx') # to change the name of file
+			wb_3part.save(xl_fn_3part)
 
 			if not keep:
-
 				if str_modc == "NuSMV" or str_modc == "nuXmv":
 					"""
 					Generate smv files
-                    """
+					"""
+					smv_new_3part = []
 
-					ssp_smv = []
-					ssp_smv_nt = []
-					ssp_smv_new = []
-					ssp_smv_nt_new = []
-
-					# Use specification per output
-					if ssp_opt == 1 or ssp_opt == 2:
-						ssp_smv, ssp_smv_nt = ssp.smv_gen(ssp_arr, str_modc, with_tags=with_tags)
 					# Use new specifications (csum and nsum for whole network)
-					if ssp_opt == 3:
-						ssp_smv_new, ssp_smv_nt_new = ssp.smv_gen_newspec(ssp_arr, str_modc, with_tags=with_tags)
-
-						 #To choose the 3 option
-					# If selected bulk run
-					if ssp_opt == 1:
-						"""
-                        Run NuSMV
-                        Bulk run specs for per output specs
-                        ------------------
-                        """
-						# Add another worksheet based on the template
-						a_source = ssp_wb['ALL_Template']
-						ssp_a_ws = ssp_wb.copy_worksheet(a_source)
-						ssp_a_ws.title = 'Bulk_OutSpec'
-						ssp_wb.save(ssp_xl_fn)
-
-						# Run NuSMV and get output filename for specification
-						ssp.run_nusmv_all(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_a_ws, ssp_xl_fn, str_modc,
-										  with_tags=with_tags, ic3=ic3, verbosity=verbosity)
-
-					# If selected individual out run
-					elif ssp_opt == 2:
-						"""
-                        Run NuSMV
-                        Run each per output spec individually
-                        ------------------
-                        """
-						# Add another worksheet based on the template
-						s_source = ssp_wb['SINGLE_Template']
-						ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-						ssp_s_ws.title = 'Single_OutSpec'
-						ssp_wb.save(ssp_xl_fn)
-
-						# Run NuSMV and get outputs for each individual specification
-						ssp.run_nusmv_single(ssp_arr, ssp_smv, ssp_smv_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc,
-											 with_tags=with_tags, ic3=ic3, verbosity=verbosity)
+					smv_new_3part = ssp.smv_gen(arr_3part, str_modc, with_tags=with_tags)
 
 					# If selected general specifications
-					elif ssp_opt == 3:
-						"""
-                        Run NuSMV
-                        Run new specs (csum and nsum for whole network)
-                        ------------------
-                        """
-						# Add another worksheet based on the template
-						s_source = ssp_wb['NewSpec_Template']
-						ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-						ssp_s_ws.title = 'SSP_GenSpec'
-						ssp_wb.save(ssp_xl_fn)
+					"""
+					Run NuSMV
+					Run new specs (csum and nsum for whole network)
+					------------------
+					"""
+					# Add another worksheet based on the template
+					s_source = wb_3part['NewSpec_Template']
+					s_ws_3part = wb_3part.copy_worksheet(s_source)
+					s_ws_3part.title = '3Partition_GenSpec' #changed
+					wb_3part.save(xl_fn_3part)
 
-						# Run NuSMV and get outputs for each individual specification
-						ssp.run_nusmv_newspec(ssp_arr, ssp_smv_new, ssp_smv_nt_new, ssp_wb, ssp_s_ws, ssp_xl_fn,
-											  str_modc,
-											  with_tags=with_tags, verbosity=verbosity)
+					# Run NuSMV and get outputs for each individual specification
+					threepartition.run_nusmv_newspec(arr_3part, smv_new_3part, wb_3part, s_ws_3part, xl_fn_3part,
+										  str_modc,
+										  with_tags=with_tags, verbosity=verbosity)
 
 				elif str_modc == "prism":
-
 					"""
-                    Generate prism files
-                    """
+					Generate prism files
+					"""
 					# Use specification per output
-					ssp_prism_nt = ssp.prism_gen(ssp_arr, mu)
-
+					ssp_prism_nt = ssp.prism_gen(arr_3part, mu)
 					"""
-                    Run Prism
-                    ------------------
-                    """
+					Run Prism
+					------------------
+					"""
 					# Add another worksheet based on the template
-					s_source = ssp_wb['Prism_Template']
-					ssp_s_ws = ssp_wb.copy_worksheet(s_source)
-					ssp_s_ws.title = 'SSP_Prism_Results'
-					ssp_wb.save(ssp_xl_fn)
+					s_source = wb_3part['Prism_Template']
+					s_ws_3part = wb_3part.copy_worksheet(s_source)
+					s_ws_3part.title = 'SSP_Prism_Results'
+					wb_3part.save(xl_fn_3part)
 
 					# Run Prism and get outputs for each individual specification
-					ssp.run_prism(ssp_arr, ssp_prism_nt, ssp_wb, ssp_s_ws, ssp_xl_fn, str_modc, prism_spec)
+					ssp.run_prism(arr_3part, ssp_prism_nt, wb_3part, s_ws_3part, xl_fn_3part, str_modc, prism_spec)
 
 				# If selected return to main
 				"""
-                Finished running SSP problems
-                Remove template sheets and close file
-                In case there was no action - delete the file
-                """
-				if len(ssp_wb.sheetnames) > ssp_wb_num_of_sheets:
-					ssp_wb.remove(ssp_wb['ALL_Template'])
-					ssp_wb.remove(ssp_wb['SINGLE_Template'])
-					ssp_wb.remove(ssp_wb['NewSpec_Template'])
-					ssp_wb.remove(ssp_wb['Prism_Template'])
-					ssp_wb.save(ssp_xl_fn)
-					logging.info('Output Excel file is: ' + ssp_xl_fn)
+				Finished running 3Part problems
+				Remove template sheets and close file
+				In case there was no action - delete the file
+				"""
+				if len(wb_3part.sheetnames) > wb_num_of_sheets_3part:
+					wb_3part.remove(wb_3part['ALL_Template'])
+					wb_3part.remove(wb_3part['SINGLE_Template'])
+					wb_3part.remove(wb_3part['NewSpec_Template'])
+					wb_3part.remove(wb_3part['Prism_Template'])
+					wb_3part.save(xl_fn_3part)
+					logging.info('Output Excel file is: ' + xl_fn_3part)
 				else:
-					logging.info('There was no action in file: ' + ssp_xl_fn)
-					logging.info('delete file: ' + ssp_xl_fn)
-					os.remove(ssp_xl_fn)
+					logging.info('There was no action in file: ' + xl_fn_3part)
+					logging.info('delete file: ' + xl_fn_3part)
+					os.remove(xl_fn_3part)
 				logging.info('Closing workbook')
-				ssp_wb.close()
+				wb_3part.close()
 
 			else:
 				break
+
 
 	# Finished running, close logging
 	logging.info('Selected Quit')

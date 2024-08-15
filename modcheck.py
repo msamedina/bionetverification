@@ -735,7 +735,8 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 
 	logging.info('Opening process: ' + str_modchecker)
 	if sys.platform.startswith('linux'):
-		check_spec = [1, 2]
+		counter_path = 0
+		check_spec = [1] # To change
 		child = pexpect.spawn(str_modchecker, args=['-v', str(verbosity), '-int', filename],
 							  logfile=sys.stdout, encoding='utf-8',
 							  timeout=None)
@@ -755,6 +756,22 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 						print('Spec Run-time: ' + str(runtime) + ' milliseconds')
 						logging.info('Spec Run-time: ' + str(runtime) +
 									 ' milliseconds')
+						output = child.stdout
+						path_val = get_path(out_fn_arr[-1], sum_sub)
+
+						if (path_val[0] == "nil"):  # there is no counter example
+							break
+						else:  # there is counter example
+
+							path.append(path_val)  # make the interest GENERAL
+							counter_path += 1
+							spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+
+							# NuSMV inputs
+							out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
+							inputval_spec = [out_fn_arr[-1] + ' -p "' + spec + '"\n']
+							inputval.append(inputval_spec)
+
 					else:
 						prev_rec = child.before
 						logging.info(prev_rec)
@@ -806,7 +823,7 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 
 					path.append(path_val) # make the interest GENERAL
 					counter_path += 1
-					spec_name = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+					spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
 
 					# NuSMV inputs
 					out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
@@ -1073,7 +1090,7 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 			maxtagid: the largest tag index
 			ssp_or_ec: problem type being investigated ('ssp'and 'ec')
 		Output:
-			the name of the new specification
+			the name of the new specification, and the spec
 	"""
 	new_spec = ''
 	if ssp_ec_3part == 'ssp':
@@ -1114,9 +1131,9 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 	
 	# Return the name of the spec
 	if ssp_ec_3part == 'ssp' or ssp_ec_3part == '3part' :
-		return 'ltl_' + str(output_interest) + '_path_' + str(path_count)
+		return 'ltl_' + str(output_interest) + '_path_' + str(path_count), new_spec
 	elif ssp_ec_3part == 'ec':
-		return 'ltl_k_path_' + str(path_count)
+		return 'ltl_k_path_' + str(path_count), new_spec
 
 
 def get_spec_res(spec_res_fn, ic3=False):

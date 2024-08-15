@@ -179,6 +179,7 @@ def print_smv_3partition(filename, set_array, max_sum, set_size, max_tag_id, sum
         f.write('LTLSPEC\tNAME\tltl_' + str(0)
                 + ' := G! ((flag = TRUE) & (tcounter = 3) & (column = ' + str(int(sum_sub)) + '));\n')
 
+    print(split_j_loc)
 
     # ----------------
     # CLOSE THE FILE
@@ -186,12 +187,12 @@ def print_smv_3partition(filename, set_array, max_sum, set_size, max_tag_id, sum
 
 def tags_count(output_filename):
     """
-    	Parse the ltl output to find the count of tags that has changed for TRUE
-        Save their numbers in a set of changed_tags
-    		Input:
-    			output_filename: output file to be looked at
-    		Output:
-    			path_tag: the count of unique tags that changed to TRUE ant their values.
+    Parse the ltl output to find the count of tags that has changed for TRUE
+    Save their numbers in a set of changed_tags
+        Input:
+            output_filename: output file to be looked at
+        Output:
+            path_tag: the count of unique tags that changed to TRUE ant their values.
     """
     # Initialize a set to track tags that have changed to TRUE
     changed_tags = set()
@@ -211,58 +212,10 @@ def tags_count(output_filename):
     # Return the count of unique tags that changed to TRUE
     return changed_tags, len(changed_tags)
 
-def manual_input():
-    """
-    MANUALLY ENTER SSP SET
-    """
-    # Receive set size
-    logging.info('Receiving SSP set manually')
-    set_array = list()
-    set_size = misc.int_input(out_str='How many numbers are in your set: ')
-    # Receive the set elements
-    print('Enter numbers in your set (use return between elements): ')
-    for i in range(0, set_size):
-        temp = misc.int_input()
-        set_array.append(temp)
-    print('Your set is ' + str(set_array) + '\n')
-    logging.info('Set is: ' + str(set_array))
-    # Calculate the maximum sum of elements in the set
-    max_sum = sum(set_array)
-    return set_array, max_sum
 
 
-def read_3partition(filename):
-    """
-    Parse the 3partition input file for list of 3partition problems
-    Find file format in README
-        Input:
-            filename: 3partition input file name
-        Output:
-            list_3partition: List of all 3partition problems
-            set_id: Max set ID (starts from 0)
-    """
-    logging.info('Opening 3partition input file')
-    in_data = open(filename, "r")
-    list_3partition = list()
-    list_3partition.append(list())
 
-    # Run through the lines of data in the file
-    for set_id, line in enumerate(in_data):
-        tokens = line.split()
-        if len(tokens) != 0:
-            for tok in tokens:
-                lit = int(tok)
-                if lit == 0:
-                    logging.info('Set ' + str(set_id) + ': ' + str(list_3partition[-1]))
-                    list_3partition.append(list())
-                else:
-                    list_3partition[-1].append(lit)
-    list_3partition.pop()
-    logging.info('Total number of 3partition sets: ' + str(set_id + 1))
-    return list_3partition, set_id
-
-
-def smv_gen(arr_3partition, str_modc, with_tags='both'):
+def smv_gen(arr_3partition, str_modc, with_tags='with'):
     """
     Loop through array of 3partition problems and generate two smv files for each (with and without tags)
         Input:
@@ -288,6 +241,83 @@ def smv_gen(arr_3partition, str_modc, with_tags='both'):
     return smv_3partition
 
 #To check if this functions are rellevant?
+
+def run_nusmv_newspec(ssp_arr, smv_t_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', verbosity=0):
+    """
+    Loop through array of SSP smv files and run NuSMV. Save results in Excel
+    Using new specification type
+        Input:
+            ssp_arr: array of SSP problems
+            smv_t_arr: array of smv files using tagging
+            smv_nt_arr: array of smv files not using tagging
+            wbook: The excel workbook
+            wsheet: the excel worksheet
+            xl_fn: excel file name
+            str_modchecker: string containing name of model checker (NuSMV or nuXmv)
+            with_tags: Flag for using networks with tags
+    """
+    row_id = 0
+    for index, ssp in enumerate(ssp_arr):
+        # Save index, k, set, filenames, and output of interest in excel file
+        logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
+        __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
+        __ = wsheet.cell(column=1, row=(row_id + 5), value=index)
+        __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
+        __ = wsheet.cell(column=2, row=(row_id + 5), value=len(ssp))
+        __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
+        __ = wsheet.cell(column=3, row=(row_id + 5), value=repr(ssp))
+        __ = wsheet.cell(column=6, row=(row_id + 4), value='csum')
+        __ = wsheet.cell(column=6, row=(row_id + 5), value='nsum')
+        wbook.save(xl_fn)
+
+        # Run NuSMV new spec on with tags
+        if with_tags in ['with', 'both']:
+            __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
+            __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
+            wbook.save(xl_fn)
+
+            #out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modchecker, verbosity)
+
+            sum_sub = threepartition.pre_calc_3partition(ssp_arr[0])
+
+            out_fn, out_rt, is_solve = modcheck.call_nusmv_pexpect_3partition(smv_t_arr[index], str_modchecker, len(ssp_arr[0]), sum_sub, ssp_arr[0])
+
+            # Parse output files if runtime not = "Killed":
+            if out_rt[0] != 'Killed':
+                csum = modcheck.get_spec_res(out_fn[0])
+            else:
+                csum = 'Killed'
+            if out_rt[1] != 'Killed':
+                nsum = modcheck.get_spec_res(out_fn[1])
+            else:
+                nsum = 'Killed'
+            logging.info('csum Result: ' + csum)
+            logging.info('nsum Result: ' + nsum)
+
+            if csum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
+            elif csum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
+            elif csum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
+            if nsum == 'false':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
+            elif nsum == 'true':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
+            elif nsum == 'Killed':
+                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
+
+            logging.info('Saving Tags data in Excel')
+            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
+            __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[0])
+            __ = wsheet.cell(column=8, row=(row_id + 5), value=out_fn[1])
+            __ = wsheet.cell(column=9, row=(row_id + 5), value=out_rt[1])
+            wbook.save(xl_fn)
+
+        # Prepare for next input
+        row_id = row_id + 2
+
+
 def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False,
                   verbosity=0):
     """

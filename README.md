@@ -81,21 +81,21 @@ Bionetverification has been tested on systems running Linux (Ubuntu 18.04.5 LTS,
 ### Command line mode
 To run BNVerify, execute from the repo directory, using the following arguments:
 
-| Short Arg | Long Arg                    | Use                        | Input values                          | Required? (Default) |
-|:---------:|:---------------------------:|----------------------------|---------------------------------------|---------------------|
-| -p        | --prob                      | Problem type               | GC, SSP, ExCov or SAT                 | Yes                 |
-| -f        | --filename                  | Input file name            |                                       | Yes                 |
-| -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all              | Yes                 |
+| Short Arg | Long Arg                    | Use                        | Input values                     | Required? (Default) |
+|:---------:|:---------------------------:|----------------------------|----------------------------------|---------------------|
+| -p        | --prob                      | Problem type               | GC, SSP, ExCov, SAT or 3Part     | Yes                 |
+| -f        | --filename                  | Input file name            |                                  | Yes                 |
+| -m        | --modecheck                 | Model checker              | NuSMV, nuXmv, PRISM, all         | Yes                 |
 | -o        | --opt                       | Spec options (SSP in SMV)  | 1 (Bulk), 2 (Individual), 3 (General) | No (1)              |
-| -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both                   | No (without)        |
-| -v        | --vro                       | Variable reordering (SAT)  | with, without, both                   | No (without)        |
-| -s        | --spec                      | Spec type (PM)             | reachability, probability             | No (reachability)   |
-| -e        | --error                     | Error rate *μ* (PM)        | Number in range [0, 1]                | No (0)              |
-| -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4                   | No (0)              |
-| -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                           | No (True)           |
-| -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                           | No (True)           |
-| -i        | --ic3                       | IC3 engine for LTL (nuXmv) | True, False                           | No (False)          |
-| -k        | --keep                      | Collect statistcs only     | True, False                           | No (False)          |
+| -t        | --tags                      | Tag variable (SSP, ExCov)  | with, without, both              | No (without)        |
+| -v        | --vro                       | Variable reordering (SAT)  | with, without, both              | No (without)        |
+| -s        | --spec                      | Spec type (PM)             | reachability, probability        | No (reachability)   |
+| -e        | --error                     | Error rate *μ* (PM)        | Number in range [0, 1]           | No (0)              |
+| -ver      | --verbosity                 | NuSMV/nuXmv verbosity      | Integer from 0 to 4              | No (0)              |
+| -c        | --cut\_in\_u                | Cut network at *k* (ExCov) | True, False                      | No (True)           |
+| -b        | --bit\_mapping              | Bit-mapping optimization   | True, False                      | No (True)           |
+| -i        | --ic3                       | IC3 engine for LTL (nuXmv) | True, False                      | No (False)          |
+| -k        | --keep                      | Collect statistcs only     | True, False                      | No (False)          |
 
 Input files should be saved in the Inputs directory. Once this is done, it is enough to enter the file name without full path. If the file is saved within a subdirectory, that part of the path should be entered with the filename.
 

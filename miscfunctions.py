@@ -164,7 +164,7 @@ def prism_set_mu():
 
 
 def cmd_parsing_problem(problem):
-	problem_list = ['GC', 'SSP', 'ExCov', 'SAT', '3Partition']
+	problem_list = ['GC', 'SSP', 'ExCov', 'SAT', '3Part']
 	return problem_list.index(problem)
 
 
