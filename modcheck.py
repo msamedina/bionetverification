@@ -741,7 +741,8 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 							  logfile=sys.stdout, encoding='utf-8',
 							  timeout=None)
 		logging.info('Process opened')
-		for i in range(0, len(inputval)):
+		for input in inputval:
+			i = inputval.index(input)
 			while True:
 				try:
 					# Expect pattern to identify model checker waiting for input
@@ -762,16 +763,15 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 						if (path_val[0] == "nil"):  # there is no counter example
 							break
 						else:  # there is counter example
-
 							path.append(path_val)  # make the interest GENERAL
 							counter_path += 1
-							spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+							spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, 'LTL','3part')
 
 							# NuSMV inputs
 							out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
-							inputval_spec = [out_fn_arr[-1] + ' -p "' + spec + '"\n']
-							inputval.append(inputval_spec)
-
+							inputval_spec = 'check_ltlspec -o ' + out_fn_arr[-1] + ' -p "' + spec.strip() + '"\n'
+							inputval.insert(-1, inputval_spec)
+							check_spec.append(check_spec[-1] + 1)
 					else:
 						prev_rec = child.before
 						logging.info(prev_rec)
@@ -823,7 +823,7 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 
 					path.append(path_val) # make the interest GENERAL
 					counter_path += 1
-					spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+					spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, 'LTL', '3part')
 
 					# NuSMV inputs
 					out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
@@ -1077,7 +1077,7 @@ def get_path(output_filename, output_interest):
 	return path_tag
 
 
-def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_3part):
+def add_path_spec(path, path_count, output_interest, filename, maxtagid, spec_type, ssp_ec_3part):
 	"""
 	Add specification to smv file that checks for additional paths to output
 	Relevant for SSP (original spec) and ExCov, has no meaning for SAT
@@ -1093,17 +1093,15 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 			the name of the new specification, and the spec
 	"""
 	new_spec = ''
+	smv_spec = f'\n{spec_type.upper()}SPEC\tNAME\tltl_{str(output_interest)}_path_{str(path_count)} := '
 	if ssp_ec_3part == 'ssp':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
-					+ str(path_count) + ' := G! ((flag = TRUE) & (column = '
+		new_spec = ('G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 	elif ssp_ec_3part == 'ec':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_k_path_' + str(path_count)
-					+ ' := G! ((flag = TRUE) & (column = '
+		new_spec = ('G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 	elif ssp_ec_3part == '3part':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
-					+ str(path_count) + ' := G! ( (tcounter = 3) & (flag = TRUE) & (column = '
+		new_spec = ('G! ( (tcounter = 3) & (flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 
 	# Make list for the tags
@@ -1121,12 +1119,13 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 			else:
 				tag_list += '(tag[' + str(i) + '] = FALSE)'
 		tag_list += ')'
-	tag_list += '));'
+	tag_list += '))'
 	new_spec += tag_list
-	
+	smv_spec += new_spec + ';'
+
 	# Append new spec to the NuSMV file
 	f = open(filename, "a+")
-	f.write(new_spec)
+	f.write(smv_spec)
 	f.close()
 	
 	# Return the name of the spec
