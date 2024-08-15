@@ -8,6 +8,7 @@ __pycache__/
 **/bnverifyEnv
 # exclude hidden vscode directory
 **/.vscode
+**/.idea
 # exclude workspace
 *.code-workspace
 prism-4.6-linux64/tmp
