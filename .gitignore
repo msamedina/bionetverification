@@ -6,10 +6,15 @@ __pycache__/
 # exclude directory and all contained files
 **/Logs
 **/TestingClasses
+**/bnverifyEnv
 # exclude hidden vscode directory
 **/.vscode
+**/.idea
 # exclude workspace
 *.code-workspace
 prism-4.6-linux64/tmp
 prism-4.6-linux64/bin/prism
 prism-4.6-linux64/bin/xprism
+
+TestingClasses.py
+HadasTests.sh
