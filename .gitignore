@@ -3,8 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# exclude directory Logs and all contained files
+# exclude directory and all contained files
 **/Logs
+**/TestingClasses
 # exclude hidden vscode directory
 **/.vscode
 # exclude workspace
@@ -12,5 +13,3 @@ __pycache__/
 prism-4.6-linux64/tmp
 prism-4.6-linux64/bin/prism
 prism-4.6-linux64/bin/xprism
-
-TestingClasses.py

@@ -314,7 +314,7 @@ def read_gn(fn=None):
 	# Currently going to assume row length is equal to column length
 	# TODO: Adjust Accordingly for varied input types
 	if split_row:
-		rows = split_row.group(1)
+		rows = eval(split_row.group(1))
 		for row in rows:
 			for i in range(0, row + 1):
 					split_junc.append([row,i])
@@ -339,7 +339,7 @@ def read_gn(fn=None):
 	# else:
 		# rdiagj = lambda x, y: False
 
-	logging.info('Save spit-top coordinates')
+	logging.info('Save split-top coordinates')
 	# Split-Top - row 4
 	if len(gn) > 4 and gn[4] != '\n':
 		split_top_junc = ast.literal_eval(re.search(coord_pattern, gn[4]).group(1))
