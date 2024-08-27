@@ -291,8 +291,8 @@ The 3-partition problem can be verified by running the NBC model with the follow
 
 To run the 3-partition problem using the provided example, use the input file:
 ```sh
-3Part_Input
-```sh
+3Part_Input 
+```
 
 ### Solution Explanation
 
