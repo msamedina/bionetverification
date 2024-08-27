@@ -266,3 +266,44 @@ In order to reproduce Table 4, run on input file:
 
 ## 7. 3-Partition :
 
+The 3-partition problem is an NP-complete problem that can be verified using network-based biocomputation (NBC). The objective of the problem is to determine if a given multiset of integers `S` can be partitioned into triplets such that the sum of the elements in each triplet is equal to a target sum `T`. In BNVerify, this problem is modeled using an NBC circuit, where the correctness of the partitioning is checked via model checking.
+
+### Problem Definition
+
+The input file for the 3-partition problem represents a set of integers, `S`. The goal is to verify whether this set can be partitioned into subsets of exactly three elements, where the sum of each subset equals the target sum `T`.
+
+#### Example Input
+
+Given the input set: S = {4, 5, 6, 7, 8, 9, 10, 11, 15}
+The total sum of the elements is 75, and the target sum for each triplet is calculated as: T = 75 / 3 = 25
+The NBC will explore all possible ways to partition the set `S` into triplets that sum to 25. The output of the NBC represents the solution.
+
+### Running the Model
+
+The 3-partition problem can be verified by running the NBC model with the following specifications:
+
+1. **Define Target Sum**: The target sum `T = 25` is specified.
+2. **Route Exploration**: All possible routes through the NBC are explored. For each route, the number of 'True' tags is counted, and the specification checks if the number of 'True' tags equals 3, indicating a valid triplet.
+3. **Iterative Specification**: The NBC iterates over all routes, ensuring that each route is unique and no route is repeated.
+4. **Exact Cover Check**: After running the NBC, the `find_exact_cover` function verifies whether an exact cover exists. An exact cover exists if all triplets are pairwise disjoint and collectively form the full set `S`.
+
+#### Minimal Running Example
+
+To run the 3-partition problem using the provided example, use the input file:
+```sh
+3Part_Input
+```sh
+
+### Solution Explanation
+
+The solution shows all the routes of triple subsets, where each subset contains the indices of the elements in `S`. For example, the subset `['0', '2', '8']` represents the subset `[4, 6, 15]`, where:
+- 4 is the element at index 0,
+- 6 is the element at index 2, and
+- 15 is the element at index 8.
+
+The NBC found an exact cover consisting of the following subsets: { [4, 6, 15], [5, 9, 11], [7, 8, 10] }
+
+Since an exact cover exists, the NBC returns `True`, and the solution subsets are shown as expected. If no exact cover had been found, the NBC would have returned `False`.
+
+
+
