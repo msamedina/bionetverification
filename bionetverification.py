@@ -14,6 +14,7 @@ import os
 import json
 import threepartition
 
+
 # keep statistics of current running
 prob_dict = {"file_name": None, "Depth": 0, "Split Junction": 0, "Reset Junction": 0, "Reset Diagonal Junction": 0, "Pass Junction": 0}
 
@@ -1141,10 +1142,10 @@ def cmd_menu(args):
 					"""
 					Generate smv files
 					"""
-					smv_new_3part = []
+					#sum_sub = threepartition.pre_calc_3partition(s_arr)
 
 					# Use new specifications (csum and nsum for whole network)
-					smv_new_3part = ssp.smv_gen(arr_3part, str_modc, with_tags=with_tags)
+					smv_new_3part = threepartition.smv_gen(arr_3part, str_modc, with_tags="with")
 
 					# If selected general specifications
 					"""
@@ -1160,8 +1161,7 @@ def cmd_menu(args):
 
 					# Run NuSMV and get outputs for each individual specification
 					threepartition.run_nusmv_newspec(arr_3part, smv_new_3part, wb_3part, s_ws_3part, xl_fn_3part,
-										  str_modc,
-										  with_tags=with_tags, verbosity=verbosity)
+										  str_modc, with_tags="with", verbosity=verbosity)
 
 				elif str_modc == "prism":
 					"""

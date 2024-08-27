@@ -263,3 +263,6 @@ In order to reproduce Table 4, run on input file:
 ```sh
 /NFM22_Inputs/SAT_table4
 ```
+
+## 7. 3-Partition :
+

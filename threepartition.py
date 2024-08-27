@@ -21,6 +21,10 @@ def pre_calc_3partition(s_arr):
         float or bool: The target sum for each subset if the array can be partitioned
                    into three equal subsets, otherwise False.
     """
+    set_input = set(s_arr)
+    if len(set_input) < len(s_arr):
+        return False
+
     if len(s_arr) % 3 != 0:
         return False
     else:
@@ -28,7 +32,7 @@ def pre_calc_3partition(s_arr):
     sum_s = sum(s_arr)
     sum_sub = sum_s / count_sub
 
-    return sum_sub
+    return int(sum_sub)
 
 def file_name_gen_3part(set_array, arr_length, str_mc='NuSMV'):
     """
@@ -179,8 +183,6 @@ def print_smv_3partition(filename, set_array, max_sum, set_size, max_tag_id, sum
         f.write('LTLSPEC\tNAME\tltl_' + str(0)
                 + ' := G! ((flag = TRUE) & (tcounter = 3) & (column = ' + str(int(sum_sub)) + '));\n')
 
-    print(split_j_loc)
-
     # ----------------
     # CLOSE THE FILE
     f.close()
@@ -230,13 +232,18 @@ def smv_gen(arr_3partition, str_modc, with_tags='with'):
     for p3part in arr_3partition:
         # Create 3partition NuSMV File
         max_tag_id = []
-        # With tags
-        smv_name_3part = file_name_gen_3part(p3part, len(p3part), str_modc)
-        if with_tags in ['with', 'both']:
-            logging.info('Generating NuSMV file with tags...')
-            print_smv_3partition(smv_name_3part, p3part, sum(p3part), len(p3part), max_tag_id)
-            logging.info('Generated NuSMV file with tags')
-            smv_3partition.append(smv_name_3part)
+        sum_sub = pre_calc_3partition(p3part)
+        if not sum_sub:
+            print("The Set is Invalid")
+            smv_3partition.append("")
+        else:
+            # With tags
+            smv_name_3part = file_name_gen_3part(p3part, len(p3part), str_modc)
+            if with_tags in ['with', 'both']:
+                logging.info('Generating NuSMV file with tags...')
+                print_smv_3partition(smv_name_3part, p3part, sum(p3part), len(p3part), max_tag_id, sum_sub)
+                logging.info('Generated NuSMV file with tags')
+                smv_3partition.append(smv_name_3part)
 
     return smv_3partition
 
@@ -258,64 +265,43 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, wbook, wsheet, xl_fn, str_modchecker, 
     """
     row_id = 0
     for index, ssp in enumerate(ssp_arr):
-        # Save index, k, set, filenames, and output of interest in excel file
-        logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
-        __ = wsheet.cell(column=1, row=(row_id + 4), value=index)
-        __ = wsheet.cell(column=1, row=(row_id + 5), value=index)
-        __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
-        __ = wsheet.cell(column=2, row=(row_id + 5), value=len(ssp))
-        __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
-        __ = wsheet.cell(column=3, row=(row_id + 5), value=repr(ssp))
-        __ = wsheet.cell(column=6, row=(row_id + 4), value='csum')
-        __ = wsheet.cell(column=6, row=(row_id + 5), value='nsum')
-        wbook.save(xl_fn)
 
-        # Run NuSMV new spec on with tags
-        if with_tags in ['with', 'both']:
-            __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
-            __ = wsheet.cell(column=4, row=(row_id + 5), value=smv_t_arr[index])
-            wbook.save(xl_fn)
+        sum_sub = pre_calc_3partition(ssp)
+        if sum_sub:
+            out_fn, out_rt, is_solve, spec_names, values_subset = modcheck.call_nusmv_pexpect_3partition(smv_t_arr[index], str_modchecker, len(ssp), sum_sub, ssp)
 
-            #out_fn, out_rt = modcheck.call_nusmv_pexpect_ssp_newspec(smv_t_arr[index], str_modchecker, verbosity)
+            for i in range(len(out_fn)):
+                # Save index, k, set, filenames, and output of interest in excel file
+                logging.info('Inputting ID, k, set, filenames, and spec data into Excel...')
+                __ = wsheet.cell(column=1, row=(row_id + 4), value=str(index) +'.' +str(i))
+                __ = wsheet.cell(column=2, row=(row_id + 4), value=len(ssp))
+                __ = wsheet.cell(column=3, row=(row_id + 4), value=repr(ssp))
+                __ = wsheet.cell(column=4, row=(row_id + 4), value=smv_t_arr[index])
+                __ = wsheet.cell(column=6, row=(row_id + 4), value=spec_names[i])
+                wbook.save(xl_fn)
 
-            sum_sub = threepartition.pre_calc_3partition(ssp_arr[0])
+                # Parse output files if runtime not = "Killed":
+                if out_rt[i] != 'Killed':
+                    spec_res = modcheck.get_spec_res(out_fn[i])
+                else:
+                    spec_res = 'Killed'
+                logging.info('spec Result: ' + spec_res)
 
-            out_fn, out_rt, is_solve = modcheck.call_nusmv_pexpect_3partition(smv_t_arr[index], str_modchecker, len(ssp_arr[0]), sum_sub, ssp_arr[0])
+                if spec_res == 'false':
+                    __ = wsheet.cell(column=7, row=(row_id + 4), value='PATH')
+                elif spec_res == 'true':
+                    __ = wsheet.cell(column=7, row=(row_id + 4), value='NO PATH. Is Solve: ' +str(is_solve))
+                    __ = wsheet.cell(column=12, row=(row_id + 4), value='Solution Subsets:  ' + repr(values_subset))
+                elif spec_res == 'Killed':
+                    __ = wsheet.cell(column=7, row=(row_id + 4), value=spec_res)
 
-            # Parse output files if runtime not = "Killed":
-            if out_rt[0] != 'Killed':
-                csum = modcheck.get_spec_res(out_fn[0])
-            else:
-                csum = 'Killed'
-            if out_rt[1] != 'Killed':
-                nsum = modcheck.get_spec_res(out_fn[1])
-            else:
-                nsum = 'Killed'
-            logging.info('csum Result: ' + csum)
-            logging.info('nsum Result: ' + nsum)
+                logging.info('Saving Tags data in Excel')
+                __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[i])
+                __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[i])
+                wbook.save(xl_fn)
 
-            if csum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='INVALID')
-            elif csum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value='VALID')
-            elif csum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 4), value=csum)
-            if nsum == 'false':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='INVALID')
-            elif nsum == 'true':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value='VALID')
-            elif nsum == 'Killed':
-                __ = wsheet.cell(column=7, row=(row_id + 5), value=nsum)
-
-            logging.info('Saving Tags data in Excel')
-            __ = wsheet.cell(column=8, row=(row_id + 4), value=out_fn[0])
-            __ = wsheet.cell(column=9, row=(row_id + 4), value=out_rt[0])
-            __ = wsheet.cell(column=8, row=(row_id + 5), value=out_fn[1])
-            __ = wsheet.cell(column=9, row=(row_id + 5), value=out_rt[1])
-            wbook.save(xl_fn)
-
-        # Prepare for next input
-        row_id = row_id + 2
+                # Prepare for next input
+                row_id = row_id + 1
 
 
 def run_nusmv_all(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', ic3=False,
@@ -482,37 +468,7 @@ def run_nusmv_single(ssp_arr, smv_t_arr, smv_nt_arr, wbook, wsheet, xl_fn, str_m
             row_id = row_id + 1
 
 
-def prism_gen(ssp_arr, mu_user_input):
-    """
-    Loop through array of SSP problems and generate prism file
-        Input:
-            filename: Prism output file name
-        Output:
-            ssp_list: List of all SSP problems
-            set_id: Max set ID (starts from 0)
-    """
 
-    ssp_prism_nt = []
-    for ssp in ssp_arr:
-        # Create SSP Prism File
-        max_tag_id = []
-        ssp_prism_name = file_name_gen_3part(ssp, len(ssp), 'prism')
-        # Without tags
-        logging.info('Generating Prism file without tags...')
-        ssp_prism_name_nt = 'NT_mu_0_' + ssp_prism_name
-        print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=0, bug_cell=None)
-        logging.info('Generated Prism file with mu = 0')
-        ssp_prism_nt.append(ssp_prism_name_nt)
-
-        ssp_prism_name_nt = misc.file_name_cformat(f'NT_mu_{mu_user_input}_' + '_{0}' + ssp_prism_name)
-        print_prism_ssp_nt(ssp_prism_name_nt, ssp, sum(ssp), len(ssp), mu=mu_user_input, bug_cell=None)
-        logging.info('Generated Prism file without tags')
-        ssp_prism_nt.append(ssp_prism_name_nt)
-
-    # create spec file
-    print_prism_ssp_nt_spec('spec_ssp.pctl')
-
-    return ssp_prism_nt
 
 
 def run_prism(ssp_arr, prism_nt_arr, wbook, wsheet, xl_fn, str_modchecker, spec_number):

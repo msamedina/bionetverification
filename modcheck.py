@@ -729,9 +729,11 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 	runtime = 0
 	err_flag = 0
 	path = []
+	spec_names = ["ltl_0"]
 
 	# NuSMV inputs
 	inputval = ['go\n', 'check_ltlspec -o ' + out_fn_arr[0] + ' -P "ltl_0"\n', 'quit\n']
+	print("\nInput Set: " +str(origin_set))
 
 	logging.info('Opening process: ' + str_modchecker)
 	if sys.platform.startswith('linux'):
@@ -766,6 +768,7 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 							path.append(path_val)  # make the interest GENERAL
 							counter_path += 1
 							spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
+							spec_names.append(spec_name)
 
 							# NuSMV inputs
 							out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
@@ -799,6 +802,7 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 
 		child.close()
 
+
 	elif sys.platform.startswith('win32'):
 		counter_path = 0
 		inputval_win = [''.join(itemgetter(0, 1, -1)(inputval))] #to check
@@ -817,10 +821,7 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 				output = child.stdout
 				path_val = get_path(out_fn_arr[-1], sum_sub)
 
-				if (path_val[0] == "nil") : #there is no counter example
-					break
-				else: #there is counter example
-
+				if (path_val[0] != "nil") : #there is counter example
 					path.append(path_val) # make the interest GENERAL
 					counter_path += 1
 					spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
@@ -830,27 +831,31 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 					inputval_temp = ['go\n', 'check_ltlspec -o ' + out_fn_arr[-1] + ' -P "' +spec_name +'"\n','quit\n']
 					inputval_add = ''.join(itemgetter(0, 1, -1)(inputval_temp)) # to check
 					inputval_win.append(inputval_add)
-
+					spec_names.append(spec_name)
 
 			except subprocess.CalledProcessError:
 				runtime = 'Killed'
 			out_rt_arr.append(runtime)
 
 	# The universe is the set of all unique elements in the subsets
-	universe = set.union(*[set(s) for s in path])
+	is_solve = False
+	values_subset = []
 
-	is_solve, subsets_sol = find_exact_cover(path, universe)
+	if path != []:
+		universe = set.union(*[set(s) for s in path])
+
+		is_solve, subsets_sol = find_exact_cover(path, universe)
+
+		values_subset = convert_indexes_to_values(subsets_sol, origin_set)
 
 	# print if there is a solution
-	print("There is solution: " +str(is_solve))
-
-	values_subset = convert_indexes_to_values(subsets_sol, origin_set)
+	print("There is solution: " + str(is_solve))
 
 	# if there is- print the subsets of the solution
 	if is_solve:
 		print("The solution subsets:", values_subset)
 
-	return out_fn_arr, out_rt_arr, is_solve
+	return out_fn_arr, out_rt_arr, is_solve, spec_names, values_subset
 
 
 def find_exact_cover(sets, universe):
@@ -1071,7 +1076,7 @@ def get_path(output_filename, output_interest):
 
 	# Close the file
 	file.close()
-	print(path_tag)
+	print(str(path_tag))
 
 	# Return the path taken
 	return path_tag
