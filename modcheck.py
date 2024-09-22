@@ -743,13 +743,37 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 							  logfile=sys.stdout, encoding='utf-8',
 							  timeout=None)
 		logging.info('Process opened')
-		for i in range(0, len(inputval)):
+
+		try:
+			child.expect('\n' + str_modchecker)
+		except pexpect.EOF:
+			err_flag = 1
+			prev_rec = child.before
+			logging.info(prev_rec)
+			ermsg = "Process " + str_modchecker + " was killed."
+			logging.exception(msg=ermsg)
+
+		i = 0
+		for inputv in inputval:
+			if err_flag == 0:
+				if i in check_spec:
+					print('Running Specs...')
+					logging.info('Running specs...')
+					start = datetime.datetime.now()
+
+				logging.info(f"{str_modchecker} command: {inputval[i]}")
+				child.send(inputv)
+			elif err_flag == 1:
+				while len(out_rt_arr) < 2:
+					out_rt_arr.append('Killed')
+				break
+
 			while True:
 				try:
 					# Expect pattern to identify model checker waiting for input
 					child.expect('\n' + str_modchecker)
 					# If previous input was a spec check do:
-					if (i - 1) in check_spec:
+					if i in check_spec:
 						stop = datetime.datetime.now()
 						runtime = int((stop - start).total_seconds() * 1000)
 						out_rt_arr.append(runtime)
@@ -764,7 +788,6 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 						if (path_val[0] == "nil"):  # there is no counter example
 							break
 						else:  # there is counter example
-
 							path.append(path_val)  # make the interest GENERAL
 							counter_path += 1
 							spec_name, spec = add_path_spec(path, counter_path, sum_sub, filename, max_tag_id, '3part')
@@ -772,8 +795,9 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 
 							# NuSMV inputs
 							out_fn_arr.append(misc.file_name_cformat('output_3par_LTL_{0}'))
-							inputval_spec = [out_fn_arr[-1] + ' -p "' + spec + '"\n']
-							inputval.append(inputval_spec)
+							inputval_spec = 'check_ltlspec -o ' + out_fn_arr[-1] + ' -p "' + spec + '"\n'
+							inputval.insert(-1, inputval_spec)
+							check_spec.append(i + 1)
 
 					else:
 						prev_rec = child.before
@@ -787,21 +811,9 @@ def call_nusmv_pexpect_3partition(filename, str_modchecker, max_tag_id, sum_sub,
 					logging.exception(msg=ermsg)
 					break
 
-			if err_flag == 0:
-				if i in check_spec:
-					print('Running Specs...')
-					logging.info('Running specs...')
-					start = datetime.datetime.now()
-
-				logging.info(str_modchecker + ' command: ' + inputval[i])
-				child.send(inputval[i])
-			elif err_flag == 1:
-				while len(out_rt_arr) < 2:
-					out_rt_arr.append('Killed')
-				break
+			i += 1
 
 		child.close()
-
 
 	elif sys.platform.startswith('win32'):
 		counter_path = 0
@@ -1098,17 +1110,21 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 			the name of the new specification, and the spec
 	"""
 	new_spec = ''
+	w_name = ''
 	if ssp_ec_3part == 'ssp':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
-					+ str(path_count) + ' := G! ((flag = TRUE) & (column = '
+		w_name = ('LTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
+					+ str(path_count) + ' := ')
+		new_spec = ('G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 	elif ssp_ec_3part == 'ec':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_k_path_' + str(path_count)
-					+ ' := G! ((flag = TRUE) & (column = '
+		w_name = ('LTLSPEC\tNAME\tltl_k_path_' + str(path_count)
+					+ ' := ')
+		new_spec = ('G! ((flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 	elif ssp_ec_3part == '3part':
-		new_spec = ('\nLTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
-					+ str(path_count) + ' := G! ( (tcounter = 3) & (flag = TRUE) & (column = '
+		w_name = ('LTLSPEC\tNAME\tltl_' + str(output_interest) + '_path_'
+				  + str(path_count) + ' := ')
+		new_spec = ('G! ( (tcounter = 3) & (flag = TRUE) & (column = '
 					+ str(output_interest) + ') & !(')
 
 	# Make list for the tags
@@ -1126,12 +1142,12 @@ def add_path_spec(path, path_count, output_interest, filename, maxtagid, ssp_ec_
 			else:
 				tag_list += '(tag[' + str(i) + '] = FALSE)'
 		tag_list += ')'
-	tag_list += '));'
+	tag_list += '))'
 	new_spec += tag_list
 	
 	# Append new spec to the NuSMV file
 	f = open(filename, "a+")
-	f.write(new_spec)
+	f.write(f"\n{w_name + new_spec};")
 	f.close()
 	
 	# Return the name of the spec

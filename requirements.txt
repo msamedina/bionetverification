@@ -1,6 +1,6 @@
 ###### Requirements without Version Specifiers ######`
 pexpect~=4.8.0
-scipy~=1.7.3
+scipy~=1.10.0-rc1
 networkx
 
 ###### Requirements with Version Specifiers ######`

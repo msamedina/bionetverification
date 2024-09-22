@@ -247,8 +247,6 @@ def smv_gen(arr_3partition, str_modc, with_tags='with'):
 
     return smv_3partition
 
-#To check if this functions are rellevant?
-
 def run_nusmv_newspec(ssp_arr, smv_t_arr, wbook, wsheet, xl_fn, str_modchecker, with_tags='both', verbosity=0):
     """
     Loop through array of SSP smv files and run NuSMV. Save results in Excel
@@ -281,6 +279,7 @@ def run_nusmv_newspec(ssp_arr, smv_t_arr, wbook, wsheet, xl_fn, str_modchecker, 
                 wbook.save(xl_fn)
 
                 # Parse output files if runtime not = "Killed":
+                #if i < len(out_rt):
                 if out_rt[i] != 'Killed':
                     spec_res = modcheck.get_spec_res(out_fn[i])
                 else:
